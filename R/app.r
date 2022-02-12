@@ -7,7 +7,8 @@ source("segments.r")
 source("ui_choices.r")
 
 franchises_by_season <- function(franchises, year) {
-  franchises %>% filter(FirstSeason <= year & (FinalSeason >= year | is.na(FinalSeason)))
+  franchises %>% filter(FirstSeason <= year &
+                          (FinalSeason >= year | is.na(FinalSeason)))
 }
 
 franchises_by_seasons <- function(franchises, years) {
@@ -26,12 +27,15 @@ ui <- fluidPage(
   titlePanel("Streak Explorer"),
   sidebarLayout(
     sidebarPanel(
-      sliderInput("years", "Years", min=1950, max=2020, step=1, value=initialYearRange, sep=""),
-      selectInput("leagues", "League", choices = c("All Leagues" = "BOTH", "AL"="AL", "NL"="NL")),
+      sliderInput("years", "Years", min=1950, max=2020, step=1,
+                  value=initialYearRange, sep=""),
+      selectInput("leagues", "League",
+                  choices = c("All Leagues" = "BOTH", "AL"="AL", "NL"="NL")),
       selectInput("divisions", "Divisions", choices=list(), multiple=TRUE),
       #uiOutput("divisions_select"),
       selectInput("teams", "Teams", choices=list(), multiple=TRUE),
-      radioButtons("streak_type", "Streak Type", choices=c("HOT", "COLD"), selected="HOT")
+      radioButtons("streak_type", "Streak Type", choices=c("HOT", "COLD"),
+                   selected="HOT")
     ),
     mainPanel(
       plotOutput("streaks", click="streak_click"),
@@ -83,7 +87,8 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$leagues, {
-    selected_leagues(if(input$leagues == "BOTH") c("AL", "NL") else input$leagues)
+    selected_leagues(
+      if(input$leagues == "BOTH") c("AL", "NL") else input$leagues)
     updateSelectInput(session, "divisions", choices=division_choices(),
                       selected=unlist(division_choices()))
   })
@@ -94,8 +99,8 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$divisions, {
-    selected_league_divisions(input$divisions %>%
-                                division_choice_values_as_league_and_division_list())
+    selected_league_divisions(
+      input$divisions %>% division_choice_values_as_league_and_division_list())
     updateSelectInput(session, "teams", choices=teams_choices(),
                       selected=teams_choices())
 
@@ -121,7 +126,8 @@ server <- function(input, output, session) {
   near_rows <- reactiveVal(NULL)
 
   observeEvent(input$streak_click, {
-    near_points <- nearPoints(filtered_streaks(), input$streak_click, addDist = TRUE)
+    near_points <- nearPoints(filtered_streaks(), input$streak_click,
+                              addDist = TRUE)
     if (nrow(near_points) > 0 ) {
       Level <- near_points %>% slice_max(order_by = dist_, n=1) %>% pull(Level)
       print(near_points)
