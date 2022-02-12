@@ -15,7 +15,8 @@ plot_make_plot <- function(plot_data) {
   points <- plot_data$points
   segments <- plot_data$segments
   points_mapping <- ggplot2::aes(x=Level, y=AdjScore)
-  segments_mapping <- ggplot2::aes(x=Level.x, y=AdjScore.x, xend=Level.y, yend=AdjScore.y)
+  segments_mapping <- ggplot2::aes(x=Level.x, y=AdjScore.x, xend=Level.y,
+                                   yend=AdjScore.y)
 
   ggplot2::ggplot() +
     ggplot2::geom_point(data = points %>% filter(Relation=="IDENTICAL"),
@@ -51,7 +52,8 @@ plot_make_plot <- function(plot_data) {
                  color="red",
                  alpha=1,
                  size=.5) +
-    ggplot2::geom_segment(data=segments %>% filter(Relation=="SAME_TEAM_SEASON"),
+    ggplot2::geom_segment(data=segments %>%
+                            filter(Relation=="SAME_TEAM_SEASON"),
                  mapping=segments_mapping,
                  color="red",
                  alpha=.5,
