@@ -1,10 +1,11 @@
 library(shiny)
 library(magrittr)
-source("streak_relations.r")
-source("plot.r")
-source("util.r")
-source("segments.r")
-source("ui_choices.r")
+library(dplyr)
+#source("streak_relations.r")
+#source("plot.r")
+#source("util.r")
+#source("segments.r")
+#source("ui_choices.r")
 
 franchises_by_season <- function(franchises, year) {
   franchises %>% filter(FirstSeason <= year &
