@@ -163,25 +163,6 @@ server <- function(input, output, session) {
     }
   })
 
-  observeEvent(input$streak_click, {
-    near_points <- nearPoints(filtered_streaks(), input$streak_click,
-                              addDist = TRUE)
-    if (nrow(near_points) > 0 ) {
-      Level <- near_points %>% slice_max(order_by = dist_, n=1) %>% pull(Level)
-      print(near_points)
-      print(near_points %>% filter(Level==.env$Level))
-      near_rows(near_points %>% filter(Level==.env$Level))
-    } else {
-      near_rows(NULL)
-    }
-
-    if (!is.null(near_rows()) > 0) {
-      selected_id(near_rows() %>% slice_max(order_by="_dist", n=1) %>% pull(Id))
-    } else {
-      selected_id(NULL)
-    }
-  })
-
   highlight_data <- reactive({
     #plot_make_data(filtered_streaks(), concordances(), selected_id())
     message("About to do highlighting")
