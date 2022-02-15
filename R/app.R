@@ -1,11 +1,15 @@
 library(shiny)
 library(magrittr)
 library(dplyr)
+library(plotly)
+library(DT)
+source("lines.R")
 #source("streak_relations.r")
 #source("plot.r")
-#source("util.r")
+source("util.R")
 #source("segments.r")
-#source("ui_choices.r")
+source("ui_choices.R")
+source("streaks.R")
 
 franchises_by_season <- function(franchises, year) {
   franchises %>% filter(FirstSeason <= year &
@@ -23,6 +27,7 @@ initialYears <- initialYearRange[[1]]:initialYearRange[[2]]
 initialTeams <- SOMData::franchises %>%
   franchises_by_seasons(initialYearRange) %>%
   pull(TeamID) %>% unique()
+levels <- SOMData::hot_streaks %>% pull(Level) %>% unique() %>% sort()
 
 ui <- fluidPage(
   titlePanel("Streak Explorer"),
@@ -39,8 +44,11 @@ ui <- fluidPage(
                    selected="HOT")
     ),
     mainPanel(
-      plotOutput("streaks", click="streak_click"),
-      tableOutput("streak_info")
+      #plotOutput("streaks", click="streak_click"),
+      plotlyOutput(outputId = "streaks"),
+      tableOutput("streak_summary"),
+      tableOutput("standings"),
+      tableOutput("game_log"),
     )
   )
 )
@@ -48,21 +56,29 @@ ui <- fluidPage(
 server <- function(input, output, session) {
 
   adjusted_hot_streaks <- reactive({
+    message("adding ranks to hot streaks")
     SOMData::hot_streaks %>%
-      som_add_adj_score(prop=.5, top=TRUE)
+      #som_add_adj_score(prop=.5, top=TRUE)
+      som_add_rank(top=TRUE) %>%
+      som_add_adj_level(levels)
   })
 
   adjusted_cold_streaks <- reactive({
+    message("adding ranks to cold streaks")
     SOMData::cold_streaks %>%
-      som_add_adj_score(prop=.5, top=FALSE)
+      #som_add_adj_score(prop=.5, top=FALSE)
+      som_add_rank(top=FALSE) %>%
+      som_add_adj_level(levels)
   })
 
   base_streaks <- reactive({
+    message("loading base_streaks")
     if (input$streak_type == "HOT") {
       adjusted_hot_streaks()
     } else {
-      adjusted_cold_streaks() %>%
-        dplyr::mutate(Score=-Score, AdjScore=-AdjScore)
+      adjusted_cold_streaks()
+      #adjusted_cold_streaks() %>%
+      #  dplyr::mutate(Score=-Score, AdjScore=-AdjScore)
     }
   })
 
@@ -108,14 +124,27 @@ server <- function(input, output, session) {
   })
 
   filtered_streaks <- reactive({
-    base_streaks() %>%
+    message("filtering streaks")
+    filtered <- base_streaks() %>%
       dplyr::filter(Year >= input$years[[1]] & Year <= input$years[[2]]) %>%
-      dplyr::filter(Team %in% input$teams) %>%
+      dplyr::filter(Team %in% input$teams)
+    max_rank <- filtered %>%
       dplyr::group_by(Level) %>%
-      dplyr::slice_max(Score, n=10) %>% dplyr::ungroup()
+      dplyr::slice_max(Score, n=10) %>%
+      dplyr::ungroup() %>%
+      dplyr::summarise(ms=max(Rank)) %>% pull(ms)
+    filtered %>% filter(Rank <= max_rank)
+  })
+
+  lines <- reactive({
+    message("building lines")
+    filtered_streaks() %>% lines_split_all(concordances(), levels) %>%
+      lines_bind() %>%
+      lines_update_text(SOMData::game_logs)
   })
 
   concordances <- reactive({
+    message("loading concordances")
     if (input$streak_type == "HOT") {
       SOMData::hot_streaks_concordances
     } else {
@@ -125,6 +154,14 @@ server <- function(input, output, session) {
 
   selected_id <- reactiveVal(NULL)
   near_rows <- reactiveVal(NULL)
+  selected_streak_id <- reactive({
+    click_data <- event_data("plotly_click", source="lines_plot")
+    if (is.null(click_data)) {
+      NULL
+    } else {
+      click_data %>% pull("key")
+    }
+  })
 
   observeEvent(input$streak_click, {
     near_points <- nearPoints(filtered_streaks(), input$streak_click,
@@ -145,16 +182,39 @@ server <- function(input, output, session) {
     }
   })
 
-  plot_data <- reactive({
-    plot_make_data(filtered_streaks(), concordances(), selected_id())
+  highlight_data <- reactive({
+    #plot_make_data(filtered_streaks(), concordances(), selected_id())
+    message("About to do highlighting")
+    print(selected_streak_id())
+    id <- NULL
+    if (!is.null(selected_streak_id())) {
+      print(selected_streak_id())
+      id <- lines() %>%
+        filter(StreakId==selected_streak_id()) %>%
+        head(1) %>% pull(Id)
+    }
+    print(id)
+    lines_highlight(lines(), filtered_streaks(), concordances(),
+                    id)
   })
 
-  output$streaks <- renderPlot({
-    plot_data() %>% plot_make_plot()
+  output$streaks <- renderPlotly({
+    message("Rendering plotly...")
+    highlight_data() %>% lines_plot()
   })
 
-  output$streak_info <- renderTable({
-    near_rows()
+  output$streak_summary <- renderTable({
+    message("Rendering table...")
+    click_data <- event_data("plotly_click", source="lines_plot")
+    key <- click_data %>% pull("key")
+    streak_summary(key, filtered_streaks(), SOMData::game_logs)
+  })
+
+  output$game_log <- renderTable({
+    message("Rendering table...")
+    click_data <- event_data("plotly_click", source="lines_plot")
+    key <- click_data %>% pull("key")
+    streak_game_log(key, filtered_streaks(), SOMData::game_logs)
   })
 
 }

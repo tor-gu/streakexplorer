@@ -205,3 +205,4 @@ test_that("lines_bind handles simple case", {
   )
   expect_equal(actual, expected)
 })
+

@@ -14,6 +14,19 @@ som_add_adj_score <- function(streaks, prop, top=TRUE) {
     select(-sd, -mean)
 }
 
+som_add_rank <- function(streaks, top=TRUE) {
+  if (top) {
+    streaks %>%
+      group_by(Level) %>%
+      mutate(Rank=n() + 1 - rank(Score, ties.method="max")) %>%
+      ungroup()
+  } else {
+    streaks %>%
+      group_by(Level) %>%
+      mutate(Rank=rank(Score, ties.method="min")) %>%
+      ungroup()
+  }
+}
 som_make_level_table <- function(levels) {
   tibble(Level=levels) %>% mutate(Next=lead(Level)) %>% filter(!is.na(Next))
 }
@@ -53,7 +66,11 @@ som_get_identical_streaks <- function(streaks, Id) {
   streaks %>% filter(StreakId == .env$StreakId)
 }
 
-
+som_add_adj_level <- function(streaks, levels) {
+ streaks %>% mutate(
+   AdjLevel = purrr::map_int(Level, ~which(levels == .x))
+ )
+}
 
 
 
