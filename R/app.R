@@ -57,7 +57,6 @@ server <- function(input, output, session) {
   adjusted_hot_streaks <- reactive({
     message("adding ranks to hot streaks")
     SOMData::hot_streaks %>%
-      #som_add_adj_score(prop=.5, top=TRUE)
       som_add_rank(top=TRUE) %>%
       som_add_adj_level(hs_levels)
   })
@@ -65,7 +64,6 @@ server <- function(input, output, session) {
   adjusted_cold_streaks <- reactive({
     message("adding ranks to cold streaks")
     SOMData::cold_streaks %>%
-      #som_add_adj_score(prop=.5, top=FALSE)
       som_add_rank(top=FALSE) %>%
       som_add_adj_level(cs_levels)
   })
@@ -85,8 +83,6 @@ server <- function(input, output, session) {
       adjusted_hot_streaks()
     } else {
       adjusted_cold_streaks()
-      #adjusted_cold_streaks() %>%
-      #  dplyr::mutate(Score=-Score, AdjScore=-AdjScore)
     }
   })
 
