@@ -27,7 +27,8 @@ initialYears <- initialYearRange[[1]]:initialYearRange[[2]]
 initialTeams <- SOMData::franchises %>%
   franchises_by_seasons(initialYearRange) %>%
   pull(TeamID) %>% unique()
-levels <- SOMData::hot_streaks %>% pull(Level) %>% unique() %>% sort()
+hs_levels <- SOMData::hot_streaks %>% pull(Level) %>% unique() %>% sort()
+cs_levels <- SOMData::cold_streaks %>% pull(Level) %>% unique() %>% sort()
 
 ui <- fluidPage(
   titlePanel("Streak Explorer"),
@@ -38,13 +39,11 @@ ui <- fluidPage(
       selectInput("leagues", "League",
                   choices = c("All Leagues" = "BOTH", "AL"="AL", "NL"="NL")),
       selectInput("divisions", "Divisions", choices=list(), multiple=TRUE),
-      #uiOutput("divisions_select"),
       selectInput("teams", "Teams", choices=list(), multiple=TRUE),
       radioButtons("streak_type", "Streak Type", choices=c("HOT", "COLD"),
                    selected="HOT")
     ),
     mainPanel(
-      #plotOutput("streaks", click="streak_click"),
       plotlyOutput(outputId = "streaks"),
       tableOutput("streak_summary"),
       tableOutput("standings"),
@@ -60,7 +59,7 @@ server <- function(input, output, session) {
     SOMData::hot_streaks %>%
       #som_add_adj_score(prop=.5, top=TRUE)
       som_add_rank(top=TRUE) %>%
-      som_add_adj_level(levels)
+      som_add_adj_level(hs_levels)
   })
 
   adjusted_cold_streaks <- reactive({
@@ -68,7 +67,16 @@ server <- function(input, output, session) {
     SOMData::cold_streaks %>%
       #som_add_adj_score(prop=.5, top=FALSE)
       som_add_rank(top=FALSE) %>%
-      som_add_adj_level(levels)
+      som_add_adj_level(cs_levels)
+  })
+
+
+  levels <- reactive({
+    if (input$streak_type == "HOT") {
+      hs_levels
+    } else {
+      cs_levels
+    }
   })
 
   base_streaks <- reactive({
@@ -130,7 +138,7 @@ server <- function(input, output, session) {
       dplyr::filter(Team %in% input$teams)
     max_rank <- filtered %>%
       dplyr::group_by(Level) %>%
-      dplyr::slice_max(Score, n=10) %>%
+      dplyr::slice_min(Rank, n=10) %>%
       dplyr::ungroup() %>%
       dplyr::summarise(ms=max(Rank)) %>% pull(ms)
     filtered %>% filter(Rank <= max_rank)
@@ -138,7 +146,7 @@ server <- function(input, output, session) {
 
   lines <- reactive({
     message("building lines")
-    filtered_streaks() %>% lines_split_all(concordances(), levels) %>%
+    filtered_streaks() %>% lines_split_all(concordances(), levels()) %>%
       lines_bind() %>%
       lines_update_text(SOMData::game_logs)
   })
@@ -164,7 +172,6 @@ server <- function(input, output, session) {
   })
 
   highlight_data <- reactive({
-    #plot_make_data(filtered_streaks(), concordances(), selected_id())
     message("About to do highlighting")
     print(selected_streak_id())
     id <- NULL

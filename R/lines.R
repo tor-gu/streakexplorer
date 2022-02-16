@@ -6,6 +6,7 @@ numeric_right_segment_plus1 <- function(all_levels, my_levels) {
 }
 
 lines_split_streak <- function(streaks, concordances, levels, streak_id) {
+  #message(glue::glue("lines split streak {streak_id}"))
   streak_levels <- streaks %>%
     filter(StreakId == streak_id) %>%
     pull(Level)
@@ -20,6 +21,7 @@ lines_split_streak <- function(streaks, concordances, levels, streak_id) {
 }
 
 lines_split_top_streak <- function(streak_lines, concordances, levels) {
+  #message("lines_split_top_streak")
   current_remainder <- streak_lines$remainder
   streak_id <- current_remainder %>%
     slice_max(Level, n=1, with_ties=FALSE) %>%
