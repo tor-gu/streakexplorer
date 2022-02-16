@@ -104,13 +104,12 @@ lines_highlight <- function(lines, streaks, concordances, id=NULL) {
   result
 }
 
-lines_plot <- function(lines) {
+lines_plot <- function(lines, max_rank) {
   base <- lines %>%
     group_by(LineIdx) %>%
     highlight_key(~StreakId)
   colors <- c("black", "purple", "red")
   line_types <- c(base="dot", season="dash", related="solid", identical="solid")
-  max_rank <- max(lines$Rank)
   plot_ly(source="lines_plot", base,
           x=~AdjLevel, y=~Rank, hoverinfo="text") %>%
     add_lines(alpha=0.7,
@@ -120,8 +119,22 @@ lines_plot <- function(lines) {
               linetype=~line_type, linetypes=line_types) %>%
     highlight(on="plotly_hover", off="plotly_doubleclick") %>%
     layout(xaxis=list(title="Level", showticklabels=FALSE, zeroline=FALSE)) %>%
-    layout(yaxis=list(title="Rank", autorange="reversed", zeroline=FALSE, tick0=1, dtick=max_rank-1)) %>%
+    #layout(yaxis=list(title="Rank", autorange="reversed", zeroline=FALSE, tick0=1, dtick=max_rank-1)) %>%
+    layout(yaxis=list(title="Rank", range=c(max_rank+1,0), zeroline=FALSE, tick0=1, dtick=max_rank-1)) %>%
     layout(showlegend=FALSE) %>%
     config(displayModeBar=FALSE)
 }
 
+add_descenders <- function(initial_rank_filter, initial_filter) {
+  filtered_left <- initial_filter %>%
+    mutate(PrevAdjLevel=AdjLevel - 1) %>%
+    semi_join(initial_rank_filter, by=c("StreakId", "PrevAdjLevel"="AdjLevel")) %>%
+    select(-PrevAdjLevel)
+
+  filtered_right <- initial_filter %>%
+    mutate(NextAdjLevel=AdjLevel + 1) %>%
+    semi_join(initial_rank_filter, by=c("StreakId", "NextAdjLevel"="AdjLevel")) %>%
+    select(-NextAdjLevel)
+
+  rbind(initial_rank_filter, filtered_left, filtered_right) %>% unique()
+}

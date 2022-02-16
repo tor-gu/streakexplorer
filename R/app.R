@@ -127,17 +127,22 @@ server <- function(input, output, session) {
 
   })
 
+  max_rank <- reactiveVal(10)
+
   filtered_streaks <- reactive({
     message("filtering streaks")
     filtered <- base_streaks() %>%
       dplyr::filter(Year >= input$years[[1]] & Year <= input$years[[2]]) %>%
       dplyr::filter(Team %in% input$teams)
-    max_rank <- filtered %>%
+    max_rank(filtered %>%
       dplyr::group_by(Level) %>%
       dplyr::slice_min(Rank, n=10) %>%
       dplyr::ungroup() %>%
       dplyr::summarise(ms=max(Rank)) %>% pull(ms)
-    filtered %>% filter(Rank <= max_rank)
+    )
+    filtered %>%
+      filter(Rank <= max_rank()) %>%
+      add_descenders(filtered)
   })
 
   lines <- reactive({
@@ -184,7 +189,7 @@ server <- function(input, output, session) {
 
   output$streaks <- renderPlotly({
     message("Rendering plotly...")
-    highlight_data() %>% lines_plot()
+    highlight_data() %>% lines_plot(max_rank())
   })
 
   output$streak_summary <- renderTable({
