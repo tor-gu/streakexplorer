@@ -107,22 +107,25 @@ lines_highlight <- function(lines, streaks, concordances, id=NULL) {
 lines_plot <- function(lines, max_rank) {
   base <- lines %>%
     group_by(LineIdx) %>%
-    highlight_key(~StreakId)
+    plotly::highlight_key(~StreakId)
   colors <- c("black", "purple", "red")
   line_types <- c(base="dot", season="dash", related="solid", identical="solid")
-  plot_ly(source="lines_plot", base,
+  plotly::plot_ly(source="lines_plot", base,
           x=~AdjLevel, y=~Rank, hoverinfo="text") %>%
-    add_lines(alpha=0.7,
+    plotly::add_lines(alpha=0.7,
               line=list(shape="spline"),
               text=~text,
               color=~line_colored, colors=colors,
               linetype=~line_type, linetypes=line_types) %>%
-    highlight(on="plotly_hover", off="plotly_doubleclick") %>%
-    layout(xaxis=list(title="Level", showticklabels=FALSE, zeroline=FALSE)) %>%
-    #layout(yaxis=list(title="Rank", autorange="reversed", zeroline=FALSE, tick0=1, dtick=max_rank-1)) %>%
-    layout(yaxis=list(title="Rank", range=c(max_rank+1,0), zeroline=FALSE, tick0=1, dtick=max_rank-1)) %>%
-    layout(showlegend=FALSE) %>%
-    config(displayModeBar=FALSE)
+    plotly::highlight(on="plotly_hover", off="plotly_doubleclick") %>%
+    plotly::layout(xaxis=list(title="Level", showticklabels=FALSE,
+                              zeroline=FALSE)) %>%
+    #plotly::layout(yaxis=list(title="Rank", autorange="reversed",
+    #                          zeroline=FALSE, tick0=1, dtick=max_rank-1)) %>%
+    plotly::layout(yaxis=list(title="Rank", range=c(max_rank+1,0),
+                              zeroline=FALSE, tick0=1, dtick=max_rank-1)) %>%
+    plotly::layout(showlegend=FALSE) %>%
+    plotly::config(displayModeBar=FALSE)
 }
 
 add_descenders <- function(initial_rank_filter, initial_filter) {

@@ -1,24 +1,13 @@
 library(shiny)
-library(magrittr)
-library(dplyr)
-library(plotly)
-library(DT)
-source("lines.R")
-#source("streak_relations.r")
-#source("plot.r")
-source("util.R")
-#source("segments.r")
-source("ui_choices.R")
-source("streaks.R")
 
 franchises_by_season <- function(franchises, year) {
-  franchises %>% filter(FirstSeason <= year &
-                          (FinalSeason >= year | is.na(FinalSeason)))
+  franchises %>% dplyr::filter(FirstSeason <= year &
+                                 (FinalSeason >= year | is.na(FinalSeason)))
 }
 
 franchises_by_seasons <- function(franchises, years) {
   purrr::map(years, function(year) franchises_by_season(franchises, year)) %>%
-    data.table::rbindlist() %>% as_tibble() %>% unique()
+    data.table::rbindlist() %>% tibble::as_tibble() %>% unique()
 }
 
 
@@ -26,15 +15,16 @@ initialYearRange <- c(1950,1960)
 initialYears <- initialYearRange[[1]]:initialYearRange[[2]]
 initialTeams <- SOMData::franchises %>%
   franchises_by_seasons(initialYearRange) %>%
-  pull(TeamID) %>% unique()
-hs_levels <- SOMData::hot_streaks %>% pull(Level) %>% unique() %>% sort()
-cs_levels <- SOMData::cold_streaks %>% pull(Level) %>% unique() %>% sort()
+  dplyr::pull(TeamID) %>% unique()
+hs_levels <- SOMData::hot_streaks %>% dplyr::pull(Level) %>% unique() %>% sort()
+cs_levels <- SOMData::cold_streaks %>% dplyr::pull(Level) %>% unique() %>%
+  sort()
 
 ui <- fluidPage(
   titlePanel("Streak Explorer"),
   sidebarLayout(
     sidebarPanel(
-      sliderInput("years", "Years", min=1950, max=2020, step=1,
+      sliderInput("years", "Years", min=1948, max=2020, step=1,
                   value=initialYearRange, sep=""),
       selectInput("leagues", "League",
                   choices = c("All Leagues" = "BOTH", "AL"="AL", "NL"="NL")),
@@ -44,7 +34,7 @@ ui <- fluidPage(
                    selected="HOT")
     ),
     mainPanel(
-      plotlyOutput(outputId = "streaks"),
+      plotly::plotlyOutput(outputId = "streaks"),
       tableOutput("streak_summary"),
       tableOutput("standings"),
       tableOutput("game_log"),
@@ -138,7 +128,7 @@ server <- function(input, output, session) {
       dplyr::group_by(Level) %>%
       dplyr::slice_min(Rank, n=10) %>%
       dplyr::ungroup() %>%
-      dplyr::summarise(ms=max(Rank)) %>% pull(ms)
+      dplyr::summarise(ms=max(Rank)) %>% dplyr::pull(ms)
     )
     filtered %>%
       filter(Rank <= max_rank()) %>%
@@ -164,11 +154,11 @@ server <- function(input, output, session) {
   selected_id <- reactiveVal(NULL)
   near_rows <- reactiveVal(NULL)
   selected_streak_id <- reactive({
-    click_data <- event_data("plotly_click", source="lines_plot")
+    click_data <- plotly::event_data("plotly_click", source="lines_plot")
     if (is.null(click_data)) {
       NULL
     } else {
-      click_data %>% pull("key")
+      click_data %>% dplyr::pull("key")
     }
   })
 
@@ -180,29 +170,29 @@ server <- function(input, output, session) {
       print(selected_streak_id())
       id <- lines() %>%
         filter(StreakId==selected_streak_id()) %>%
-        head(1) %>% pull(Id)
+        head(1) %>% dplyr::pull(Id)
     }
     print(id)
     lines_highlight(lines(), filtered_streaks(), concordances(),
                     id)
   })
 
-  output$streaks <- renderPlotly({
+  output$streaks <- plotly::renderPlotly({
     message("Rendering plotly...")
     highlight_data() %>% lines_plot(max_rank())
   })
 
   output$streak_summary <- renderTable({
     message("Rendering table...")
-    click_data <- event_data("plotly_click", source="lines_plot")
-    key <- click_data %>% pull("key")
+    click_data <- plotly::event_data("plotly_click", source="lines_plot")
+    key <- click_data %>% dplyr::pull("key")
     streak_summary(key, filtered_streaks(), SOMData::game_logs)
   })
 
   output$game_log <- renderTable({
     message("Rendering table...")
-    click_data <- event_data("plotly_click", source="lines_plot")
-    key <- click_data %>% pull("key")
+    click_data <- plotly::event_data("plotly_click", source="lines_plot")
+    key <- click_data %>% dplyr::pull("key")
     streak_game_log(key, filtered_streaks(), SOMData::game_logs)
   })
 
