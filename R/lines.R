@@ -5,38 +5,57 @@ numeric_right_segment_plus1 <- function(all_levels, my_levels) {
   list(lb=lb, ub=max(my_levels))
 }
 
-lines_split_streak <- function(streaks, concordances, levels, streak_id) {
+numeric_left_segment_minus1 <- function(all_levels, my_levels) {
+  ub <- all_levels %>%
+    magrittr::extract(. >= min(my_levels)) %>%
+    setdiff(my_levels) %>% min()
+  list(lb=min(my_levels), ub=ub)
+}
+
+lines_split_streak <- function(streaks, concordances, levels, streak_id,
+                               top=TRUE) {
   #message(glue::glue("lines split streak {streak_id}"))
   streak_levels <- streaks %>%
     filter(StreakId == streak_id) %>%
     pull(Level)
-  level_bounds <- numeric_right_segment_plus1(levels, streak_levels)
+  level_bounds <-
+    if (top)
+      numeric_right_segment_plus1(levels, streak_levels)
+    else
+      numeric_left_segment_minus1(levels, streak_levels)
   streak_line <- streaks %>%
     semi_join(concordances %>% filter(Inner==streak_id),
               by=c("StreakId"="Outer")) %>%
     filter(between(Level, level_bounds$lb, level_bounds$ub))
-  remainder <- streaks %>%
-    filter(StreakId != streak_id | Level <= level_bounds$lb)
+  remainder <-
+    if (top)
+      streaks %>% filter(StreakId != streak_id | Level <= level_bounds$lb)
+    else
+      streaks %>% filter(StreakId != streak_id | Level >= level_bounds$ub)
+
   list(remainder=remainder, streak_line=streak_line)
 }
 
-lines_split_top_streak <- function(streak_lines, concordances, levels) {
+lines_split_top_streak <- function(streak_lines, concordances, levels,
+                                   top=TRUE) {
   #message("lines_split_top_streak")
   current_remainder <- streak_lines$remainder
+  slicer <- if (top) slice_max else slice_min
   streak_id <- current_remainder %>%
-    slice_max(Level, n=1, with_ties=FALSE) %>%
+    slicer(Level, n=1, with_ties=FALSE) %>%
     pull(StreakId)
   new_split <- lines_split_streak(current_remainder, concordances, levels,
-                                 streak_id)
+                                 streak_id, top)
   list(remainder = new_split$remainder,
        lines = rlist::list.append(streak_lines$lines, new_split$streak_line))
 }
 
-lines_split_all <- function(streaks, concordances, levels) {
+lines_split_all <- function(streaks, concordances, levels, top=TRUE) {
   message("Calling lines_split_all")
   streak_lines <- list(remainder=streaks, lines=list())
   while (nrow(streak_lines$remainder) > 0) {
-    streak_lines <- lines_split_top_streak(streak_lines, concordances, levels)
+    streak_lines <- lines_split_top_streak(streak_lines, concordances,
+                                           levels, top)
   }
   streak_lines$lines
 }
@@ -87,14 +106,14 @@ lines_highlight <- function(lines, streaks, concordances, id=NULL) {
     related_streak_ids <- SOMData::get_related_streaks(
       streaks, concordances, id) %>% pull(StreakId) %>% unique()
 
-    message(glue::glue("lines_highlight {row} {streak_id} {team} {year} "))
     result <- result %>%
       mutate(
         line_colored=ifelse(Year==year & Team==team, "b", line_colored),
         line_type=ifelse(Year==year & Team==team, "season", line_type),
       ) %>%
       mutate(
-        line_type=ifelse(StreakId %in% related_streak_ids, "related", line_type),
+        line_type=ifelse(StreakId %in% related_streak_ids, "related",
+                         line_type),
       ) %>%
       mutate(
         line_colored=ifelse(StreakId == streak_id, "c", line_colored),
@@ -104,10 +123,12 @@ lines_highlight <- function(lines, streaks, concordances, id=NULL) {
   result
 }
 
-lines_plot <- function(lines, max_rank) {
+lines_plot <- function(lines, max_rank, reverse_x_axis=FALSE) {
   base <- lines %>%
     group_by(LineIdx) %>%
     plotly::highlight_key(~StreakId)
+  x_range <- range(lines$AdjLevel)
+  x_axis_range <- if(reverse_x_axis) rev(x_range) else x_range
   colors <- c("black", "purple", "red")
   line_types <- c(base="dot", season="dash", related="solid", identical="solid")
   plotly::plot_ly(source="lines_plot", base,
@@ -118,10 +139,8 @@ lines_plot <- function(lines, max_rank) {
               color=~line_colored, colors=colors,
               linetype=~line_type, linetypes=line_types) %>%
     plotly::highlight(on="plotly_hover", off="plotly_doubleclick") %>%
-    plotly::layout(xaxis=list(title="Level", showticklabels=FALSE,
-                              zeroline=FALSE)) %>%
-    #plotly::layout(yaxis=list(title="Rank", autorange="reversed",
-    #                          zeroline=FALSE, tick0=1, dtick=max_rank-1)) %>%
+    plotly::layout(xaxis=list(title="Level", range=x_axis_range,
+                              showticklabels=FALSE, zeroline=FALSE)) %>%
     plotly::layout(yaxis=list(title="Rank", range=c(max_rank+1,0),
                               zeroline=FALSE, tick0=1, dtick=max_rank-1)) %>%
     plotly::layout(showlegend=FALSE) %>%
@@ -131,12 +150,14 @@ lines_plot <- function(lines, max_rank) {
 add_descenders <- function(initial_rank_filter, initial_filter) {
   filtered_left <- initial_filter %>%
     mutate(PrevAdjLevel=AdjLevel - 1) %>%
-    semi_join(initial_rank_filter, by=c("StreakId", "PrevAdjLevel"="AdjLevel")) %>%
+    semi_join(initial_rank_filter,
+              by=c("StreakId", "PrevAdjLevel"="AdjLevel")) %>%
     select(-PrevAdjLevel)
 
   filtered_right <- initial_filter %>%
     mutate(NextAdjLevel=AdjLevel + 1) %>%
-    semi_join(initial_rank_filter, by=c("StreakId", "NextAdjLevel"="AdjLevel")) %>%
+    semi_join(initial_rank_filter,
+              by=c("StreakId", "NextAdjLevel"="AdjLevel")) %>%
     select(-NextAdjLevel)
 
   rbind(initial_rank_filter, filtered_left, filtered_right) %>% unique()

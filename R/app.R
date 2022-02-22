@@ -1,30 +1,18 @@
 library(shiny)
 
-franchises_by_season <- function(franchises, year) {
-  franchises %>% dplyr::filter(FirstSeason <= year &
-                                 (FinalSeason >= year | is.na(FinalSeason)))
-}
 
-franchises_by_seasons <- function(franchises, years) {
-  purrr::map(years, function(year) franchises_by_season(franchises, year)) %>%
-    data.table::rbindlist() %>% tibble::as_tibble() %>% unique()
-}
-
-
-initialYearRange <- c(1950,1960)
+initialYearRange <- c(1948,1960)
 initialYears <- initialYearRange[[1]]:initialYearRange[[2]]
-initialTeams <- SOMData::franchises %>%
-  franchises_by_seasons(initialYearRange) %>%
-  dplyr::pull(TeamID) %>% unique()
 hs_levels <- SOMData::hot_streaks %>% dplyr::pull(Level) %>% unique() %>% sort()
 cs_levels <- SOMData::cold_streaks %>% dplyr::pull(Level) %>% unique() %>%
   sort()
 
 ui <- fluidPage(
+
   titlePanel("Streak Explorer"),
   sidebarLayout(
     sidebarPanel(
-      sliderInput("years", "Years", min=1948, max=2020, step=1,
+      sliderInput("years", "Years", min=1948, max=2021, step=1,
                   value=initialYearRange, sep=""),
       selectInput("leagues", "League",
                   choices = c("All Leagues" = "BOTH", "AL"="AL", "NL"="NL")),
@@ -35,9 +23,9 @@ ui <- fluidPage(
     ),
     mainPanel(
       plotly::plotlyOutput(outputId = "streaks"),
-      tableOutput("streak_summary"),
+      DT::DTOutput("streak_summary"),
       tableOutput("standings"),
-      tableOutput("game_log"),
+      DT::DTOutput("game_log"),
     )
   )
 )
@@ -45,22 +33,22 @@ ui <- fluidPage(
 server <- function(input, output, session) {
 
   adjusted_hot_streaks <- reactive({
-    message("adding ranks to hot streaks")
+    message("adding adjusted levels to hot streaks")
     SOMData::hot_streaks %>%
-      som_add_rank(top=TRUE) %>%
       som_add_adj_level(hs_levels)
   })
 
   adjusted_cold_streaks <- reactive({
-    message("adding ranks to cold streaks")
+    message("adding adjusted levels to cold streaks")
     SOMData::cold_streaks %>%
-      som_add_rank(top=FALSE) %>%
       som_add_adj_level(cs_levels)
   })
 
 
+  hot <- reactive({input$streak_type == "HOT"})
+
   levels <- reactive({
-    if (input$streak_type == "HOT") {
+    if (hot()) {
       hs_levels
     } else {
       cs_levels
@@ -69,10 +57,19 @@ server <- function(input, output, session) {
 
   base_streaks <- reactive({
     message("loading base_streaks")
-    if (input$streak_type == "HOT") {
+    if (hot()) {
       adjusted_hot_streaks()
     } else {
       adjusted_cold_streaks()
+    }
+  })
+
+  base_lines <- reactive({
+    message("loading base lines")
+    if (hot()) {
+      SOMData::hot_streaks_lines
+    } else {
+      SOMData::cold_streaks_lines
     }
   })
 
@@ -135,16 +132,34 @@ server <- function(input, output, session) {
       add_descenders(filtered)
   })
 
+  filtered_lines <- reactive({
+    message("filtering lines")
+    filtered <- base_lines() %>%
+      dplyr::filter(Year >= input$years[[1]] & Year <= input$years[[2]]) %>%
+      dplyr::filter(Team %in% input$teams)
+    max_rank(filtered %>%
+               dplyr::group_by(Level) %>%
+               dplyr::slice_min(Rank, n=10) %>%
+               dplyr::ungroup() %>%
+               dplyr::summarise(ms=max(Rank)) %>% dplyr::pull(ms)
+    )
+    filtered %>%
+      filter(Rank <= max_rank()) %>%
+      add_descenders(filtered)
+  })
+
   lines <- reactive({
     message("building lines")
-    filtered_streaks() %>% lines_split_all(concordances(), levels()) %>%
-      lines_bind() %>%
-      lines_update_text(SOMData::game_logs)
+    #filtered_streaks() %>%
+    #  lines_split_all(concordances(), levels(), hot()) %>%
+    #  lines_bind() %>%
+    #  lines_update_text(SOMData::game_logs)
+    filtered_lines()
   })
 
   concordances <- reactive({
     message("loading concordances")
-    if (input$streak_type == "HOT") {
+    if (hot()) {
       SOMData::hot_streaks_concordances
     } else {
       SOMData::cold_streaks_concordances
@@ -179,21 +194,38 @@ server <- function(input, output, session) {
 
   output$streaks <- plotly::renderPlotly({
     message("Rendering plotly...")
-    highlight_data() %>% lines_plot(max_rank())
+    highlight_data() %>% lines_plot(max_rank(),
+                                    input$streak_type == "COLD")
   })
 
-  output$streak_summary <- renderTable({
+  output$streak_summary <- DT::renderDT({
     message("Rendering table...")
     click_data <- plotly::event_data("plotly_click", source="lines_plot")
     key <- click_data %>% dplyr::pull("key")
-    streak_summary(key, filtered_streaks(), SOMData::game_logs)
+    summary <- streak_summary_data(key, filtered_streaks(), SOMData::game_logs)
+    DT::datatable(
+      summary$data,
+      caption=summary$caption,
+      rownames = FALSE,
+      options=list(ordering=FALSE,
+                   paging=FALSE,
+                   searching=FALSE
+      )
+    )
   })
 
-  output$game_log <- renderTable({
+  output$game_log <- DT::renderDT({
     message("Rendering table...")
     click_data <- plotly::event_data("plotly_click", source="lines_plot")
     key <- click_data %>% dplyr::pull("key")
-    streak_game_log(key, filtered_streaks(), SOMData::game_logs)
+    game_log <- streak_game_log_data(key, filtered_streaks(),
+                                     SOMData::game_logs)
+    DT::datatable(
+      game_log$data,
+      caption=game_log$caption,
+      rownames = FALSE,
+      options(ordering=FALSE, searching=FALSE)
+    )
   })
 
 }
