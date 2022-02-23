@@ -66,58 +66,47 @@ lines_bind <- function(lines) {
     rbind)
 }
 
-
-lines_update_text <- function(lines, game_logs) {
-  # TODO build up glue string with paste, and then use a single mutate
-  message("Calling lines_update_text")
-  lines %>%   left_join(
-    SOMData::game_logs %>% select(Year, Team, GameIndex,
-                                  StartGameNumber=GameNumber, StartDate=Date),
-    by=c("Year","Team","LoIndex"="GameIndex")) %>%
-  left_join(
-    SOMData::game_logs %>% select(Year, Team, GameIndex,
-                                  EndGameNumber=GameNumber, EndDate=Date),
-    by=c("Year","Team","HiIndex"="GameIndex")) %>%
-  mutate(text=glue::glue("{Team} {Year}")) %>%
-  mutate(text=ifelse(Ties==0,
-                     glue::glue("{text}<br>{Wins}-{Losses}"),
-                     glue::glue("{Team} {Year}<br>{Wins}-{Losses}-{Ties}")
-    )
-  ) %>%
-  mutate(text=glue::glue("{text}<br>Rank {Rank}")) %>%
-  mutate(text=glue::glue(
-    "{text}<br>{format.Date(StartDate, '%m/%d')} - {format.Date(EndDate, '%m/%d')}"))
+get_related_lines <- function(line_id, lines_to_streaks, concordances) {
+  related_streak_ids <- lines_to_streaks %>%
+    dplyr::filter(LineIdx==line_id) %>%
+    dplyr::pull(StreakId) %>%
+    purrr::map(~som_get_related_streak_ids(concordances, .)) %>%
+    unlist(recursive = FALSE) %>% unique()
+  lines_to_streaks %>%
+    dplyr::filter(StreakId %in% related_streak_ids) %>%
+    pull(LineIdx)
 }
 
-lines_highlight <- function(lines, streaks, concordances, id=NULL) {
+
+lines_highlight <- function(lines, concordances, lines_to_streaks,
+                            id=NULL) {
   message(glue::glue("lines_highlight"))
   result <- lines %>%
-    mutate(
+    dplyr::mutate(
       line_colored="a",
       line_width=1,
       line_type="base"
     )
 
   if ( !is.null(id) ) {
-    row <- streaks %>% filter(Id==id)
-    streak_id <- row %>% pull(StreakId)
+    row <- lines %>% filter(LineIdx==id) %>% head(1)
     team <- row %>% pull(Team)
     year <- row %>% pull(Year)
-    related_streak_ids <- SOMData::get_related_streaks(
-      streaks, concordances, id) %>% pull(StreakId) %>% unique()
-
+    related_line_ids <- get_related_lines(id, lines_to_streaks, concordances)
     result <- result %>%
-      mutate(
-        line_colored=ifelse(Year==year & Team==team, "b", line_colored),
-        line_type=ifelse(Year==year & Team==team, "season", line_type),
+      dplyr::mutate(
+        line_colored=dplyr::if_else(Year==year & Team==team, "b",
+                                    line_colored),
+        line_type=dplyr::if_else(Year==year & Team==team, "season",
+                                 line_type),
       ) %>%
-      mutate(
-        line_type=ifelse(StreakId %in% related_streak_ids, "related",
+      dplyr::mutate(
+        line_type=dplyr::if_else(LineIdx %in% related_line_ids, "related",
                          line_type),
       ) %>%
-      mutate(
-        line_colored=ifelse(StreakId == streak_id, "c", line_colored),
-        line_type=ifelse(StreakId == streak_id, "identical", line_type),
+      dplyr::mutate(
+        line_colored=dplyr::if_else(LineIdx == id, "c", line_colored),
+        line_type=dplyr::if_else(LineIdx == id, "identical", line_type),
       )
   }
   result
@@ -126,7 +115,8 @@ lines_highlight <- function(lines, streaks, concordances, id=NULL) {
 lines_plot <- function(lines, max_rank, reverse_x_axis=FALSE) {
   base <- lines %>%
     group_by(LineIdx) %>%
-    plotly::highlight_key(~StreakId)
+    #plotly::highlight_key(~StreakId)
+    plotly::highlight_key(~LineIdx)
   x_range <- range(lines$AdjLevel)
   x_axis_range <- if(reverse_x_axis) rev(x_range) else x_range
   colors <- c("black", "purple", "red")

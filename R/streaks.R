@@ -5,19 +5,16 @@ pct_formatter <- function(pct) {
   )
 }
 
-streak_game_log <- function(streak_id, streaks, game_logs) {
-  row <- streaks %>% filter(StreakId==streak_id) %>% head(1)
+streak_game_log <- function(streak_id, lines, game_logs) {
+  row <- lines %>% filter(StreakId==streak_id) %>% head(1)
   game_logs %>%
     filter(Year==row$Year,
            Team==row$Team,
            GameIndex >= row$LoIndex, GameIndex <= row$HiIndex)
 }
 
-streak_game_log_data <- function(streak_id, streaks, game_logs) {
-  #incomplete_games <- game_logs %>% dplyr::filter(is.na(Result)) %>%
-  #  dplyr::SOMData::game_logs
-
-  game_log_data <- streak_game_log(streak_id, streaks, game_logs) %>%
+streak_game_log_data <- function(streak_id, lines, game_logs) {
+  game_log_data <- streak_game_log(streak_id, lines, game_logs) %>%
     mutate(`Gm#`=GameNumber,
            `Date `=glue::glue("{lubridate::month(Date)}/{lubridate::mday(Date)}"),
            Opp=ifelse(AtHome,
@@ -36,9 +33,9 @@ streak_game_log_data <- function(streak_id, streaks, game_logs) {
   )
 }
 
-streak_summary_data <- function(streak_id, streaks, game_logs) {
+streak_summary_data <- function(streak_id, lines, game_logs) {
     summary_data <-
-      streak_game_log(streak_id, streaks, game_logs) %>%
+      streak_game_log(streak_id, lines, game_logs) %>%
       summarize(Team            = unique(Team),
                 Year            = unique(Year),
                 FirstGameNumber = min(GameNumber),

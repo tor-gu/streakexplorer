@@ -32,19 +32,6 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
 
-  adjusted_hot_streaks <- reactive({
-    message("adding adjusted levels to hot streaks")
-    SOMData::hot_streaks %>%
-      som_add_adj_level(hs_levels)
-  })
-
-  adjusted_cold_streaks <- reactive({
-    message("adding adjusted levels to cold streaks")
-    SOMData::cold_streaks %>%
-      som_add_adj_level(cs_levels)
-  })
-
-
   hot <- reactive({input$streak_type == "HOT"})
 
   levels <- reactive({
@@ -55,21 +42,21 @@ server <- function(input, output, session) {
     }
   })
 
-  base_streaks <- reactive({
-    message("loading base_streaks")
-    if (hot()) {
-      adjusted_hot_streaks()
-    } else {
-      adjusted_cold_streaks()
-    }
-  })
-
   base_lines <- reactive({
     message("loading base lines")
     if (hot()) {
       SOMData::hot_streaks_lines
     } else {
       SOMData::cold_streaks_lines
+    }
+  })
+
+  lines_to_streaks <- reactive({
+    message("loading lines_to_streaks")
+    if (hot()) {
+      SOMData::hot_streak_lines_to_streaks
+    } else {
+      SOMData::cold_streak_lines_to_streaks
     }
   })
 
@@ -116,22 +103,6 @@ server <- function(input, output, session) {
 
   max_rank <- reactiveVal(10)
 
-  filtered_streaks <- reactive({
-    message("filtering streaks")
-    filtered <- base_streaks() %>%
-      dplyr::filter(Year >= input$years[[1]] & Year <= input$years[[2]]) %>%
-      dplyr::filter(Team %in% input$teams)
-    max_rank(filtered %>%
-      dplyr::group_by(Level) %>%
-      dplyr::slice_min(Rank, n=10) %>%
-      dplyr::ungroup() %>%
-      dplyr::summarise(ms=max(Rank)) %>% dplyr::pull(ms)
-    )
-    filtered %>%
-      filter(Rank <= max_rank()) %>%
-      add_descenders(filtered)
-  })
-
   filtered_lines <- reactive({
     message("filtering lines")
     filtered <- base_lines() %>%
@@ -143,9 +114,11 @@ server <- function(input, output, session) {
                dplyr::ungroup() %>%
                dplyr::summarise(ms=max(Rank)) %>% dplyr::pull(ms)
     )
+    #filtered %>%
+    #  dplyr::filter(Rank <= max_rank()) %>%
+    #  add_descenders(filtered)
     filtered %>%
-      filter(Rank <= max_rank()) %>%
-      add_descenders(filtered)
+      dplyr::filter(Rank <= max_rank())
   })
 
   lines <- reactive({
@@ -168,7 +141,15 @@ server <- function(input, output, session) {
 
   selected_id <- reactiveVal(NULL)
   near_rows <- reactiveVal(NULL)
-  selected_streak_id <- reactive({
+  #selected_streak_id <- reactive({
+  #  click_data <- plotly::event_data("plotly_click", source="lines_plot")
+  #  if (is.null(click_data)) {
+  #    NULL
+  #  } else {
+  #    click_data %>% dplyr::pull("key")
+  #  }
+  #})
+  selected_line_id <- reactive({
     click_data <- plotly::event_data("plotly_click", source="lines_plot")
     if (is.null(click_data)) {
       NULL
@@ -177,19 +158,25 @@ server <- function(input, output, session) {
     }
   })
 
+  selected_streak_id <- reactive({
+    lines_to_streaks() %>%
+      dplyr::filter(LineIdx == selected_line_id()) %>%
+      dplyr::pull(StreakId)
+  })
+
   highlight_data <- reactive({
     message("About to do highlighting")
-    print(selected_streak_id())
-    id <- NULL
-    if (!is.null(selected_streak_id())) {
-      print(selected_streak_id())
-      id <- lines() %>%
-        filter(StreakId==selected_streak_id()) %>%
-        head(1) %>% dplyr::pull(Id)
-    }
-    print(id)
-    lines_highlight(lines(), filtered_streaks(), concordances(),
-                    id)
+    #print(selected_streak_id())
+    #id <- NULL
+    #if (!is.null(selected_streak_id())) {
+    #  print(selected_streak_id())
+    #  id <- lines() %>%
+    #    dplyr::filter(StreakId==selected_streak_id()) %>%
+    #    head(1) %>% dplyr::pull(Id)
+    #}
+    print(selected_line_id())
+    lines_highlight(filtered_lines(), concordances(),
+                    lines_to_streaks(), selected_line_id())
   })
 
   output$streaks <- plotly::renderPlotly({
@@ -200,9 +187,15 @@ server <- function(input, output, session) {
 
   output$streak_summary <- DT::renderDT({
     message("Rendering table...")
-    click_data <- plotly::event_data("plotly_click", source="lines_plot")
-    key <- click_data %>% dplyr::pull("key")
-    summary <- streak_summary_data(key, filtered_streaks(), SOMData::game_logs)
+    #click_data <- plotly::event_data("plotly_click", source="lines_plot")
+    #key <- click_data %>% dplyr::pull("key")
+    #streak_id <- lines_to_streaks() %>%
+    #  dplyr::filter(LineIdx==key) %>%
+    #  dplyr::pull(StreakId)
+
+    summary <- streak_summary_data(selected_streak_id(),
+                                   filtered_lines(),
+                                   SOMData::game_logs)
     DT::datatable(
       summary$data,
       caption=summary$caption,
@@ -216,9 +209,10 @@ server <- function(input, output, session) {
 
   output$game_log <- DT::renderDT({
     message("Rendering table...")
-    click_data <- plotly::event_data("plotly_click", source="lines_plot")
-    key <- click_data %>% dplyr::pull("key")
-    game_log <- streak_game_log_data(key, filtered_streaks(),
+    #click_data <- plotly::event_data("plotly_click", source="lines_plot")
+    #key <- click_data %>% dplyr::pull("key")
+    game_log <- streak_game_log_data(selected_streak_id(),
+                                     filtered_lines(),
                                      SOMData::game_logs)
     DT::datatable(
       game_log$data,
