@@ -139,8 +139,19 @@ server <- function(input, output, session) {
     }
   })
 
-  selected_id <- reactiveVal(NULL)
-  #selected_streak_id <- reactive({
+  selected_line_id <- reactiveVal(NULL)
+  observeEvent(plotly::event_data("plotly_click", source="lines_plot"), {
+    click_data <- plotly::event_data("plotly_click", source="lines_plot")
+    if (is.null(click_data)) {
+      selected_line_id(NULL)
+    } else {
+      selected_line_id(click_data %>% dplyr::pull("key"))
+    }
+  })
+  observeEvent(hot(), ignoreInit = TRUE, {
+    selected_line_id(NULL)
+  })
+  #selected_line_id <- reactive({
   #  click_data <- plotly::event_data("plotly_click", source="lines_plot")
   #  if (is.null(click_data)) {
   #    NULL
@@ -148,14 +159,6 @@ server <- function(input, output, session) {
   #    click_data %>% dplyr::pull("key")
   #  }
   #})
-  selected_line_id <- reactive({
-    click_data <- plotly::event_data("plotly_click", source="lines_plot")
-    if (is.null(click_data)) {
-      NULL
-    } else {
-      click_data %>% dplyr::pull("key")
-    }
-  })
 
   selected_streak_id <- reactive({
     lines_to_streaks() %>%

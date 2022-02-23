@@ -90,24 +90,26 @@ lines_highlight <- function(lines, concordances, lines_to_streaks,
 
   if ( !is.null(id) ) {
     row <- lines %>% filter(LineIdx==id) %>% head(1)
-    team <- row %>% pull(Team)
-    year <- row %>% pull(Year)
-    related_line_ids <- get_related_lines(id, lines_to_streaks, concordances)
-    result <- result %>%
-      dplyr::mutate(
-        line_colored=dplyr::if_else(Year==year & Team==team, "b",
-                                    line_colored),
-        line_type=dplyr::if_else(Year==year & Team==team, "season",
-                                 line_type),
-      ) %>%
-      dplyr::mutate(
-        line_type=dplyr::if_else(LineIdx %in% related_line_ids, "related",
-                         line_type),
-      ) %>%
-      dplyr::mutate(
-        line_colored=dplyr::if_else(LineIdx == id, "c", line_colored),
-        line_type=dplyr::if_else(LineIdx == id, "identical", line_type),
-      )
+    if ( nrow(row) > 0 ) {
+      team <- row %>% pull(Team)
+      year <- row %>% pull(Year)
+      related_line_ids <- get_related_lines(id, lines_to_streaks, concordances)
+      result <- result %>%
+        dplyr::mutate(
+          line_colored=dplyr::if_else(Year==year & Team==team, "b",
+                                      line_colored),
+          line_type=dplyr::if_else(Year==year & Team==team, "season",
+                                   line_type),
+        ) %>%
+        dplyr::mutate(
+          line_type=dplyr::if_else(LineIdx %in% related_line_ids, "related",
+                                   line_type),
+        ) %>%
+        dplyr::mutate(
+          line_colored=dplyr::if_else(LineIdx == id, "c", line_colored),
+          line_type=dplyr::if_else(LineIdx == id, "identical", line_type),
+        )
+    }
   }
   result
 }
