@@ -114,6 +114,20 @@ lines_highlight <- function(lines, concordances, lines_to_streaks,
   result
 }
 
+lines_remove_nubs <- function(lines) {
+  # This is a cleanup function to be applied after a Rank filter has been
+  # applied.  The idea is to remove the inital element of a line when
+  # that element is from a different streak, and there is a gap between the
+  # initial element and the next one (because the intermediate ones were
+  # removed in a Rank filter)
+  lines %>%
+    dplyr::arrange(LineIdx, AdjLevel) %>%
+    dplyr::filter(dplyr::lead(LineIdx) != LineIdx |
+                    dplyr::lead(StreakId) == StreakId |
+                    dplyr::lead(AdjLevel) - AdjLevel == 1 |
+                    is.na(dplyr::lead(AdjLevel)))
+}
+
 lines_plot <- function(lines, max_rank, reverse_x_axis=FALSE) {
   base <- lines %>%
     group_by(LineIdx) %>%

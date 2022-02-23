@@ -118,7 +118,8 @@ server <- function(input, output, session) {
     #  dplyr::filter(Rank <= max_rank()) %>%
     #  add_descenders(filtered)
     filtered %>%
-      dplyr::filter(Rank <= max_rank())
+      dplyr::filter(Rank <= max_rank()) %>%
+      lines_remove_nubs()
   })
 
   lines <- reactive({
