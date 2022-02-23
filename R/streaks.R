@@ -6,11 +6,15 @@ pct_formatter <- function(pct) {
 }
 
 streak_game_log <- function(streak_id, lines, game_logs) {
-  row <- lines %>% filter(StreakId==streak_id) %>% head(1)
-  game_logs %>%
-    filter(Year==row$Year,
-           Team==row$Team,
-           GameIndex >= row$LoIndex, GameIndex <= row$HiIndex)
+  row <- lines %>% dplyr::filter(StreakId==streak_id) %>% head(1)
+  if (nrow(row) > 0) {
+    game_logs %>%
+      dplyr::filter(Year==row$Year,
+             Team==row$Team,
+             GameIndex >= row$LoIndex, GameIndex <= row$HiIndex)
+  } else {
+    game_logs %>% dplyr::filter(FALSE)
+  }
 }
 
 streak_game_log_data <- function(streak_id, lines, game_logs) {

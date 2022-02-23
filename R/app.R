@@ -161,9 +161,13 @@ server <- function(input, output, session) {
   #})
 
   selected_streak_id <- reactive({
-    lines_to_streaks() %>%
-      dplyr::filter(LineIdx == selected_line_id()) %>%
-      dplyr::pull(StreakId)
+    if (is.null(selected_line_id())) {
+      NULL
+    } else {
+      lines_to_streaks() %>%
+        dplyr::filter(LineIdx == selected_line_id()) %>%
+        dplyr::pull(StreakId)
+    }
   })
 
   highlight_data <- reactive({
@@ -188,15 +192,11 @@ server <- function(input, output, session) {
   })
 
   output$streak_summary <- DT::renderDT({
-    message("Rendering table...")
-    #click_data <- plotly::event_data("plotly_click", source="lines_plot")
-    #key <- click_data %>% dplyr::pull("key")
-    #streak_id <- lines_to_streaks() %>%
-    #  dplyr::filter(LineIdx==key) %>%
-    #  dplyr::pull(StreakId)
+    message(paste("Rendering table...", selected_streak_id()))
+    if (is.null(selected_streak_id())) return(NULL)
 
     summary <- streak_summary_data(selected_streak_id(),
-                                   filtered_lines(),
+                                   isolate(filtered_lines()),
                                    SOMData::game_logs)
     DT::datatable(
       summary$data,
@@ -213,8 +213,10 @@ server <- function(input, output, session) {
     message("Rendering table...")
     #click_data <- plotly::event_data("plotly_click", source="lines_plot")
     #key <- click_data %>% dplyr::pull("key")
+    if (is.null(selected_streak_id())) return(NULL)
+
     game_log <- streak_game_log_data(selected_streak_id(),
-                                     filtered_lines(),
+                                     isolate(filtered_lines()),
                                      SOMData::game_logs)
     DT::datatable(
       game_log$data,
