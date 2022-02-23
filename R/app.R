@@ -140,7 +140,6 @@ server <- function(input, output, session) {
   })
 
   selected_id <- reactiveVal(NULL)
-  near_rows <- reactiveVal(NULL)
   #selected_streak_id <- reactive({
   #  click_data <- plotly::event_data("plotly_click", source="lines_plot")
   #  if (is.null(click_data)) {
