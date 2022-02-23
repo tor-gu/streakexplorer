@@ -33,7 +33,7 @@ streak_game_log_data <- function(streak_id, lines, game_logs) {
 
   result <- list(
     data=game_log_data,
-    caption="Caption, lor"
+    caption="Game Log"
   )
 }
 

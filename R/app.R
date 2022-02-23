@@ -205,7 +205,8 @@ server <- function(input, output, session) {
       rownames = FALSE,
       options=list(ordering=FALSE,
                    paging=FALSE,
-                   searching=FALSE
+                   searching=FALSE,
+                   info=FALSE
       )
     )
   })
@@ -223,7 +224,8 @@ server <- function(input, output, session) {
       game_log$data,
       caption=game_log$caption,
       rownames = FALSE,
-      options(ordering=FALSE, searching=FALSE)
+      options(ordering=FALSE, searching=FALSE, pageLength=25,
+              lengthChange=FALSE)
     )
   })
 
