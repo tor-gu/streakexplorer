@@ -83,7 +83,7 @@ lines_highlight <- function(lines, concordances, lines_to_streaks,
   message(glue::glue("lines_highlight"))
   result <- lines %>%
     dplyr::mutate(
-      line_colored="a",
+      line_colored=1,
       line_width=1,
       line_type="base"
     )
@@ -96,7 +96,7 @@ lines_highlight <- function(lines, concordances, lines_to_streaks,
       related_line_ids <- get_related_lines(id, lines_to_streaks, concordances)
       result <- result %>%
         dplyr::mutate(
-          line_colored=dplyr::if_else(Year==year & Team==team, "b",
+          line_colored=dplyr::if_else(Year==year & Team==team, 2,
                                       line_colored),
           line_type=dplyr::if_else(Year==year & Team==team, "season",
                                    line_type),
@@ -106,7 +106,7 @@ lines_highlight <- function(lines, concordances, lines_to_streaks,
                                    line_type),
         ) %>%
         dplyr::mutate(
-          line_colored=dplyr::if_else(LineIdx == id, "c", line_colored),
+          line_colored=dplyr::if_else(LineIdx == id, 3, line_colored),
           line_type=dplyr::if_else(LineIdx == id, "identical", line_type),
         )
     }
@@ -134,14 +134,14 @@ lines_plot <- function(lines, max_rank, reverse_x_axis=FALSE) {
     plotly::highlight_key(~LineIdx)
   x_range <- range(lines$AdjLevel)
   x_axis_range <- if(reverse_x_axis) rev(x_range) else x_range
-  colors <- c("black", "purple", "red")
+  colors <- c(`1` = "black", '2' = "purple", '3' = "red")
   line_types <- c(base="dot", season="dash", related="solid", identical="solid")
   plotly::plot_ly(source="lines_plot", base,
           x=~AdjLevel, y=~Rank, hoverinfo="text") %>%
     plotly::add_lines(alpha=0.7,
               line=list(shape="spline"),
               text=~text,
-              color=~line_colored, colors=colors,
+              color=~factor(line_colored), colors=colors,
               linetype=~line_type, linetypes=line_types) %>%
     plotly::highlight(on="plotly_hover", off="plotly_doubleclick",
                       opacityDim=.6, color="red") %>%
