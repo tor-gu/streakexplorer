@@ -131,7 +131,6 @@ lines_remove_nubs <- function(lines) {
 lines_plot <- function(lines, max_rank, reverse_x_axis=FALSE) {
   base <- lines %>%
     group_by(LineIdx) %>%
-    #plotly::highlight_key(~StreakId)
     plotly::highlight_key(~LineIdx)
   x_range <- range(lines$AdjLevel)
   x_axis_range <- if(reverse_x_axis) rev(x_range) else x_range
@@ -144,7 +143,8 @@ lines_plot <- function(lines, max_rank, reverse_x_axis=FALSE) {
               text=~text,
               color=~line_colored, colors=colors,
               linetype=~line_type, linetypes=line_types) %>%
-    plotly::highlight(on="plotly_hover", off="plotly_doubleclick") %>%
+    plotly::highlight(on="plotly_hover", off="plotly_doubleclick",
+                      opacityDim=.6, color="red") %>%
     plotly::layout(xaxis=list(title="Level", range=x_axis_range,
                               showticklabels=FALSE, zeroline=FALSE)) %>%
     plotly::layout(yaxis=list(title="Rank", range=c(max_rank+1,0),
