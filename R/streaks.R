@@ -18,18 +18,39 @@ streak_game_log <- function(streak_id, lines, game_logs) {
 }
 
 streak_game_log_data <- function(streak_id, lines, game_logs) {
+  date_template <- "{lubridate::month(Date)}/{lubridate::mday(Date)}"
+  completed_on_template <-
+    paste0("Completed {lubridate::month(CompletedOn)}/",
+           "{lubridate::mday(CompletedOn)}, {GameResult} ",
+           "{GameRunsFor}-{GameRunsAgainst}")
+  completion_of_template <-
+    paste0("Final score {GameRunsFor}-{GameRunsAgainst}, began ",
+           "{lubridate::month(CompletionOf)}/{lubridate::mday(CompletionOf)}")
+
   game_log_data <- streak_game_log(streak_id, lines, game_logs) %>%
-    mutate(`Gm#`=GameNumber,
-           `Date `=glue::glue("{lubridate::month(Date)}/{lubridate::mday(Date)}"),
+    mutate(GameResult=case_when(GameRunsFor >  GameRunsAgainst ~ "W",
+                                 GameRunsFor <  GameRunsAgainst ~ "L",
+                                 GameRunsFor == GameRunsAgainst ~ "T"),
+           `Gm#`=GameNumber,
+           `Date `=glue::glue(date_template),
            Opp=ifelse(AtHome,
                       OpponentTeam,
                       glue::glue("@{OpponentTeam}")
            ),
            `W/L` = Result,
            RS = RunsFor,
-           RA = RunsAgainst
+           RA = RunsAgainst,
+           Completion=NA
     ) %>%
-    select(`Gm#`:RA)
+    dplyr::mutate(Completion=ifelse(!is.na(CompletedOn),
+                                    glue::glue(completed_on_template),
+                                    Completion)
+    ) %>%
+    dplyr::mutate(Completion=ifelse(!is.na(CompletionOf),
+                                    glue::glue(completion_of_template),
+                                    Completion)
+    ) %>%
+    select(`Gm#`:Completion)
 
   result <- list(
     data=game_log_data,
