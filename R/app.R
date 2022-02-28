@@ -23,9 +23,9 @@ ui <- fluidPage(
     ),
     mainPanel(
       plotly::plotlyOutput(outputId = "streaks"),
-      DT::DTOutput("streak_summary"),
+      shinycssloaders::withSpinner(DT::DTOutput("streak_summary")),
       tableOutput("standings"),
-      DT::DTOutput("game_log"),
+      shinycssloaders::withSpinner(DT::DTOutput("game_log")),
     )
   )
 )
@@ -60,7 +60,7 @@ server <- function(input, output, session) {
     }
   })
 
-  selected_years <- reactive({input$years[[1]]:input$years[[2]]})
+  selected_years <- reactive({years()[[1]]:years()[[2]]})
   selected_leagues <- reactiveVal(c("AL", "NL"))
   selected_league_divisions <- reactiveVal(list())
 
@@ -88,7 +88,7 @@ server <- function(input, output, session) {
                       selected=unlist(division_choices()))
   })
 
-  observeEvent(input$years, {
+  observeEvent(years(), {
     updateSelectInput(session, "divisions", choices=division_choices(),
                       selected=unlist(division_choices()))
   })
@@ -102,11 +102,13 @@ server <- function(input, output, session) {
   })
 
   max_rank <- reactiveVal(10)
+  years <- reactive({input$years}) %>% debounce(333)
 
   filtered_lines <- reactive({
+    req(years(), input$teams)
     message("filtering lines")
     filtered <- base_lines() %>%
-      dplyr::filter(Year >= input$years[[1]] & Year <= input$years[[2]]) %>%
+      dplyr::filter(Year >= years()[[1]] & Year <= years()[[2]]) %>%
       dplyr::filter(Team %in% input$teams)
     max_rank(filtered %>%
                dplyr::group_by(Level) %>%

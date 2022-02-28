@@ -66,7 +66,6 @@ lines_add_lines_maybe <- function(p, lines=NULL, ...) {
     data <- plotly::highlight_key(lines, ~LineIdx, group="line-highlight")
     plotly::add_lines(p, data=data, ...)
   } else {
-    message("passthrough!")
     p
   }
 }
@@ -104,6 +103,7 @@ lines_plot <- function(lines, max_rank, reverse_x_axis=FALSE) {
     purrr::map(dplyr::group_by, LineIdx)
   plotly::plot_ly(source="lines_plot",
           x=~AdjLevel, y=~Rank, hoverinfo="text") %>%
+    #plotly::add_lines(data=tibble(AdjLevel=integer(),Rank=integer(), line_colored=integer())) %>%
     lines_add_lines_maybe(
       lines=split_lines$base,
       alpha=0.7,
