@@ -54,9 +54,9 @@ server <- function(input, output, session) {
   lines_to_streaks <- reactive({
     message("loading lines_to_streaks")
     if (hot()) {
-      SOMData::hot_streak_lines_to_streaks
+      SOMData::hot_streaks_lines_to_streaks
     } else {
-      SOMData::cold_streak_lines_to_streaks
+      SOMData::cold_streaks_lines_to_streaks
     }
   })
 

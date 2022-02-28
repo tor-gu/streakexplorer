@@ -1,71 +1,3 @@
-numeric_right_segment_plus1 <- function(all_levels, my_levels) {
-  lb <- all_levels %>%
-    magrittr::extract(. <= max(my_levels)) %>%
-    setdiff(my_levels) %>% max()
-  list(lb=lb, ub=max(my_levels))
-}
-
-numeric_left_segment_minus1 <- function(all_levels, my_levels) {
-  ub <- all_levels %>%
-    magrittr::extract(. >= min(my_levels)) %>%
-    setdiff(my_levels) %>% min()
-  list(lb=min(my_levels), ub=ub)
-}
-
-lines_split_streak <- function(streaks, concordances, levels, streak_id,
-                               top=TRUE) {
-  #message(glue::glue("lines split streak {streak_id}"))
-  streak_levels <- streaks %>%
-    filter(StreakId == streak_id) %>%
-    pull(Level)
-  level_bounds <-
-    if (top)
-      numeric_right_segment_plus1(levels, streak_levels)
-    else
-      numeric_left_segment_minus1(levels, streak_levels)
-  streak_line <- streaks %>%
-    semi_join(concordances %>% filter(Inner==streak_id),
-              by=c("StreakId"="Outer")) %>%
-    filter(between(Level, level_bounds$lb, level_bounds$ub))
-  remainder <-
-    if (top)
-      streaks %>% filter(StreakId != streak_id | Level <= level_bounds$lb)
-    else
-      streaks %>% filter(StreakId != streak_id | Level >= level_bounds$ub)
-
-  list(remainder=remainder, streak_line=streak_line)
-}
-
-lines_split_top_streak <- function(streak_lines, concordances, levels,
-                                   top=TRUE) {
-  #message("lines_split_top_streak")
-  current_remainder <- streak_lines$remainder
-  slicer <- if (top) slice_max else slice_min
-  streak_id <- current_remainder %>%
-    slicer(Level, n=1, with_ties=FALSE) %>%
-    pull(StreakId)
-  new_split <- lines_split_streak(current_remainder, concordances, levels,
-                                 streak_id, top)
-  list(remainder = new_split$remainder,
-       lines = rlist::list.append(streak_lines$lines, new_split$streak_line))
-}
-
-lines_split_all <- function(streaks, concordances, levels, top=TRUE) {
-  message("Calling lines_split_all")
-  streak_lines <- list(remainder=streaks, lines=list())
-  while (nrow(streak_lines$remainder) > 0) {
-    streak_lines <- lines_split_top_streak(streak_lines, concordances,
-                                           levels, top)
-  }
-  streak_lines$lines
-}
-
-lines_bind <- function(lines) {
-  purrr::reduce(
-    purrr::imap(lines, ~ .x %>% mutate(LineIdx=.y)),
-    rbind)
-}
-
 get_related_lines <- function(line_id, lines_to_streaks, concordances) {
   related_streak_ids <- lines_to_streaks %>%
     dplyr::filter(LineIdx==line_id) %>%
@@ -104,6 +36,7 @@ lines_highlight <- function(lines, concordances, lines_to_streaks,
         dplyr::mutate(
           line_type=dplyr::if_else(LineIdx %in% related_line_ids, "related",
                                    line_type),
+          line_width=dplyr::if_else(LineIdx %in% related_line_ids, 3, 1)
         ) %>%
         dplyr::mutate(
           line_colored=dplyr::if_else(LineIdx == id, 3, line_colored),
@@ -128,27 +61,100 @@ lines_remove_nubs <- function(lines) {
                     is.na(dplyr::lead(AdjLevel)))
 }
 
+lines_add_lines_maybe <- function(p, lines=NULL, ...) {
+  if (!is.null(lines) && nrow(lines) > 0) {
+    data <- plotly::highlight_key(lines, ~LineIdx, group="line-highlight")
+    plotly::add_lines(p, data=data, ...)
+  } else {
+    message("passthrough!")
+    p
+  }
+}
+
 lines_plot <- function(lines, max_rank, reverse_x_axis=FALSE) {
-  base <- lines %>%
-    group_by(LineIdx) %>%
-    plotly::highlight_key(~LineIdx)
+  #base <- lines %>%
+  #  group_by(LineIdx) %>%
+  #  plotly::highlight_key(~LineIdx)
   x_range <- range(lines$AdjLevel)
   x_axis_range <- if(reverse_x_axis) rev(x_range) else x_range
+  x_range_len <- x_range[2] - x_range[1]
+  x_axis_ticks <- c(x_range[1] + .05*x_range_len,
+                    mean(x_range),
+                    x_range[1] + .95*x_range_len)
+  x_axis_tick_text <-
+    if (reverse_x_axis)
+      c("Pure losing\nstreak",
+        "\U27F5 Streak intensity \U27F6",
+        "Full\nseason")
+    else
+      c("Full\nseason",
+        "\U27F5 Streak intensity \U27F6",
+        "Pure winning\nstreak")
+  y_axis_ticks <- c(1,
+                    mean(c(1, max_rank)),
+                    max_rank)
+  y_axis_tick_text <- c("# 1",
+                        "Streak\nrank",
+                        paste("# ", max_rank))
+
   colors <- c(`1` = "black", '2' = "purple", '3' = "red")
   line_types <- c(base="dot", season="dash", related="solid", identical="solid")
-  plotly::plot_ly(source="lines_plot", base,
+  split_lines <- lines %>%
+    split(lines$line_type) %>%
+    purrr::map(dplyr::group_by, LineIdx)
+  plotly::plot_ly(source="lines_plot",
           x=~AdjLevel, y=~Rank, hoverinfo="text") %>%
-    plotly::add_lines(alpha=0.7,
-              line=list(shape="spline"),
-              text=~text,
-              color=~factor(line_colored), colors=colors,
-              linetype=~line_type, linetypes=line_types) %>%
+    lines_add_lines_maybe(
+      lines=split_lines$base,
+      alpha=0.7,
+      line=list(shape="spline", width=1),
+      text=~text,
+      #linetype=~line_type, linetypes=line_types,
+      color=~factor(line_colored), colors=colors
+      ) %>%
+    lines_add_lines_maybe(
+      lines = split_lines$season,
+      alpha=0.7,
+      line=list(shape="spline", width=1),
+      text=~text,
+      #linetype=~line_type, linetypes=line_types,
+      color=~factor(line_colored), colors=colors
+    ) %>%
+    lines_add_lines_maybe(
+      lines = rbind(split_lines$related, split_lines$identical),
+      alpha=0.7,
+      line=list(shape="spline", width=3),
+      text=~text,
+      #linetype=~line_type, linetypes=line_types,
+      color=~factor(line_colored), colors=colors
+    ) %>%
     plotly::highlight(on="plotly_hover", off="plotly_doubleclick",
                       opacityDim=.6, color="red") %>%
-    plotly::layout(xaxis=list(title="Level", range=x_axis_range,
-                              showticklabels=FALSE, zeroline=FALSE)) %>%
-    plotly::layout(yaxis=list(title="Rank", range=c(max_rank+1,0),
-                              zeroline=FALSE, tick0=1, dtick=max_rank-1)) %>%
+    plotly::layout(xaxis=list(range=x_axis_range,
+                              showgrid=FALSE,
+                              showline=TRUE,
+                              showticklabels=TRUE,
+                              tickangle=0,
+                              tickfont=list(color="purple",
+                                            family="Arial",
+                                            size=15),
+                              tickmode="array",
+                              ticktext=x_axis_tick_text,
+                              tickvals=x_axis_ticks,
+                              title=list(text=""),
+                              zeroline=FALSE)) %>%
+    plotly::layout(yaxis=list(range=c(max_rank+1,0),
+                              showgrid=FALSE,
+                              showline=TRUE,
+                              showticklabels=TRUE,
+                              tickangle=0,
+                              tickfont=list(color="purple",
+                                            family="Arial",
+                                            size=15),
+                              ticktext=y_axis_tick_text,
+                              tickvals=y_axis_ticks,
+                              title=list(text=""),
+                              zeroline=FALSE)) %>%
     plotly::layout(showlegend=FALSE) %>%
     plotly::config(displayModeBar=FALSE)
 }
