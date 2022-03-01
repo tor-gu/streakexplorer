@@ -7,8 +7,14 @@ hs_levels <- SOMData::hot_streaks %>% dplyr::pull(Level) %>% unique() %>% sort()
 cs_levels <- SOMData::cold_streaks %>% dplyr::pull(Level) %>% unique() %>%
   sort()
 
+theme <- bslib::bs_theme(bootswatch="slate",
+                         heading_font = "1.2",
+                         font_scale = 0.8)
 ui <- fluidPage(
-
+  tags$style("#game_log td, th {padding: 0; text-align: right}"),
+  tags$style("#streak_summary td, th {padding: 0; text-align: right}"),
+  theme=theme,
+  #theme=bslib::bs_theme(),
   titlePanel("Streak Explorer"),
   sidebarLayout(
     sidebarPanel(
@@ -25,12 +31,13 @@ ui <- fluidPage(
       plotly::plotlyOutput(outputId = "streaks"),
       shinycssloaders::withSpinner(DT::DTOutput("streak_summary")),
       tableOutput("standings"),
-      shinycssloaders::withSpinner(DT::DTOutput("game_log")),
+      shinycssloaders::withSpinner(DT::DTOutput("game_log"))
     )
   )
 )
 
 server <- function(input, output, session) {
+  #bslib::bs_themer()
 
   hot <- reactive({input$streak_type == "HOT"})
 
@@ -195,7 +202,7 @@ server <- function(input, output, session) {
   })
 
   output$streak_summary <- DT::renderDT({
-    message(paste("Rendering table...", selected_streak_id()))
+    message(paste("Rendering summary table...", selected_streak_id()))
     if (is.null(selected_streak_id())) return(NULL)
 
     summary <- streak_summary_data(selected_streak_id(),
@@ -214,7 +221,7 @@ server <- function(input, output, session) {
   })
 
   output$game_log <- DT::renderDT({
-    message("Rendering table...")
+    message(paste("Rendering game log table...", selected_streak_id()))
     #click_data <- plotly::event_data("plotly_click", source="lines_plot")
     #key <- click_data %>% dplyr::pull("key")
     if (is.null(selected_streak_id())) return(NULL)
