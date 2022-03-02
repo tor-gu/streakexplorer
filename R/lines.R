@@ -57,10 +57,9 @@ lines_remove_nubs <- function(lines) {
   # removed in a Rank filter)
   lines %>%
     dplyr::arrange(LineId, IntensityLevel) %>%
-    dplyr::filter(dplyr::lead(LineId) != LineId |
-                    dplyr::lead(StreakId) == StreakId |
-                    dplyr::lead(IntensityLevel) - IntensityLevel == 1 |
-                    is.na(dplyr::lead(IntensityLevel)))
+    torgutil::filter_out(dplyr::lead(LineId) == LineId,
+                         dplyr::lead(StreakId) != StreakId,
+                         dplyr::lead(IntensityLevel) - IntensityLevel != 1)
 }
 
 
