@@ -1,4 +1,4 @@
-streaks_get_related_streak_ids <- function(concordances, StreakId) {
+streak_get_related_streak_ids <- function(StreakId, concordances) {
   Inner <- concordances %>% filter(Inner==StreakId) %>% pull(Outer)
   Outer <- concordances %>% filter(Outer==StreakId) %>% pull(Inner)
   c(Inner,Outer) %>% unique()
