@@ -8,13 +8,3 @@ franchises_by_seasons <- function(franchises, years) {
     data.table::rbindlist() %>% tibble::as_tibble() %>% unique()
 }
 
-# TODO maybe can delete this function on cleanup
-franchise_season_name <- function(franchise_ids, years) {
-  purrr::cross2(years, franchise_ids) %>%
-    purrr::map_dfr(~franchises %>%
-                     dplyr::filter(.x[[1]] >= FirstSeason,
-                                   .x[[1]] <= FinalSeason | is.na(FinalSeason),
-                                   .x[[2]] == FranchiseID) %>%
-                     dplyr::mutate(Year=.x[[1]])) %>%
-    dplyr::select(FranchiseID, Year, TeamID, Location, Nickname)
-}
