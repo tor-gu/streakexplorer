@@ -1,6 +1,8 @@
 streak_get_related_streak_ids <- function(StreakId, concordances) {
-  Inner <- concordances %>% filter(Inner==StreakId) %>% pull(Outer)
-  Outer <- concordances %>% filter(Outer==StreakId) %>% pull(Inner)
+  Inner <- concordances %>% dplyr::filter(Inner==StreakId) %>%
+    dplyr::pull(Outer)
+  Outer <- concordances %>% dplyr::filter(Outer==StreakId) %>%
+    dplyr::pull(Inner)
   c(Inner,Outer) %>% unique()
 }
 
@@ -34,19 +36,21 @@ streak_game_log_data <- function(streak_id, streaks, game_logs) {
            "{lubridate::month(CompletionOf)}/{lubridate::mday(CompletionOf)}")
 
   game_log_data <- streak_game_log(streak_id, streaks, game_logs) %>%
-    mutate(GameResult=case_when(GameRunsFor >  GameRunsAgainst ~ "W",
-                                 GameRunsFor <  GameRunsAgainst ~ "L",
-                                 GameRunsFor == GameRunsAgainst ~ "T"),
-           `Gm#`=GameNumber,
-           `Date `=glue::glue(date_template),
-           Opp=ifelse(AtHome,
-                      OpponentTeam,
-                      glue::glue("@{OpponentTeam}")
-           ),
-           `W/L` = Result,
-           RS = RunsFor,
-           RA = RunsAgainst,
-           Completion=NA
+    dplyr::mutate(
+      GameResult=dplyr::case_when(
+        GameRunsFor >  GameRunsAgainst ~ "W",
+        GameRunsFor <  GameRunsAgainst ~ "L",
+        GameRunsFor == GameRunsAgainst ~ "T"),
+      `Gm#`=GameNumber,
+      `Date `=glue::glue(date_template),
+      Opp=ifelse(AtHome,
+                 OpponentTeam,
+                 glue::glue("@{OpponentTeam}")
+                 ),
+      `W/L` = Result,
+      RS = RunsFor,
+      RA = RunsAgainst,
+      Completion=NA
     ) %>%
     dplyr::mutate(Completion=ifelse(!is.na(CompletedOn),
                                     glue::glue(completed_on_template),
@@ -56,7 +60,7 @@ streak_game_log_data <- function(streak_id, streaks, game_logs) {
                                     glue::glue(completion_of_template),
                                     Completion)
     ) %>%
-    select(`Gm#`:Completion)
+    dplyr::select(`Gm#`:Completion)
 
   result <- list(
     data=game_log_data,
@@ -67,24 +71,25 @@ streak_game_log_data <- function(streak_id, streaks, game_logs) {
 streak_summary_data <- function(streak_id, streaks, game_logs) {
     summary_data <-
       streak_game_log(streak_id, streaks, game_logs) %>%
-      summarize(Team            = unique(Team),
-                Year            = unique(Year),
-                FirstGameNumber = min(GameNumber),
-                FirstGameDate   = min(Date),
-                LastGameNumber  = max(GameNumber),
-                LastGameDate    = max(Date),
-                Games           = sum(!is.na(Result)),
-                Wins            = sum(Result=="W", na.rm=TRUE),
-                Losses          = sum(Result=="L", na.rm=TRUE),
-                Ties            = sum(Result=="T", na.rm=TRUE),
-                RunsScored      = sum(RunsFor),
-                RunsAllowed     = sum(RunsAgainst),
-                WinningPct      = (Wins+Ties/2)/Games,
-                PythagPct       = RunsScored^2 / (RunsScored^2 + RunsAllowed^2),
-                PythagWins      = round(PythagPct * Games, digits=1),
-                PythagLosses    = Games - PythagWins,
-                HomeGames       = sum(AtHome==TRUE),
-                AwayGames       = sum(AtHome==FALSE)
+      dplyr::summarise(
+        Team            = unique(Team),
+        Year            = unique(Year),
+        FirstGameNumber = min(GameNumber),
+        FirstGameDate   = min(Date),
+        LastGameNumber  = max(GameNumber),
+        LastGameDate    = max(Date),
+        Games           = sum(!is.na(Result)),
+        Wins            = sum(Result=="W", na.rm=TRUE),
+        Losses          = sum(Result=="L", na.rm=TRUE),
+        Ties            = sum(Result=="T", na.rm=TRUE),
+        RunsScored      = sum(RunsFor),
+        RunsAllowed     = sum(RunsAgainst),
+        WinningPct      = (Wins+Ties/2)/Games,
+        PythagPct       = RunsScored^2 / (RunsScored^2 + RunsAllowed^2),
+        PythagWins      = round(PythagPct * Games, digits=1),
+        PythagLosses    = Games - PythagWins,
+        HomeGames       = sum(AtHome==TRUE),
+        AwayGames       = sum(AtHome==FALSE)
     )
 
     franchise_season <- franchises_by_season(SOMData::franchises,
@@ -93,7 +98,7 @@ streak_summary_data <- function(streak_id, streaks, game_logs) {
 
     data <-
       summary_data %>%
-      mutate(
+      dplyr::mutate(
         Start=glue::glue("{lubridate::month(FirstGameDate)}/{lubridate::mday(FirstGameDate)}"),
         End=glue::glue("{lubridate::month(LastGameDate)}/{lubridate::mday(LastGameDate)}"),
         Dates=glue::glue(ifelse(FirstGameDate==LastGameDate, "{Start}", "{Start} - {End}")),
@@ -103,7 +108,7 @@ streak_summary_data <- function(streak_id, streaks, game_logs) {
         `W-L%`=pct_formatter(WinningPct),
         RS=RunsScored, RA=RunsAllowed, `Pyth%`=pct_formatter(PythagPct)
       ) %>%
-      select(Dates:`Pyth%`)
+      dplyr::select(Dates:`Pyth%`)
 
     caption <- glue::glue(paste0(
       "{summary_data$Year} ",

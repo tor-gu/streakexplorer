@@ -1,37 +1,37 @@
 # put these in a utils kind of file
-is_column_value_unique <- function(table, column_name) {
-  table %>% pull({{column_name}}) %>% unique() %>% length()== 1
-}
+#is_column_value_unique <- function(table, column_name) {
+#  table %>% pull({{column_name}}) %>% unique() %>% length()== 1
+#}
 
-tbl_as_named_list <- function(tbl, value_col, name_col) {
-  result <- tbl %>% pull({{value_col}}) %>% as.list()
-  names(result) <- tbl %>% pull({{name_col}}) %>% as.list()
-  result
-}
+#tbl_as_named_list <- function(tbl, value_col, name_col) {
+#  result <- tbl %>% pull({{value_col}}) %>% as.list()
+#  names(result) <- tbl %>% pull({{name_col}}) %>% as.list()
+#  result
+#}
 
 
 
 filter_by_year <- function(franchises, year) {
-  franchises %>% filter(FirstSeason <= year &
-                          (FinalSeason >= year | is.na(FinalSeason)))
+  franchises %>% dplyr::filter(
+    FirstSeason <= year & (FinalSeason >= year | is.na(FinalSeason)))
 }
 
 filter_by_years <- function(franchises, years, truncate_years=TRUE) {
   purrr::map(years, function(year) filter_by_year(franchises, year)) %>%
-    data.table::rbindlist() %>% as_tibble() %>% unique()
+    data.table::rbindlist() %>% tibble::as_tibble() %>% unique()
 }
 
 filter_by_league <- function(franchises, leagues) {
-  franchises %>% filter(League %in% leagues)
+  franchises %>% dplyr::filter(League %in% leagues)
 }
 
 
 filter_by_league_division <- function(franchises, league_division) {
   if (is.na(league_division$division)) {
-    franchises %>% filter(League==league_division$league, is.na(Division))
+    franchises %>% dplyr::filter(League==league_division$league, is.na(Division))
   } else {
-    franchises %>% filter(League==league_division$league,
-                          Division==league_division$division)
+    franchises %>% dplyr::filter(League==league_division$league,
+                                 Division==league_division$division)
   }
 }
 
@@ -39,26 +39,27 @@ filter_by_league_divisions <- function(franchises, league_divisions) {
   purrr::map(league_divisions,
              function(ld) filter_by_league_division(franchises, ld)) %>%
     data.table::rbindlist() %>%
-    as_tibble() %>% unique()
+    tibble::as_tibble() %>% unique()
 }
 
 truncate_years <- function(franchises,  years) {
-  franchises %>% mutate(FirstSeason=pmax(FirstSeason, min(years)),
-                        FinalSeason=pmin(max(years), FinalSeason, na.rm = TRUE))
+  franchises %>% dplyr::mutate(
+    FirstSeason=pmax(FirstSeason, min(years)),
+    FinalSeason=pmin(max(years), FinalSeason, na.rm = TRUE))
 }
 
 get_divisions <- function(franchises) {
   franchises %>%
-    group_by(League,Division) %>%
-    summarise(FirstSeason=min(FirstSeason), FinalSeason=max(FinalSeason),
-              .groups="drop")
+    dplyr::group_by(League,Division) %>%
+    dplyr::summarise(FirstSeason=min(FirstSeason), FinalSeason=max(FinalSeason),
+                     .groups="drop")
 }
 
 get_teams <- function(franchises) {
   franchises %>%
-    group_by(FranchiseID) %>%
-    summarise(FirstSeason=min(FirstSeason), FinalSeason=max(FinalSeason),
-              .groups="drop")
+    dplyr::group_by(FranchiseID) %>%
+    dplyr::summarise(FirstSeason=min(FirstSeason), FinalSeason=max(FinalSeason),
+                     .groups="drop")
 }
 
 division_as_choice_value <- function(league, division) {
@@ -94,12 +95,13 @@ division_as_choice_label <- function(league, division, min_year=NULL,
 }
 
 generate_league_division_selection <- function(division_table, league) {
-  league_divisions <- division_table %>% filter(League==league)
+  league_divisions <- division_table %>%
+    dplyr::filter(League==league)
   choices <- purrr::pmap(league_divisions,
                          function(League, Division, ...)
                            division_as_choice_value(League, Division))
-  if (is_column_value_unique(league_divisions, FirstSeason) &&
-      is_column_value_unique(league_divisions, FinalSeason)) {
+  if (torgutil::tbl_is_column_value_unique(league_divisions, FirstSeason) &&
+      torgutil::tbl_is_column_value_unique(league_divisions, FinalSeason)) {
     names(choices) <-purrr::pmap(
       league_divisions, function(League, Division, FirstSeason, FinalSeason)
         division_as_choice_label(League, Division, NULL, NULL))
@@ -113,7 +115,7 @@ generate_league_division_selection <- function(division_table, league) {
 }
 
 generate_division_selection <- function(division_table) {
-  leagues <- division_table %>% pull(League) %>% unique()
+  leagues <- division_table %>% dplyr::pull(League) %>% unique()
   # We need the treat the single-league case differently than the multi-league
   # case: With a single league, we just return a list of choices.  But if there
   # are multiple leagues, we want to return a list-of-lists, so that we have
@@ -131,11 +133,11 @@ generate_division_selection <- function(division_table) {
 
 generate_team_selection <- function(team_table) {
   selection_table <- team_table %>%
-    arrange(desc(FirstSeason)) %>%
-    select(FranchiseID, Nickname) %>%
+    dplyr::arrange(desc(FirstSeason)) %>%
+    dplyr::select(FranchiseID, Nickname) %>%
     unique() %>%
-    group_by(FranchiseID) %>%
-    summarize(Nicknames=stringr::str_c(Nickname, collapse="/")) %>%
-    tbl_as_named_list(FranchiseID, Nicknames)
+    dplyr::group_by(FranchiseID) %>%
+    dplyr::summarise(Nicknames=stringr::str_c(Nickname, collapse="/")) %>%
+    torgutil::tbl_as_named_list(FranchiseID, Nicknames)
 }
 

@@ -7,7 +7,7 @@ lines_get_related_lines <- function(line_id, lines_to_streaks, concordances) {
     unlist(recursive = FALSE) %>% unique()
   lines_to_streaks %>%
     dplyr::filter(StreakId %in% related_streak_ids) %>%
-    pull(LineId)
+    dplyr::pull(LineId)
 }
 
 
@@ -22,10 +22,10 @@ lines_highlight <- function(lines, concordances, lines_to_streaks,
     )
 
   if ( !is.null(id) ) {
-    row <- lines %>% filter(LineId==id) %>% head(1)
+    row <- lines %>% dplyr::filter(LineId==id) %>% head(1)
     if ( nrow(row) > 0 ) {
-      team <- row %>% pull(Team)
-      year <- row %>% pull(Year)
+      team <- row %>% dplyr::pull(Team)
+      year <- row %>% dplyr::pull(Year)
       related_line_ids <- lines_get_related_lines(id, lines_to_streaks,
                                                   concordances)
       result <- result %>%
@@ -65,16 +65,18 @@ lines_remove_nubs <- function(lines) {
 
 add_descenders <- function(initial_rank_filter, initial_filter) {
   filtered_left <- initial_filter %>%
-    mutate(PrevIntensityLevel=IntensityLevel - 1) %>%
-    semi_join(initial_rank_filter,
-              by=c("StreakId", "PrevIntensityLevel"="IntensityLevel")) %>%
-    select(-PrevAdjLevel)
+    dplyr::mutate(PrevIntensityLevel=IntensityLevel - 1) %>%
+    dplyr::semi_join(
+      initial_rank_filter,
+      by=c("StreakId", "PrevIntensityLevel"="IntensityLevel")) %>%
+    dplyr::select(-PrevAdjLevel)
 
   filtered_right <- initial_filter %>%
-    mutate(NextIntensityLevel=IntensityLevel + 1) %>%
-    semi_join(initial_rank_filter,
-              by=c("StreakId", "NextIntensityLevel"="IntensityLevel")) %>%
-    select(-NextIntensityLevel)
+    dplyr::mutate(NextIntensityLevel=IntensityLevel + 1) %>%
+    dplyr::semi_join(
+      initial_rank_filter,
+      by=c("StreakId", "NextIntensityLevel"="IntensityLevel")) %>%
+    dplyr::select(-NextIntensityLevel)
 
   rbind(initial_rank_filter, filtered_left, filtered_right) %>% unique()
 }
