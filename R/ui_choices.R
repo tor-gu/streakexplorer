@@ -1,16 +1,3 @@
-# put these in a utils kind of file
-#is_column_value_unique <- function(table, column_name) {
-#  table %>% pull({{column_name}}) %>% unique() %>% length()== 1
-#}
-
-#tbl_as_named_list <- function(tbl, value_col, name_col) {
-#  result <- tbl %>% pull({{value_col}}) %>% as.list()
-#  names(result) <- tbl %>% pull({{name_col}}) %>% as.list()
-#  result
-#}
-
-
-
 filter_by_year <- function(franchises, year) {
   franchises %>% dplyr::filter(
     FirstSeason <= year & (FinalSeason >= year | is.na(FinalSeason)))
