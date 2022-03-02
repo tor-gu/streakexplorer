@@ -120,9 +120,6 @@ server <- function(input, output, session) {
                dplyr::ungroup() %>%
                dplyr::summarise(ms=max(Rank)) %>% dplyr::pull(ms)
     )
-    #filtered %>%
-    #  dplyr::filter(Rank <= max_rank()) %>%
-    #  add_descenders(filtered)
     filtered %>%
       dplyr::filter(Rank <= max_rank()) %>%
       lines_remove_nubs()
@@ -130,10 +127,6 @@ server <- function(input, output, session) {
 
   lines <- reactive({
     message("building lines")
-    #filtered_streaks() %>%
-    #  lines_split_all(concordances(), levels(), hot()) %>%
-    #  lines_bind() %>%
-    #  lines_update_text(SOMData::game_logs)
     filtered_lines()
   })
 
@@ -158,14 +151,6 @@ server <- function(input, output, session) {
   observeEvent(hot(), ignoreInit = TRUE, {
     selected_line_id(NULL)
   })
-  #selected_line_id <- reactive({
-  #  click_data <- plotly::event_data("plotly_click", source="lines_plot")
-  #  if (is.null(click_data)) {
-  #    NULL
-  #  } else {
-  #    click_data %>% dplyr::pull("key")
-  #  }
-  #})
 
   selected_streak_id <- reactive({
     if (is.null(selected_line_id())) {
@@ -179,14 +164,6 @@ server <- function(input, output, session) {
 
   highlight_data <- reactive({
     message("About to do highlighting")
-    #print(selected_streak_id())
-    #id <- NULL
-    #if (!is.null(selected_streak_id())) {
-    #  print(selected_streak_id())
-    #  id <- lines() %>%
-    #    dplyr::filter(StreakId==selected_streak_id()) %>%
-    #    head(1) %>% dplyr::pull(Id)
-    #}
     print(selected_line_id())
     lines_highlight(filtered_lines(), concordances(),
                     lines_to_streaks(), selected_line_id())
@@ -219,8 +196,6 @@ server <- function(input, output, session) {
 
   output$game_log <- DT::renderDT({
     message(paste("Rendering game log table...", selected_streak_id()))
-    #click_data <- plotly::event_data("plotly_click", source="lines_plot")
-    #key <- click_data %>% dplyr::pull("key")
     if (is.null(selected_streak_id())) return(NULL)
 
     game_log <- streak_game_log_data(selected_streak_id(),
