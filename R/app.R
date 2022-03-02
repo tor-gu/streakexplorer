@@ -194,7 +194,7 @@ server <- function(input, output, session) {
 
   output$streaks <- plotly::renderPlotly({
     message("Rendering plotly...")
-    highlight_data() %>% lines_plot(max_rank(),
+    highlight_data() %>% plot_lines(max_rank(),
                                     input$streak_type == "COLD")
   })
 
