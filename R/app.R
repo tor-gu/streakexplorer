@@ -37,6 +37,7 @@ server <- function(input, output, session) {
 
   hot <- reactive({input$streak_type == "HOT"})
 
+  base_lines <- reactive({
     message("loading base lines")
     if (hot()) {
       SOMData::hot_streaks_lines
