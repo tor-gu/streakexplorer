@@ -1,8 +1,9 @@
-get_related_lines <- function(line_id, lines_to_streaks, concordances) {
+
+lines_get_related_lines <- function(line_id, lines_to_streaks, concordances) {
   related_streak_ids <- lines_to_streaks %>%
     dplyr::filter(LineId==line_id) %>%
     dplyr::pull(StreakId) %>%
-    purrr::map(~som_get_related_streak_ids(concordances, .)) %>%
+    purrr::map(~streaks_get_related_streak_ids(concordances, .)) %>%
     unlist(recursive = FALSE) %>% unique()
   lines_to_streaks %>%
     dplyr::filter(StreakId %in% related_streak_ids) %>%
@@ -25,7 +26,8 @@ lines_highlight <- function(lines, concordances, lines_to_streaks,
     if ( nrow(row) > 0 ) {
       team <- row %>% pull(Team)
       year <- row %>% pull(Year)
-      related_line_ids <- get_related_lines(id, lines_to_streaks, concordances)
+      related_line_ids <- lines_get_related_lines(id, lines_to_streaks,
+                                                  concordances)
       result <- result %>%
         dplyr::mutate(
           line_colored=dplyr::if_else(Year==year & Team==team, 2,

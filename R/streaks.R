@@ -1,3 +1,9 @@
+streaks_get_related_streak_ids <- function(concordances, StreakId) {
+  Inner <- concordances %>% filter(Inner==StreakId) %>% pull(Outer)
+  Outer <- concordances %>% filter(Outer==StreakId) %>% pull(Inner)
+  c(Inner,Outer) %>% unique()
+}
+
 pct_formatter <- function(pct) {
   ifelse(pct < 1,
          paste0(".", sprintf("%03d", round(1000*pct))),
