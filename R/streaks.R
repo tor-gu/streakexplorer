@@ -5,8 +5,8 @@ pct_formatter <- function(pct) {
   )
 }
 
-streak_game_log <- function(streak_id, lines, game_logs) {
-  row <- lines %>% dplyr::filter(StreakId==streak_id) %>% head(1)
+streak_game_log <- function(streak_id, streaks, game_logs) {
+  row <- streaks %>% dplyr::filter(StreakId==streak_id) %>% head(1)
   if (nrow(row) > 0) {
     game_logs %>%
       dplyr::filter(Year==row$Year,
@@ -17,7 +17,7 @@ streak_game_log <- function(streak_id, lines, game_logs) {
   }
 }
 
-streak_game_log_data <- function(streak_id, lines, game_logs) {
+streak_game_log_data <- function(streak_id, streaks, game_logs) {
   date_template <- "{lubridate::month(Date)}/{lubridate::mday(Date)}"
   completed_on_template <-
     paste0("Completed {lubridate::month(CompletedOn)}/",
@@ -27,7 +27,7 @@ streak_game_log_data <- function(streak_id, lines, game_logs) {
     paste0("Final score {GameRunsFor}-{GameRunsAgainst}, began ",
            "{lubridate::month(CompletionOf)}/{lubridate::mday(CompletionOf)}")
 
-  game_log_data <- streak_game_log(streak_id, lines, game_logs) %>%
+  game_log_data <- streak_game_log(streak_id, streaks, game_logs) %>%
     mutate(GameResult=case_when(GameRunsFor >  GameRunsAgainst ~ "W",
                                  GameRunsFor <  GameRunsAgainst ~ "L",
                                  GameRunsFor == GameRunsAgainst ~ "T"),
@@ -58,9 +58,9 @@ streak_game_log_data <- function(streak_id, lines, game_logs) {
   )
 }
 
-streak_summary_data <- function(streak_id, lines, game_logs) {
+streak_summary_data <- function(streak_id, streaks, game_logs) {
     summary_data <-
-      streak_game_log(streak_id, lines, game_logs) %>%
+      streak_game_log(streak_id, streaks, game_logs) %>%
       summarize(Team            = unique(Team),
                 Year            = unique(Year),
                 FirstGameNumber = min(GameNumber),

@@ -1,12 +1,8 @@
 library(shiny)
 
 
-initialYearRange <- c(1948,1960)
+initialYearRange <- c(1948,1949)
 initialYears <- initialYearRange[[1]]:initialYearRange[[2]]
-hs_levels <- SOMData::hot_streaks %>% dplyr::pull(Level) %>% unique() %>% sort()
-cs_levels <- SOMData::cold_streaks %>% dplyr::pull(Level) %>% unique() %>%
-  sort()
-
 theme <- bslib::bs_theme(bootswatch="slate",
                          heading_font = "1.2",
                          font_scale = 0.8)
@@ -41,20 +37,20 @@ server <- function(input, output, session) {
 
   hot <- reactive({input$streak_type == "HOT"})
 
-  levels <- reactive({
-    if (hot()) {
-      hs_levels
-    } else {
-      cs_levels
-    }
-  })
-
-  base_lines <- reactive({
     message("loading base lines")
     if (hot()) {
       SOMData::hot_streaks_lines
     } else {
       SOMData::cold_streaks_lines
+    }
+  })
+
+  streaks <- reactive({
+    message("loading streaks")
+    if (hot()) {
+      SOMData::hot_streaks
+    } else {
+      SOMData::cold_streaks
     }
   })
 
@@ -118,7 +114,7 @@ server <- function(input, output, session) {
       dplyr::filter(Year >= years()[[1]] & Year <= years()[[2]]) %>%
       dplyr::filter(Team %in% input$teams)
     max_rank(filtered %>%
-               dplyr::group_by(Level) %>%
+               dplyr::group_by(IntensityLevel) %>%
                dplyr::slice_min(Rank, n=10) %>%
                dplyr::ungroup() %>%
                dplyr::summarise(ms=max(Rank)) %>% dplyr::pull(ms)
@@ -175,7 +171,7 @@ server <- function(input, output, session) {
       NULL
     } else {
       lines_to_streaks() %>%
-        dplyr::filter(LineIdx == selected_line_id()) %>%
+        dplyr::filter(LineId == selected_line_id()) %>%
         dplyr::pull(StreakId)
     }
   })
@@ -206,7 +202,7 @@ server <- function(input, output, session) {
     if (is.null(selected_streak_id())) return(NULL)
 
     summary <- streak_summary_data(selected_streak_id(),
-                                   isolate(filtered_lines()),
+                                   isolate(streaks()),
                                    SOMData::game_logs)
     DT::datatable(
       summary$data,
@@ -227,7 +223,7 @@ server <- function(input, output, session) {
     if (is.null(selected_streak_id())) return(NULL)
 
     game_log <- streak_game_log_data(selected_streak_id(),
-                                     isolate(filtered_lines()),
+                                     isolate(streaks()),
                                      SOMData::game_logs)
     DT::datatable(
       game_log$data,

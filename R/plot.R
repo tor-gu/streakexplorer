@@ -1,3 +1,4 @@
+# TODO we are not using this file now. Should move plot stuff from lines here
 plot_make_data <- function(streaks, concordances, Id=NULL) {
   if ( !is.null(Id) && !(Id %in% streaks$Id) ) Id <- NULL
   streaks_with_relations <- streaks %>%

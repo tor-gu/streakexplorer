@@ -1,3 +1,4 @@
+# TODO I think we can delete this file -- we don't use segments any more.
 seg_make_level_table <- function(levels) {
   tibble(Level=levels) %>% mutate(Next=lead(Level)) %>% filter(!is.na(Next))
 }
