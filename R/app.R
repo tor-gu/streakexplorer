@@ -7,6 +7,7 @@ theme <- bslib::bs_theme(bootswatch="slate",
                          heading_font = "1.2",
                          font_scale = 0.8)
 ui <- fluidPage(
+  shinyjs::useShinyjs(),
   tags$style("#game_log td, th {padding: 0; text-align: right}"),
   tags$style("#streak_summary td, th {padding: 0; text-align: right}"),
   theme=theme,
@@ -67,6 +68,11 @@ server <- function(input, output, session) {
   selected_years <- reactive({years()[[1]]:years()[[2]]})
   selected_leagues <- reactiveVal(c("AL", "NL"))
   selected_league_divisions <- reactiveVal(list())
+  no_division_choices <- reactive({
+    all(
+      unname(unlist(division_choices())) %in% c("AL_None", "NL_None")
+    )
+  })
 
   division_choices <- reactive({
     SOMData::franchises %>%
@@ -85,16 +91,25 @@ server <- function(input, output, session) {
       generate_team_selection()
   })
 
+  check_no_division <- function() {
+    if (no_division_choices()) {
+      shinyjs::disable("divisions")
+    } else {
+      shinyjs::enable("divisions")
+    }
+  }
   observeEvent(input$leagues, {
     selected_leagues(
       if(input$leagues == "BOTH") c("AL", "NL") else input$leagues)
     updateSelectInput(session, "divisions", choices=division_choices(),
                       selected=unlist(division_choices()))
+    check_no_division()
   })
 
   observeEvent(years(), {
     updateSelectInput(session, "divisions", choices=division_choices(),
                       selected=unlist(division_choices()))
+    check_no_division()
   })
 
   observeEvent(input$divisions, {
