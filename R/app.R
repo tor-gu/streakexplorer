@@ -1,8 +1,7 @@
 library(shiny)
 
 
-initialYearRange <- c(1948, 1949)
-initialYears <- initialYearRange[[1]]:initialYearRange[[2]]
+initial_year_range <- c(1948, 1949)
 theme <- bslib::bs_theme(
   bootswatch = "slate",
   heading_font = "1.2",
@@ -19,7 +18,7 @@ ui <- fluidPage(
     sidebarPanel(
       sliderInput("years", "Years",
         min = 1948, max = 2021, step = 1,
-        value = initialYearRange, sep = ""
+        value = initial_year_range, sep = ""
       ),
       selectInput("leagues", "League",
         choices = c("All Leagues" = "BOTH", "AL" = "AL", "NL" = "NL")
@@ -153,7 +152,8 @@ server <- function(input, output, session) {
       dplyr::group_by(IntensityLevel) %>%
       dplyr::slice_min(Rank, n = 10) %>%
       dplyr::ungroup() %>%
-      dplyr::summarise(ms = max(Rank)) %>% dplyr::pull(ms))
+      dplyr::summarise(ms = max(Rank)) %>%
+      dplyr::pull(ms))
     filtered %>%
       dplyr::filter(Rank <= max_rank()) %>%
       lines_remove_nubs()
