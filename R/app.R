@@ -76,6 +76,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   # bslib::bs_themer()
 
+  # Reactives and reactive values ----
   hot <- reactive({
     input$streak_type == "HOT"
   })
@@ -107,37 +108,26 @@ server <- function(input, output, session) {
     }
   })
 
-  selected_years <- reactive({
-    years()[[1]]:years()[[2]]
+  concordances <- reactive({
+    message("loading concordances")
+    if (hot()) {
+      SOMData::hot_streaks_concordances
+    } else {
+      SOMData::cold_streaks_concordances
+    }
   })
+
+  years <- reactive({ input$years }) %>% debounce(333)
+  max_rank <- reactiveVal(10)
+  selected_line_id <- reactiveVal(NULL)
+  selected_years <- reactive({ years()[[1]]:years()[[2]] })
   selected_leagues <- reactiveVal(c("AL", "NL"))
   selected_league_divisions <- reactiveVal(
     list("AL_None", "NL_None") %>%
       division_choice_values_as_league_and_division_list()
   )
-  no_division_choices <- reactive({
-    all(
-      unname(unlist(division_choices())) %in% c("AL_None", "NL_None")
-    )
-  })
 
-  observeEvent(input$teams_all, {
-    if (input$teams_all) {
-      updateSelectInput(session, "teams",
-        choices = teams_choices(),
-        selected = unlist(teams_choices())
-      )
-      shinyjs::disable("teams")
-    } else {
-      shinyjs::enable("teams")
-    }
-  })
-
-  observeEvent(input$divisions_all, {
-    update_divisions_selection()
-  })
-
-  division_choices <- reactive({
+  divisions_choices <- reactive({
     SOMData::franchises %>%
       filter_by_years(selected_years()) %>%
       filter_by_league(selected_leagues()) %>%
@@ -154,13 +144,56 @@ server <- function(input, output, session) {
       generate_team_selection()
   })
 
+  no_divisions_choices <- reactive({
+    all(
+      unname(unlist(divisions_choices())) %in% c("AL_None", "NL_None")
+    )
+  })
+
+  filtered_lines <- reactive({
+    req(years(), input$teams)
+    message("filtering lines")
+    filtered <- base_lines() %>%
+      dplyr::filter(Year >= years()[[1]] & Year <= years()[[2]]) %>%
+      dplyr::filter(Team %in% input$teams)
+    max_rank(filtered %>%
+               dplyr::group_by(IntensityLevel) %>%
+               dplyr::slice_min(Rank, n = 10) %>%
+               dplyr::ungroup() %>%
+               dplyr::summarise(ms = max(Rank)) %>%
+               dplyr::pull(ms))
+    filtered %>%
+      dplyr::filter(Rank <= max_rank()) %>%
+      lines_remove_nubs()
+  })
+
+  selected_streak_id <- reactive({
+    if (is.null(selected_line_id())) {
+      NULL
+    } else {
+      lines_to_streaks() %>%
+        dplyr::filter(LineId == selected_line_id()) %>%
+        dplyr::pull(StreakId)
+    }
+  })
+
+  highlight_data <- reactive({
+    message("About to do highlighting")
+    print(selected_line_id())
+    lines_highlight(
+      filtered_lines(), concordances(),
+      lines_to_streaks(), selected_line_id()
+    )
+  })
+
+  # UI functions ----
   update_divisions_selection <- function() {
     updateSelectInput(session, "divisions",
-      choices = division_choices(),
-      selected = unlist(division_choices())
+                      choices = divisions_choices(),
+                      selected = unlist(divisions_choices())
     )
 
-    if (no_division_choices()) {
+    if (no_divisions_choices()) {
       shinyjs::disable("divisions")
       shinyjs::disable("divisions_all")
     } else {
@@ -174,12 +207,28 @@ server <- function(input, output, session) {
     }
     if (input$divisions_all) {
       updateSelectInput(session, "divisions",
-        choices = division_choices(),
-        selected = unlist(division_choices())
+                        choices = divisions_choices(),
+                        selected = unlist(divisions_choices())
       )
     }
   }
 
+  # Observers ----
+  observeEvent(input$teams_all, {
+    if (input$teams_all) {
+      updateSelectInput(session, "teams",
+        choices = teams_choices(),
+        selected = unlist(teams_choices())
+      )
+      shinyjs::disable("teams")
+    } else {
+      shinyjs::enable("teams")
+    }
+  })
+
+  observeEvent(input$divisions_all, {
+    update_divisions_selection()
+  })
 
   observeEvent(input$leagues, {
     selected_leagues(
@@ -202,43 +251,6 @@ server <- function(input, output, session) {
     )
   })
 
-  max_rank <- reactiveVal(10)
-  years <- reactive({
-    input$years
-  }) %>% debounce(333)
-
-  filtered_lines <- reactive({
-    req(years(), input$teams)
-    message("filtering lines")
-    filtered <- base_lines() %>%
-      dplyr::filter(Year >= years()[[1]] & Year <= years()[[2]]) %>%
-      dplyr::filter(Team %in% input$teams)
-    max_rank(filtered %>%
-      dplyr::group_by(IntensityLevel) %>%
-      dplyr::slice_min(Rank, n = 10) %>%
-      dplyr::ungroup() %>%
-      dplyr::summarise(ms = max(Rank)) %>%
-      dplyr::pull(ms))
-    filtered %>%
-      dplyr::filter(Rank <= max_rank()) %>%
-      lines_remove_nubs()
-  })
-
-  lines <- reactive({
-    message("building lines")
-    filtered_lines()
-  })
-
-  concordances <- reactive({
-    message("loading concordances")
-    if (hot()) {
-      SOMData::hot_streaks_concordances
-    } else {
-      SOMData::cold_streaks_concordances
-    }
-  })
-
-  selected_line_id <- reactiveVal(NULL)
   observeEvent(plotly::event_data("plotly_click", source = "lines_plot"), {
     click_data <- plotly::event_data("plotly_click", source = "lines_plot")
     if (is.null(click_data)) {
@@ -247,29 +259,13 @@ server <- function(input, output, session) {
       selected_line_id(click_data %>% dplyr::pull("key"))
     }
   })
+
   observeEvent(hot(), ignoreInit = TRUE, {
     selected_line_id(NULL)
   })
 
-  selected_streak_id <- reactive({
-    if (is.null(selected_line_id())) {
-      NULL
-    } else {
-      lines_to_streaks() %>%
-        dplyr::filter(LineId == selected_line_id()) %>%
-        dplyr::pull(StreakId)
-    }
-  })
 
-  highlight_data <- reactive({
-    message("About to do highlighting")
-    print(selected_line_id())
-    lines_highlight(
-      filtered_lines(), concordances(),
-      lines_to_streaks(), selected_line_id()
-    )
-  })
-
+  # Renderers ----
   output$streaks <- plotly::renderPlotly({
     message("Rendering plotly...")
     highlight_data() %>% plot_lines(
@@ -303,7 +299,7 @@ server <- function(input, output, session) {
   })
 
   output$game_log <- DT::renderDT({
-    message(paste("Rendering game log table...", selected_streak_id()))
+    message(paste("Rendering game log Stable...", selected_streak_id()))
     if (is.null(selected_streak_id())) {
       return(NULL)
     }
