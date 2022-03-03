@@ -1,10 +1,11 @@
 
 lines_get_related_lines <- function(line_id, lines_to_streaks, concordances) {
   related_streak_ids <- lines_to_streaks %>%
-    dplyr::filter(LineId==line_id) %>%
+    dplyr::filter(LineId == line_id) %>%
     dplyr::pull(StreakId) %>%
     purrr::map(streak_get_related_streak_ids, concordances) %>%
-    unlist(recursive = FALSE) %>% unique()
+    unlist(recursive = FALSE) %>%
+    unique()
   lines_to_streaks %>%
     dplyr::filter(StreakId %in% related_streak_ids) %>%
     dplyr::pull(LineId)
@@ -12,37 +13,44 @@ lines_get_related_lines <- function(line_id, lines_to_streaks, concordances) {
 
 
 lines_highlight <- function(lines, concordances, lines_to_streaks,
-                            id=NULL) {
+                            id = NULL) {
   message(glue::glue("lines_highlight"))
   result <- lines %>%
     dplyr::mutate(
-      line_colored=1,
-      line_width=1,
-      line_type="base"
+      line_colored = 1,
+      line_width = 1,
+      line_type = "base"
     )
 
-  if ( !is.null(id) ) {
-    row <- lines %>% dplyr::filter(LineId==id) %>% head(1)
-    if ( nrow(row) > 0 ) {
+  if (!is.null(id)) {
+    row <- lines %>%
+      dplyr::filter(LineId == id) %>%
+      head(1)
+    if (nrow(row) > 0) {
       team <- row %>% dplyr::pull(Team)
       year <- row %>% dplyr::pull(Year)
-      related_line_ids <- lines_get_related_lines(id, lines_to_streaks,
-                                                  concordances)
+      related_line_ids <- lines_get_related_lines(
+        id, lines_to_streaks,
+        concordances
+      )
       result <- result %>%
         dplyr::mutate(
-          line_colored=dplyr::if_else(Year==year & Team==team, 2,
-                                      line_colored),
-          line_type=dplyr::if_else(Year==year & Team==team, "season",
-                                   line_type),
+          line_colored = dplyr::if_else(Year == year & Team == team, 2,
+            line_colored
+          ),
+          line_type = dplyr::if_else(Year == year & Team == team, "season",
+            line_type
+          ),
         ) %>%
         dplyr::mutate(
-          line_type=dplyr::if_else(LineId %in% related_line_ids, "related",
-                                   line_type),
-          line_width=dplyr::if_else(LineId %in% related_line_ids, 3, 1)
+          line_type = dplyr::if_else(LineId %in% related_line_ids, "related",
+            line_type
+          ),
+          line_width = dplyr::if_else(LineId %in% related_line_ids, 3, 1)
         ) %>%
         dplyr::mutate(
-          line_colored=dplyr::if_else(LineId == id, 3, line_colored),
-          line_type=dplyr::if_else(LineId == id, "identical", line_type),
+          line_colored = dplyr::if_else(LineId == id, 3, line_colored),
+          line_type = dplyr::if_else(LineId == id, "identical", line_type),
         )
     }
   }
@@ -57,25 +65,29 @@ lines_remove_nubs <- function(lines) {
   # removed in a Rank filter)
   lines %>%
     dplyr::arrange(LineId, IntensityLevel) %>%
-    torgutil::filter_out(dplyr::lead(LineId) == LineId,
-                         dplyr::lead(StreakId) != StreakId,
-                         dplyr::lead(IntensityLevel) - IntensityLevel != 1)
+    torgutil::filter_out(
+      dplyr::lead(LineId) == LineId,
+      dplyr::lead(StreakId) != StreakId,
+      dplyr::lead(IntensityLevel) - IntensityLevel != 1
+    )
 }
 
 
 add_descenders <- function(initial_rank_filter, initial_filter) {
   filtered_left <- initial_filter %>%
-    dplyr::mutate(PrevIntensityLevel=IntensityLevel - 1) %>%
+    dplyr::mutate(PrevIntensityLevel = IntensityLevel - 1) %>%
     dplyr::semi_join(
       initial_rank_filter,
-      by=c("StreakId", "PrevIntensityLevel"="IntensityLevel")) %>%
+      by = c("StreakId", "PrevIntensityLevel" = "IntensityLevel")
+    ) %>%
     dplyr::select(-PrevAdjLevel)
 
   filtered_right <- initial_filter %>%
-    dplyr::mutate(NextIntensityLevel=IntensityLevel + 1) %>%
+    dplyr::mutate(NextIntensityLevel = IntensityLevel + 1) %>%
     dplyr::semi_join(
       initial_rank_filter,
-      by=c("StreakId", "NextIntensityLevel"="IntensityLevel")) %>%
+      by = c("StreakId", "NextIntensityLevel" = "IntensityLevel")
+    ) %>%
     dplyr::select(-NextIntensityLevel)
 
   rbind(initial_rank_filter, filtered_left, filtered_right) %>% unique()
