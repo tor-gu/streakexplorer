@@ -16,38 +16,46 @@ ui <- fluidPage(
   titlePanel("Streak Explorer"),
   sidebarLayout(
     sidebarPanel(
-      width=5,
+      width = 5,
       fluidRow(
-        column(12,
+        column(
+          12,
           sliderInput("years", "Years",
             min = 1948, max = 2021, step = 1,
             value = initial_year_range, sep = ""
-            )
           )
-        ),
-      fluidRow(
-        column(9,
-               selectInput("leagues", "League",
-                           choices = c("All Leagues" = "BOTH", "AL" = "AL", "NL" = "NL")
-               )
-        ),
-        column(3,
-               )
-      ),
-      fluidRow(
-        column(9,
-               selectInput("divisions", "Divisions", choices = list(), multiple = TRUE),
-        ),
-        column(3,
-               checkboxInput("divisions_all", "All", value=TRUE)
         )
       ),
       fluidRow(
-        column(9,
-               selectInput("teams", "Teams", choices = list(), multiple = TRUE),
+        column(
+          9,
+          selectInput("leagues", "League",
+            choices = c("All Leagues" = "BOTH", "AL" = "AL", "NL" = "NL")
+          )
         ),
-        column(3,
-               checkboxInput("teams_all", "All", value=TRUE)
+        column(3, )
+      ),
+      fluidRow(
+        column(
+          9,
+          selectInput("divisions", "Divisions",
+            choices = list(),
+            multiple = TRUE
+          ),
+        ),
+        column(
+          3,
+          checkboxInput("divisions_all", "All", value = TRUE)
+        )
+      ),
+      fluidRow(
+        column(
+          9,
+          selectInput("teams", "Teams", choices = list(), multiple = TRUE),
+        ),
+        column(
+          3,
+          checkboxInput("teams_all", "All", value = TRUE)
         )
       ),
       radioButtons("streak_type", "Streak Type",
@@ -55,7 +63,8 @@ ui <- fluidPage(
         selected = "HOT"
       )
     ),
-    mainPanel(width=7,
+    mainPanel(
+      width = 7,
       plotly::plotlyOutput(outputId = "streaks"),
       shinycssloaders::withSpinner(DT::DTOutput("streak_summary")),
       tableOutput("standings"),
@@ -115,8 +124,9 @@ server <- function(input, output, session) {
   observeEvent(input$teams_all, {
     if (input$teams_all) {
       updateSelectInput(session, "teams",
-                        choices = teams_choices(),
-                        selected = unlist(teams_choices()))
+        choices = teams_choices(),
+        selected = unlist(teams_choices())
+      )
       shinyjs::disable("teams")
     } else {
       shinyjs::enable("teams")
@@ -146,8 +156,8 @@ server <- function(input, output, session) {
 
   update_divisions_selection <- function() {
     updateSelectInput(session, "divisions",
-                      choices = division_choices(),
-                      selected = unlist(division_choices())
+      choices = division_choices(),
+      selected = unlist(division_choices())
     )
 
     if (no_division_choices()) {
@@ -164,8 +174,9 @@ server <- function(input, output, session) {
     }
     if (input$divisions_all) {
       updateSelectInput(session, "divisions",
-                        choices = division_choices(),
-                        selected = unlist(division_choices()))
+        choices = division_choices(),
+        selected = unlist(division_choices())
+      )
     }
   }
 
