@@ -1,7 +1,7 @@
 library(shiny)
 
 
-initial_year_range <- c(1948, 1949)
+initial_year_range <- c(1948, 1960)
 theme <- bslib::bs_theme(
   bootswatch = "slate",
   heading_font = "1.2",
@@ -16,21 +16,46 @@ ui <- fluidPage(
   titlePanel("Streak Explorer"),
   sidebarLayout(
     sidebarPanel(
-      sliderInput("years", "Years",
-        min = 1948, max = 2021, step = 1,
-        value = initial_year_range, sep = ""
+      width=5,
+      fluidRow(
+        column(12,
+          sliderInput("years", "Years",
+            min = 1948, max = 2021, step = 1,
+            value = initial_year_range, sep = ""
+            )
+          )
+        ),
+      fluidRow(
+        column(9,
+               selectInput("leagues", "League",
+                           choices = c("All Leagues" = "BOTH", "AL" = "AL", "NL" = "NL")
+               )
+        ),
+        column(3,
+               )
       ),
-      selectInput("leagues", "League",
-        choices = c("All Leagues" = "BOTH", "AL" = "AL", "NL" = "NL")
+      fluidRow(
+        column(9,
+               selectInput("divisions", "Divisions", choices = list(), multiple = TRUE),
+        ),
+        column(3,
+               checkboxInput("divisions_all", "All", value=TRUE)
+        )
       ),
-      selectInput("divisions", "Divisions", choices = list(), multiple = TRUE),
-      selectInput("teams", "Teams", choices = list(), multiple = TRUE),
+      fluidRow(
+        column(9,
+               selectInput("teams", "Teams", choices = list(), multiple = TRUE),
+        ),
+        column(3,
+               checkboxInput("teams_all", "All", value=TRUE)
+        )
+      ),
       radioButtons("streak_type", "Streak Type",
         choices = c("HOT", "COLD"),
         selected = "HOT"
       )
     ),
-    mainPanel(
+    mainPanel(width=7,
       plotly::plotlyOutput(outputId = "streaks"),
       shinycssloaders::withSpinner(DT::DTOutput("streak_summary")),
       tableOutput("standings"),
@@ -77,11 +102,29 @@ server <- function(input, output, session) {
     years()[[1]]:years()[[2]]
   })
   selected_leagues <- reactiveVal(c("AL", "NL"))
-  selected_league_divisions <- reactiveVal(list())
+  selected_league_divisions <- reactiveVal(
+    list("AL_None", "NL_None") %>%
+      division_choice_values_as_league_and_division_list()
+  )
   no_division_choices <- reactive({
     all(
       unname(unlist(division_choices())) %in% c("AL_None", "NL_None")
     )
+  })
+
+  observeEvent(input$teams_all, {
+    if (input$teams_all) {
+      updateSelectInput(session, "teams",
+                        choices = teams_choices(),
+                        selected = unlist(teams_choices()))
+      shinyjs::disable("teams")
+    } else {
+      shinyjs::enable("teams")
+    }
+  })
+
+  observeEvent(input$divisions_all, {
+    update_divisions_selection()
   })
 
   division_choices <- reactive({
@@ -101,30 +144,41 @@ server <- function(input, output, session) {
       generate_team_selection()
   })
 
-  check_no_division <- function() {
+  update_divisions_selection <- function() {
+    updateSelectInput(session, "divisions",
+                      choices = division_choices(),
+                      selected = unlist(division_choices())
+    )
+
     if (no_division_choices()) {
       shinyjs::disable("divisions")
+      shinyjs::disable("divisions_all")
     } else {
-      shinyjs::enable("divisions")
+      if (input$divisions_all) {
+        shinyjs::enable("divisions_all")
+        shinyjs::disable("divisions")
+      } else {
+        shinyjs::enable("divisions")
+        shinyjs::enable("divisions_all")
+      }
+    }
+    if (input$divisions_all) {
+      updateSelectInput(session, "divisions",
+                        choices = division_choices(),
+                        selected = unlist(division_choices()))
     }
   }
+
+
   observeEvent(input$leagues, {
     selected_leagues(
       if (input$leagues == "BOTH") c("AL", "NL") else input$leagues
     )
-    updateSelectInput(session, "divisions",
-      choices = division_choices(),
-      selected = unlist(division_choices())
-    )
-    check_no_division()
+    update_divisions_selection()
   })
 
   observeEvent(years(), {
-    updateSelectInput(session, "divisions",
-      choices = division_choices(),
-      selected = unlist(division_choices())
-    )
-    check_no_division()
+    update_divisions_selection()
   })
 
   observeEvent(input$divisions, {
