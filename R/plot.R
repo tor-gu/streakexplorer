@@ -42,8 +42,10 @@ plot_lines <- function(lines, max_rank, reverse_x_axis = FALSE) {
   )
 
   colors <- c(`1` = "black", "2" = "purple", "3" = "red")
-  line_types <- c(base = "dot", season = "dash", related = "solid",
-                  identical = "solid")
+  line_types <- c(
+    base = "dot", season = "dash", related = "solid",
+    identical = "solid"
+  )
   split_lines <- lines %>%
     split(lines$line_type) %>%
     purrr::map(dplyr::group_by, LineId)
