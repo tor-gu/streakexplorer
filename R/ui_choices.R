@@ -66,12 +66,15 @@ division_choice_values_as_league_and_division_list <- function(choice_values) {
   purrr::map(choice_values, ~division_choice_value_as_league_and_division(.))
 }
 
-division_as_choice_label <- function(league, division, min_year=NULL,
-                                     max_year=NULL) {
-  if (is.null(min_year) & is.null(max_year)) {
+division_as_choice_label <- function(league, division, first_year = NULL,
+                                     final_year = NULL,
+                                     min_first_year = NULL,
+                                     max_final_year=NULL) {
+  if ((is.null(first_year) & is.null(final_year)) ||
+      (first_year == min_first_year & final_year == max_final_year)) {
     year_part <- ""
   } else {
-    year_part <- glue::glue(" ({min_year}-{max_year})", .null="")
+    year_part <- glue::glue(" ({first_year}-{final_year})", .null="")
   }
   if (is.na(division)) {
     division_part <- "No Division"
@@ -89,14 +92,17 @@ generate_league_division_selection <- function(division_table, league) {
                            division_as_choice_value(League, Division))
   if (torgutil::tbl_is_column_value_unique(league_divisions, FirstSeason) &&
       torgutil::tbl_is_column_value_unique(league_divisions, FinalSeason)) {
-    names(choices) <-purrr::pmap(
+    names(choices) <- purrr::pmap(
       league_divisions, function(League, Division, FirstSeason, FinalSeason)
-        division_as_choice_label(League, Division, NULL, NULL))
+        division_as_choice_label(League, Division))
 
   } else {
-    names(choices) <-purrr::pmap(
+    min_first_season <- min(division_table$FirstSeason)
+    max_final_season <- max(division_table$FinalSeason)
+    names(choices) <- purrr::pmap(
       league_divisions, function(League, Division, FirstSeason, FinalSeason)
-        division_as_choice_label(League, Division, FirstSeason, FinalSeason))
+        division_as_choice_label(League, Division, FirstSeason, FinalSeason,
+                                 min_first_season, max_final_season))
   }
   choices
 }
