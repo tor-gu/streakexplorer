@@ -58,4 +58,3 @@ test_that("division_as_choice_label handles case with almost full range", {
   expected <- "AL East (1980-1990)"
   expect_equal(actual, expected)
 })
-

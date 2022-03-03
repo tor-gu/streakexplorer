@@ -1,11 +1,11 @@
-streak_get_related_streak_ids <- function(StreakId, concordances) {
-  Inner <- concordances %>%
-    dplyr::filter(Inner == StreakId) %>%
+streak_get_related_streak_ids <- function(streak_id, concordances) {
+  inner <- concordances %>%
+    dplyr::filter(Inner == streak_id) %>%
     dplyr::pull(Outer)
-  Outer <- concordances %>%
-    dplyr::filter(Outer == StreakId) %>%
+  outer <- concordances %>%
+    dplyr::filter(Outer == streak_id) %>%
     dplyr::pull(Inner)
-  c(Inner, Outer) %>% unique()
+  c(inner, outer) %>% unique()
 }
 
 pct_formatter <- function(pct) {
