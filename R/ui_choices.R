@@ -30,6 +30,7 @@ filter_by_league_division <- function(franchises, league_division) {
 }
 
 filter_by_league_divisions <- function(franchises, league_divisions) {
+  # TODO use formula
   purrr::map(
     league_divisions,
     function(ld) filter_by_league_division(franchises, ld)

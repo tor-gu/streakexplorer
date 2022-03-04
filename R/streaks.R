@@ -132,3 +132,26 @@ streak_summary_data <- function(streak_id, streaks, game_logs) {
 
   list(data = data, caption = caption)
 }
+
+streak_get_standings <- function(streak_id, franchises, streaks, game_logs) {
+  streak <- streaks %>% dplyr::filter(StreakId==streak_id) %>% head(1)
+  division <- franchises %>% franchises_get_division_by_team_year(streak$Team, streak$Year)
+  division_season_games <- game_logs %>%
+    dplyr::filter(Year==streak$Year,
+                  Team %in% division$teams$TeamID)
+  first_game <- division_season_games %>%
+    dplyr::filter(Year==streak$Year,
+                  Team==streak$Team,
+                  GameIndex==streak$LoIndex)
+  last_game <-  division_season_games %>%
+    dplyr::filter(Year==streak$Year,
+                  Team==streak$Team,
+                  GameIndex==streak$HiIndex)
+  list(
+    before=standings_get_by_season_game_id(
+      division_season_games, first_game$SeasonGameId, .before=TRUE),
+    after=standings_get_by_season_game_id(
+      division_season_games, last_game$SeasonGameId, .before=FALSE)
+  )
+}
+

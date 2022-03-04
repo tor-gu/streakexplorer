@@ -299,7 +299,7 @@ server <- function(input, output, session) {
   })
 
   output$game_log <- DT::renderDT({
-    message(paste("Rendering game log Stable...", selected_streak_id()))
+    message(paste("Rendering game log table...", selected_streak_id()))
     if (is.null(selected_streak_id())) {
       return(NULL)
     }
