@@ -10,7 +10,7 @@ franchises_get_division_by_team_year <- function(franchises, team, year) {
     dplyr::select(League, Division)
   teams <- season_franchises %>%
     dplyr::right_join(division) %>%
-    dplyr::select(TeamID, Nickname)
+    dplyr::select(TeamID, Location, Nickname)
   list(division=division, teams=teams)
 }
 

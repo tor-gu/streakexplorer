@@ -11,6 +11,9 @@ ui <- fluidPage(
   shinyjs::useShinyjs(),
   tags$style("#game_log td, th {padding: 0; text-align: right}"),
   tags$style("#streak_summary td, th {padding: 0; text-align: right}"),
+  tags$style("#standings_before td, th {padding: 0; text-align: right}"),
+  tags$style("#standings_after td, th {padding: 0; text-align: right}"),
+  tags$style("#standings_final td, th {padding: 0; text-align: right}"),
   theme = theme,
   # theme=bslib::bs_theme(),
   titlePanel("Streak Explorer"),
@@ -65,10 +68,25 @@ ui <- fluidPage(
     ),
     mainPanel(
       width = 7,
-      plotly::plotlyOutput(outputId = "streaks"),
-      shinycssloaders::withSpinner(DT::DTOutput("streak_summary")),
-      tableOutput("standings"),
-      shinycssloaders::withSpinner(DT::DTOutput("game_log"))
+      fluidRow(
+        column(12, plotly::plotlyOutput(outputId = "streaks"))
+        ),
+      fluidRow(
+        column(12, shinycssloaders::withSpinner(DT::DTOutput("streak_summary")))
+        ),
+      fluidRow(
+        column(3,
+               DT::DTOutput("standings_before")),
+        column(3,
+               tableOutput("standings_graph")),
+        column(3,
+               DT::DTOutput("standings_after")),
+        column(3,
+               DT::DTOutput("standings_final"))
+      ),
+      fluidRow(
+        column(12, shinycssloaders::withSpinner(DT::DTOutput("game_log")))
+        )
     )
   )
 )
@@ -177,6 +195,11 @@ server <- function(input, output, session) {
     }
   })
 
+  selected_streak_standings <- reactive({
+    streak_get_standings(selected_streak_id(), SOMData::franchises,
+                         streaks(), SOMData::game_logs)
+  })
+
   highlight_data <- reactive({
     message("About to do highlighting")
     print(selected_line_id())
@@ -280,6 +303,7 @@ server <- function(input, output, session) {
       return(NULL)
     }
 
+
     summary <- streak_summary_data(
       selected_streak_id(),
       isolate(streaks()),
@@ -295,6 +319,42 @@ server <- function(input, output, session) {
         searching = FALSE,
         info = FALSE
       )
+    )
+  })
+
+  output$standings_before <- DT::renderDT({
+    message(paste("Rendering 'before' standings...", selected_streak_id()))
+    if (is.null(selected_streak_id())) {
+      return(NULL)
+    }
+
+    standings_DT(
+      selected_streak_standings()$streak_info,
+      selected_streak_standings()$standings_before
+    )
+  })
+
+  output$standings_after <- DT::renderDT({
+    message(paste("Rendering 'after' standings...", selected_streak_id()))
+    if (is.null(selected_streak_id())) {
+      return(NULL)
+    }
+
+    standings_DT(
+      selected_streak_standings()$streak_info,
+      selected_streak_standings()$standings_after
+    )
+  })
+
+  output$standings_final <- DT::renderDT({
+    message(paste("Rendering final standings...", selected_streak_id()))
+    if (is.null(selected_streak_id())) {
+      return(NULL)
+    }
+
+    standings_DT(
+      selected_streak_standings()$streak_info,
+      selected_streak_standings()$standings_final
     )
   })
 
