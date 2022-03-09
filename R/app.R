@@ -75,14 +75,16 @@ ui <- fluidPage(
         column(12, shinycssloaders::withSpinner(DT::DTOutput("streak_summary")))
         ),
       fluidRow(
-        column(3,
+        column(4,
                DT::DTOutput("standings_before")),
-        column(3,
-               tableOutput("standings_graph")),
-        column(3,
+        column(4,
                DT::DTOutput("standings_after")),
-        column(3,
+        column(4,
                DT::DTOutput("standings_final"))
+      ),
+      fluidRow(
+        column(12,
+               shinycssloaders::withSpinner(plotOutput("standings_graph"))),
       ),
       fluidRow(
         column(12, shinycssloaders::withSpinner(DT::DTOutput("game_log")))
@@ -287,6 +289,14 @@ server <- function(input, output, session) {
     selected_line_id(NULL)
   })
 
+  observe({
+    if (is.null(selected_streak_id())) {
+      shinyjs::hide("standings_graph")
+    } else {
+      shinyjs::show("standings_graph")
+    }
+  })
+
 
   # Renderers ----
   output$streaks <- plotly::renderPlotly({
@@ -356,6 +366,39 @@ server <- function(input, output, session) {
       selected_streak_standings()$streak_info,
       selected_streak_standings()$standings_final
     )
+  })
+
+  output$standings_graph <- renderPlot({
+    message(paste("Rendering standings graph...", selected_streak_id()))
+    if (is.null(selected_streak_id())) {
+      #shinyjs::hide("standings_graph")
+      return(NULL)
+    }
+    #shinyjs::show("standings_graph")
+
+    streak <- streaks() %>%
+      dplyr::filter(StreakId==selected_streak_id()) %>%
+      head(1)
+
+    print(streak)
+    division_teams <- franchises_get_division_by_team_year(
+      SOMData::franchises, streak$Team, streak$Year)
+    print(division_teams)
+    standings <- SOMData::standings %>%
+      dplyr::filter(Year==streak$Year) %>%
+      dplyr::right_join(division_teams$division)
+    print(standings)
+    start_date <-
+      SOMData::game_logs %>%
+      dplyr::right_join(streak, by = c("Year", "Team", "GameIndex" = "LoIndex")) %>%
+      dplyr::pull(Date)
+    print(start_date)
+    end_date <-
+      SOMData::game_logs %>%
+      dplyr::right_join(streak, by = c("Year", "Team", "GameIndex" = "HiIndex")) %>%
+      dplyr::pull(Date)
+    print(end_date)
+    plot_standings_graph(standings, streak$Team, start_date, end_date)
   })
 
   output$game_log <- DT::renderDT({

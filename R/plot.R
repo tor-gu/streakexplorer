@@ -117,3 +117,28 @@ plot_lines <- function(lines, max_rank, reverse_x_axis = FALSE) {
     plotly::layout(showlegend = FALSE) %>%
     plotly::config(displayModeBar = FALSE)
 }
+
+plot_standings_graph <- function(standings, team, start_date, end_date) {
+  standings <- standings %>% dplyr::mutate(GamesAbove=Wins-Losses)
+  y_min <- min(standings$GamesAbove) - 1
+  y_max <- max(standings$GamesAbove) + 1
+  y_range <- standings %>%
+    dplyr::filter(Date >= start_date - 1, Date <= end_date, Team==team) %>%
+    dplyr::pull(GamesAbove) %>% range()
+  rect_y_min <- y_range[1] - 1
+  rect_y_max <- y_range[2] + 1
+
+  ggplot2::ggplot(mapping = ggplot2::aes(Date, Wins - Losses, group = Team)) +
+    ggplot2::geom_line(data = dplyr::filter(standings, Team != team)) +
+    ggplot2::geom_line(data = dplyr::filter(standings, Team == team),
+              color = "red") +
+    ggplot2::annotate("rect", xmin=start_date - 1, xmax=end_date,
+             ymin=rect_y_min, ymax=rect_y_max, alpha=0.2) +
+    ggplot2::xlab(NULL) +
+    #ggplot2::ylab("Games over .500") +
+    ggplot2::ylab(NULL) +
+    #ggplot2::labs(title="Standings graph") +
+    ggplot2::scale_x_date(minor_breaks=NULL) +
+    #ggplot2::scale_x_date(breaks=NULL) +
+    ggplot2::scale_y_continuous(breaks=0, limits=c(y_min,y_max))
+}

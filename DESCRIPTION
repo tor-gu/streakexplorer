@@ -13,6 +13,7 @@ RoxygenNote: 7.1.2
 Imports: 
     bslib,
     dplyr,
+    ggplot2,
     magrittr,
     plotly,
     shiny,
