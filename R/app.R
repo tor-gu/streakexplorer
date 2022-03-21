@@ -72,23 +72,23 @@ ui <- fluidPage(
         column(12, plotly::plotlyOutput(outputId = "streaks"))
         ),
       fluidRow(
-        column(12, shinycssloaders::withSpinner(DT::DTOutput("streak_summary")))
+        column(12, h4(textOutput("streak_summary_caption")),
+               shinycssloaders::withSpinner(DT::DTOutput("streak_summary")))
         ),
-      fluidRow(
-        column(4,
+      fluidRow(id="standings_row",
+        column(4, h5("Standings before"),
                DT::DTOutput("standings_before")),
-        column(4,
+        column(4, h5("Standings after"),
                DT::DTOutput("standings_after")),
-        column(4,
+        column(4, h5("Final standings"),
                DT::DTOutput("standings_final"))
       ),
-      fluidRow(
-        column(12,
+      fluidRow(id="graph_log_row",
+        column(6, h5("Standings graph"),
                shinycssloaders::withSpinner(plotOutput("standings_graph"))),
-      ),
-      fluidRow(
-        column(12, shinycssloaders::withSpinner(DT::DTOutput("game_log")))
-        )
+        column(6, h5("Game log"),
+               shinycssloaders::withSpinner(DT::DTOutput("game_log")))
+      )
     )
   )
 )
@@ -291,9 +291,11 @@ server <- function(input, output, session) {
 
   observe({
     if (is.null(selected_streak_id())) {
-      shinyjs::hide("standings_graph")
+      shinyjs::hide("standings_row")
+      shinyjs::hide("graph_log_row")
     } else {
-      shinyjs::show("standings_graph")
+      shinyjs::show("standings_row")
+      shinyjs::show("graph_log_row")
     }
   })
 
@@ -307,29 +309,60 @@ server <- function(input, output, session) {
     )
   })
 
-  output$streak_summary <- DT::renderDT({
-    message(paste("Rendering summary table...", selected_streak_id()))
-    if (is.null(selected_streak_id())) {
-      return(NULL)
-    }
-
-
-    summary <- streak_summary_data(
+  # TODO MOVE
+  selected_streak_summary_data <- reactive({
+    streak_summary_data(
       selected_streak_id(),
       isolate(streaks()),
       SOMData::game_logs
     )
+  })
+
+  output$streak_summary <- DT::renderDT({
+    print(paste0("Selected_streak_id ", selected_streak_id()))
+    message(paste("Rendering summary table...", selected_streak_id()))
+    if (is.null(selected_streak_id())) {
+      return(NULL)
+    }
     DT::datatable(
-      summary$data,
-      caption = summary$caption,
+      selected_streak_summary_data()$data,
+      caption = NULL,
       rownames = FALSE,
       options = list(
         ordering = FALSE,
         paging = FALSE,
         searching = FALSE,
         info = FALSE
-      )
+      ),
+      extensions = "Select", selection="none"
     )
+  })
+
+  output$streak_summary_caption <- renderText({
+    if (is.null(selected_streak_id())) {
+      return(NULL)
+    }
+    selected_streak_summary_data()$caption
+  })
+  output$standings_before_caption <- renderText({
+    req(selected_streak_id())
+    paste0("Standings before ", selected_streak_summary_data()$data$Start)
+  })
+  output$standings_after_caption <- renderText({
+    req(selected_streak_id())
+    paste0("Standings after ", selected_streak_summary_data()$data$End)
+  })
+  output$standings_final_caption <- renderText({
+    req(selected_streak_id())
+    "Final standings"
+  })
+  output$standings_graph_caption <- renderText({
+    req(selected_streak_id())
+    "Standings graph"
+  })
+  output$game_log_caption <- renderText({
+    req(selected_streak_id())
+    "Game log"
   })
 
   output$standings_before <- DT::renderDT({
@@ -369,35 +402,26 @@ server <- function(input, output, session) {
   })
 
   output$standings_graph <- renderPlot({
+    req(selected_streak_id())
     message(paste("Rendering standings graph...", selected_streak_id()))
-    if (is.null(selected_streak_id())) {
-      #shinyjs::hide("standings_graph")
-      return(NULL)
-    }
-    #shinyjs::show("standings_graph")
 
     streak <- streaks() %>%
       dplyr::filter(StreakId==selected_streak_id()) %>%
       head(1)
 
-    print(streak)
     division_teams <- franchises_get_division_by_team_year(
       SOMData::franchises, streak$Team, streak$Year)
-    print(division_teams)
     standings <- SOMData::standings %>%
       dplyr::filter(Year==streak$Year) %>%
       dplyr::right_join(division_teams$division)
-    print(standings)
     start_date <-
       SOMData::game_logs %>%
       dplyr::right_join(streak, by = c("Year", "Team", "GameIndex" = "LoIndex")) %>%
       dplyr::pull(Date)
-    print(start_date)
     end_date <-
       SOMData::game_logs %>%
       dplyr::right_join(streak, by = c("Year", "Team", "GameIndex" = "HiIndex")) %>%
       dplyr::pull(Date)
-    print(end_date)
     plot_standings_graph(standings, streak$Team, start_date, end_date)
   })
 
@@ -414,12 +438,15 @@ server <- function(input, output, session) {
     )
     DT::datatable(
       game_log$data,
-      caption = game_log$caption,
+      caption = NULL,
+      #caption = game_log$caption,
       rownames = FALSE,
       options(
-        ordering = FALSE, searching = FALSE, pageLength = 25,
+        ordering = FALSE, searching = FALSE, pageLength = 15,
+        paging = nrow(game_log$data) > 15,
         lengthChange = FALSE
-      )
+      ),
+      extensions = "Select", selection="none"
     )
   })
 }

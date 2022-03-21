@@ -8,7 +8,8 @@ standings_DT <- function(streak_info, standings) {
       paging = FALSE,
       searching = FALSE,
       info = FALSE
-    )
+    ),
+    extensions = "Select", selection="none"
   ) %>%
     DT::formatStyle("Team",
                     target="row",

@@ -63,6 +63,12 @@ streak_game_log_data <- function(streak_id, streaks, game_logs) {
       RA = RunsAgainst,
       Completion = NA
     ) %>%
+    #dplyr::mutate(Completion = dplyr::case_when(
+    #  !is.na(CompletedOn) ~ glue::glue(completed_on_template),
+    #  !is.na(CompletionOf) ~ glue::glue(completion_of_template),
+    #  TRUE ~ Completion
+    #)) %>%
+    # TODO delete
     dplyr::mutate(Completion = ifelse(!is.na(CompletedOn),
       glue::glue(completed_on_template),
       Completion
@@ -149,12 +155,12 @@ streak_get_standings <- function(streak_id, franchises, streaks, game_logs) {
                   Team==streak$Team,
                   GameIndex==streak$HiIndex)
   standings_before <-
-    standings_get_by_season_game_id(
-      division_season_games, first_game$SeasonGameId, .before=TRUE) %>%
+    standings_get_by_season_game_id(SOMData::standings, division,
+      division_season_games, first_game$SeasonGameId, before=TRUE) %>%
     dplyr::left_join(division$teams, by=c("Team"="TeamID"))
   standings_after <-
-    standings_get_by_season_game_id(
-      division_season_games, last_game$SeasonGameId, .before=FALSE) %>%
+    standings_get_by_season_game_id(SOMData::standings, division,
+      division_season_games, last_game$SeasonGameId, before=FALSE) %>%
     dplyr::left_join(division$teams, by=c("Team"="TeamID"))
   standings_final <- standings_from_game_logs(division_season_games) %>%
     dplyr::left_join(division$teams, by=c("Team"="TeamID"))
@@ -164,7 +170,6 @@ streak_get_standings <- function(streak_id, franchises, streaks, game_logs) {
                   Start=first_game$Date,
                   End=last_game$Date) %>%
     dplyr::left_join(division$teams, by=c("Team"="TeamID"))
-  print(streak_info)
   list(
     streak_info=streak_info,
     standings_before=standings_before,
