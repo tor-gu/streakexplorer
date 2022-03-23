@@ -82,6 +82,7 @@ plot_lines <- function(lines, max_rank, reverse_x_axis = FALSE) {
       opacityDim = .6, color = "red"
     ) %>%
     plotly::layout(xaxis = list(
+      fixedrange = TRUE,
       range = x_axis_range,
       showgrid = FALSE,
       showline = TRUE,
@@ -99,6 +100,7 @@ plot_lines <- function(lines, max_rank, reverse_x_axis = FALSE) {
       zeroline = FALSE
     )) %>%
     plotly::layout(yaxis = list(
+      fixedrange = TRUE,
       range = c(max_rank + 1, 0),
       showgrid = FALSE,
       showline = TRUE,
