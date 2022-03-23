@@ -31,8 +31,8 @@ streak_game_log <- function(streak_id, streaks, game_logs) {
   }
 }
 
-streak_game_log_data <- function(streak_id, streaks, game_logs) {
-  date_template <- "{lubridate::month(Date)}/{lubridate::mday(Date)}"
+streak_game_log_data <- function(streak, hot) {
+    date_template <- "{lubridate::month(Date)}/{lubridate::mday(Date)}"
   completed_on_template <-
     paste0(
       "Completed {lubridate::month(CompletedOn)}/",
@@ -45,7 +45,7 @@ streak_game_log_data <- function(streak_id, streaks, game_logs) {
       "{lubridate::month(CompletionOf)}/{lubridate::mday(CompletionOf)}"
     )
 
-  game_log_data <- streak_game_log(streak_id, streaks, game_logs) %>%
+  game_log_data <- sql_get_streak_game_log(streak, hot) %>%
     dplyr::mutate(
       GameResult = dplyr::case_when(
         GameRunsFor > GameRunsAgainst ~ "W",
@@ -85,9 +85,9 @@ streak_game_log_data <- function(streak_id, streaks, game_logs) {
   )
 }
 
-streak_summary_data <- function(streak_id, streaks, game_logs) {
+streak_summary_data <- function(streak, hot) {
   summary_data <-
-    streak_game_log(streak_id, streaks, game_logs) %>%
+    sql_get_streak_game_log(streak, hot) %>%
     dplyr::summarise(
       Team            = unique(Team),
       Year            = unique(Year),
@@ -122,8 +122,8 @@ streak_summary_data <- function(streak_id, streaks, game_logs) {
       End = glue::glue("{lubridate::month(LastGameDate)}/{lubridate::mday(LastGameDate)}"),
       Dates = glue::glue(ifelse(FirstGameDate == LastGameDate, "{Start}", "{Start} - {End}")),
       Record = ifelse(Ties == 0,
-        glue::glue("{Wins}-{Losses}"),
-        glue::glue("{Wins}-{Losses}-{Ties}")
+                      glue::glue("{Wins}-{Losses}"),
+                      glue::glue("{Wins}-{Losses}-{Ties}")
       ),
       `W-L%` = pct_formatter(WinningPct),
       RS = RunsScored, RA = RunsAllowed, `Pyth%` = pct_formatter(PythagPct)
@@ -139,13 +139,11 @@ streak_summary_data <- function(streak_id, streaks, game_logs) {
   list(data = data, caption = caption)
 }
 
-streak_get_standings <- function(streak_id, franchises, streaks, game_logs) {
-  streak <- streaks %>% dplyr::filter(StreakId==streak_id) %>% head(1)
+streak_get_standings <- function(streak, franchises) {
   division <- franchises %>%
     franchises_get_division_by_team_year(streak$Team, streak$Year)
-  division_season_games <- game_logs %>%
-    dplyr::filter(Year==streak$Year,
-                  Team %in% division$teams$TeamID)
+  division_season_games <- sql_get_division_season_games(streak$Year,
+                                                     division$teams$TeamID)
   first_game <- division_season_games %>%
     dplyr::filter(Year==streak$Year,
                   Team==streak$Team,

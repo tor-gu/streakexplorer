@@ -101,24 +101,6 @@ server <- function(input, output, session) {
     input$streak_type == "HOT"
   })
 
-  base_lines <- reactive({
-    message("loading base lines")
-    if (hot()) {
-      SOMData::hot_streaks_lines
-    } else {
-      SOMData::cold_streaks_lines
-    }
-  })
-
-  streaks <- reactive({
-    message("loading streaks")
-    if (hot()) {
-      SOMData::hot_streaks
-    } else {
-      SOMData::cold_streaks
-    }
-  })
-
   lines_to_streaks <- reactive({
     message("loading lines_to_streaks")
     if (hot()) {
@@ -173,21 +155,15 @@ server <- function(input, output, session) {
   filtered_lines <- reactive({
     req(years(), input$teams)
     message("filtering lines")
-    filtered <- base_lines() %>%
-      dplyr::filter(Year >= years()[[1]] & Year <= years()[[2]]) %>%
-      dplyr::filter(Team %in% input$teams)
-    max_rank(filtered %>%
-               dplyr::group_by(IntensityLevel) %>%
-               dplyr::slice_min(Rank, n = 10) %>%
-               dplyr::ungroup() %>%
-               dplyr::summarise(ms = max(Rank)) %>%
-               dplyr::pull(ms))
-    filtered %>%
-      dplyr::filter(Rank <= max_rank()) %>%
+    max_rank(sql_get_max_rank(years()[[1]], years()[[2]], input$teams,
+                          hot()))
+    sql_get_lines(years()[[1]], years()[[2]], input$teams,
+              hot(), max_rank()) %>%
       lines_remove_nubs()
   })
 
   selected_streak_id <- reactive({
+    message("selected_streak_id")
     if (is.null(selected_line_id())) {
       NULL
     } else {
@@ -197,14 +173,20 @@ server <- function(input, output, session) {
     }
   })
 
+  selected_streak <- reactive({
+    message("selected_streak")
+    if (is.null(selected_streak_id())) {
+      NULL
+    } else {
+      sql_get_streak(selected_streak_id(), hot())
+    }
+  })
+
   selected_streak_standings <- reactive({
-    streak_get_standings(selected_streak_id(), SOMData::franchises,
-                         streaks(), SOMData::game_logs)
+    streak_get_standings(selected_streak(), SOMData::franchises)
   })
 
   highlight_data <- reactive({
-    message("About to do highlighting")
-    print(selected_line_id())
     lines_highlight(
       filtered_lines(), concordances(),
       lines_to_streaks(), selected_line_id()
@@ -311,16 +293,10 @@ server <- function(input, output, session) {
 
   # TODO MOVE
   selected_streak_summary_data <- reactive({
-    streak_summary_data(
-      selected_streak_id(),
-      isolate(streaks()),
-      SOMData::game_logs
-    )
+    streak_summary_data(selected_streak(), hot())
   })
 
   output$streak_summary <- DT::renderDT({
-    print(paste0("Selected_streak_id ", selected_streak_id()))
-    message(paste("Rendering summary table...", selected_streak_id()))
     if (is.null(selected_streak_id())) {
       return(NULL)
     }
@@ -405,24 +381,15 @@ server <- function(input, output, session) {
     req(selected_streak_id())
     message(paste("Rendering standings graph...", selected_streak_id()))
 
-    streak <- streaks() %>%
-      dplyr::filter(StreakId==selected_streak_id()) %>%
-      head(1)
+    streak <- selected_streak()
 
     division_teams <- franchises_get_division_by_team_year(
       SOMData::franchises, streak$Team, streak$Year)
     standings <- SOMData::standings %>%
       dplyr::filter(Year==streak$Year) %>%
       dplyr::right_join(division_teams$division)
-    start_date <-
-      SOMData::game_logs %>%
-      dplyr::right_join(streak, by = c("Year", "Team", "GameIndex" = "LoIndex")) %>%
-      dplyr::pull(Date)
-    end_date <-
-      SOMData::game_logs %>%
-      dplyr::right_join(streak, by = c("Year", "Team", "GameIndex" = "HiIndex")) %>%
-      dplyr::pull(Date)
-    plot_standings_graph(standings, streak$Team, start_date, end_date)
+    plot_standings_graph(standings, streak$Team, streak$StartDate,
+                         streak$EndDate)
   })
 
   output$game_log <- DT::renderDT({
@@ -432,14 +399,12 @@ server <- function(input, output, session) {
     }
 
     game_log <- streak_game_log_data(
-      selected_streak_id(),
-      isolate(streaks()),
-      SOMData::game_logs
+      selected_streak(),
+      hot()
     )
     DT::datatable(
       game_log$data,
       caption = NULL,
-      #caption = game_log$caption,
       rownames = FALSE,
       options(
         ordering = FALSE, searching = FALSE, pageLength = 15,
