@@ -72,6 +72,22 @@ lines_remove_nubs <- function(lines) {
     )
 }
 
+lines_remove_branch_descenders <- function(lines, max_rank, hot) {
+  if (hot) {
+    lines <- lines %>%
+      dplyr::arrange(LineId, IntensityLevel)
+  } else {
+    lines <- lines %>%
+      dplyr::arrange(LineId, desc(IntensityLevel))
+  }
+  lines %>%
+    torgutil::filter_out(
+      dplyr::lead(LineId) == LineId,
+      dplyr::lead(StreakId) != StreakId,
+      dplyr::lead(Rank) > max_rank
+    )
+}
+
 
 add_descenders <- function(initial_rank_filter, initial_filter) {
   filtered_left <- initial_filter %>%

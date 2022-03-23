@@ -32,7 +32,8 @@ sql_get_max_rank <- function(min_year, max_year, teams, hot) {
   DBI::dbGetQuery(connection, query) %>% dplyr::pull(max_rank)
 }
 
-sql_get_lines <- function(min_year, max_year, teams, hot, max_rank) {
+# TODO DELETE THIS
+sql_get_lines_old <- function(min_year, max_year, teams, hot, max_rank) {
   connection <- sql_get_connection()
   on.exit(DBI::dbDisconnect(connection))
 
@@ -56,6 +57,48 @@ sql_get_lines <- function(min_year, max_year, teams, hot, max_rank) {
     .con = connection
   )
   DBI::dbGetQuery(connection, query) %>% tibble::as_tibble()
+}
+
+# TODO make this cleaner
+sql_get_lines <- function(min_year, max_year, teams, hot, max_rank) {
+  connection <- sql_get_connection()
+  on.exit(DBI::dbDisconnect(connection))
+
+  table <- ifelse(hot, "hot_streaks_lines", "cold_streaks_lines")
+  query_template <- (
+    "
+    SELECT DISTINCT LineId AS LineId FROM {table} WHERE
+      Year >= {min_year} AND
+      Year <= {max_year} AND
+      Team IN ({teams*}) AND
+      Rank <= {max_rank}
+  "
+  )
+  query <- glue::glue_sql(
+    query_template,
+    table = table,
+    min_year = min_year,
+    max_year = max_year,
+    teams = teams,
+    max_rank = max_rank,
+    .con = connection
+  )
+  line_ids <- DBI::dbGetQuery(connection, query) %>% dplyr::pull(LineId)
+
+  query_template <- ("
+    SELECT * FROM {table} WHERE
+      LineId in ({line_ids*})
+  ")
+  query <- glue::glue_sql(
+    query_template,
+    table = table,
+    line_ids = line_ids,
+    .con = connection
+  )
+  lines <- DBI::dbGetQuery(connection, query) %>% tibble::as_tibble()
+  lines %>% dplyr::filter(Rank <= max_rank) %>% dplyr::count(LineId) %>%
+    dplyr::filter(n>1) %>% dplyr::select(LineId) %>%
+    dplyr::left_join(lines)
 }
 
 sql_get_streak_game_log <- function(streak, hot) {
@@ -156,7 +199,3 @@ sql_get_division_season_games <- function(year, teams) {
       CompletedOn=lubridate::as_date(CompletedOn),
       CompletionOf=lubridate::as_date(CompletionOf))
 }
-# max_rank <- sql_get_max_rank(2000, 2020, c("BOS","TOR","BAL","CHA"), FALSE)
-#sql_get_lines(2000, 2020, c("BOS","TOR","BAL","CHA"), FALSE, max_rank)
-# sql_get_streak_game_log(3737, FALSE)
-#get_streak(17337, TRUE) %>% sql_get_streak_game_log(TRUE)

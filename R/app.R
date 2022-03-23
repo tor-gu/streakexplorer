@@ -159,7 +159,7 @@ server <- function(input, output, session) {
                           hot()))
     sql_get_lines(years()[[1]], years()[[2]], input$teams,
               hot(), max_rank()) %>%
-      lines_remove_nubs()
+      lines_remove_branch_descenders(max_rank(), hot())
   })
 
   selected_streak_id <- reactive({
@@ -409,6 +409,7 @@ server <- function(input, output, session) {
       options(
         ordering = FALSE, searching = FALSE, pageLength = 15,
         paging = nrow(game_log$data) > 15,
+        pagingType = "simple",
         lengthChange = FALSE
       ),
       extensions = "Select", selection="none"
