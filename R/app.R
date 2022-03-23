@@ -16,7 +16,7 @@ ui <- fluidPage(
   tags$style("#standings_final td, th {padding: 0; text-align: right}"),
   theme = theme,
   # theme=bslib::bs_theme(),
-  titlePanel("Streak Explorer"),
+  titlePanel("Baseball Streak Explorer"),
   sidebarLayout(
     sidebarPanel(
       width = 5,
