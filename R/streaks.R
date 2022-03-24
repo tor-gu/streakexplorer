@@ -32,7 +32,7 @@ streak_game_log <- function(streak_id, streaks, game_logs) {
 }
 
 streak_game_log_data <- function(streak, hot) {
-    date_template <- "{lubridate::month(Date)}/{lubridate::mday(Date)}"
+  date_template <- "{lubridate::month(Date)}/{lubridate::mday(Date)}"
   completed_on_template <-
     paste0(
       "Completed {lubridate::month(CompletedOn)}/",
@@ -53,7 +53,7 @@ streak_game_log_data <- function(streak, hot) {
         GameRunsFor == GameRunsAgainst ~ "T"
       ),
       `Gm#` = GameNumber,
-      `Date ` = glue::glue(date_template),
+      Dat = glue::glue(date_template),
       Opp = ifelse(AtHome,
         OpponentTeam,
         glue::glue("@{OpponentTeam}")
@@ -77,7 +77,8 @@ streak_game_log_data <- function(streak, hot) {
       glue::glue(completion_of_template),
       Completion
     )) %>%
-    dplyr::select(`Gm#`:Completion)
+    dplyr::select(`Gm#`:Completion) %>%
+    dplyr::rename(Date=Dat)
 
   result <- list(
     data = game_log_data,
