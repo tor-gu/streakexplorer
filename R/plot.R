@@ -10,7 +10,6 @@ plot_add_lines_maybe <- function(p, lines = NULL, ...) {
 
 plot_lines <- function(lines, intensity_level_range, max_rank,
                        reverse_x_axis = FALSE) {
-  #x_range <- range(lines$IntensityLevel)
   x_range <- intensity_level_range
   x_axis_range <- if (reverse_x_axis) rev(x_range) else x_range
   x_range_len <- x_range[2] - x_range[1]

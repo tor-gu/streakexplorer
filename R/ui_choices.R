@@ -167,3 +167,20 @@ generate_team_selection <- function(team_table) {
     dplyr::summarise(Nicknames = stringr::str_c(Nickname, collapse = "/")) %>%
     torgutil::tbl_as_named_list(FranchiseID, Nicknames)
 }
+
+build_divisions_choices <- function(franchises, years, leagues) {
+  franchises %>%
+    filter_by_years(years) %>%
+    filter_by_league(leagues) %>%
+    truncate_years(years) %>%
+    get_divisions() %>%
+    generate_division_selection()
+}
+
+build_teams_choices <- function(franchises, years, league_divisions) {
+  franchises %>%
+    filter_by_years(years) %>%
+    filter_by_league_divisions(league_divisions) %>%
+    truncate_years(years) %>%
+    generate_team_selection()
+}

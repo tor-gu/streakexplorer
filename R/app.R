@@ -132,20 +132,19 @@ server <- function(input, output, session) {
   )
 
   divisions_choices <- reactive({
-    SOMData::franchises %>%
-      filter_by_years(selected_years()) %>%
-      filter_by_league(selected_leagues()) %>%
-      truncate_years(selected_years()) %>%
-      get_divisions() %>%
-      generate_division_selection()
+    build_divisions_choices(
+      SOMData::franchises,
+      selected_years(),
+      selected_leagues()
+    )
   })
 
   teams_choices <- reactive({
-    SOMData::franchises %>%
-      filter_by_years(selected_years()) %>%
-      filter_by_league_divisions(selected_league_divisions()) %>%
-      truncate_years(selected_years()) %>%
-      generate_team_selection()
+    build_teams_choices(
+      SOMData::franchises,
+      selected_years(),
+      selected_league_divisions()
+    )
   })
 
   no_divisions_choices <- reactive({
