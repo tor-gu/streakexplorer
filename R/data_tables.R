@@ -1,8 +1,8 @@
 standings_DT_init <- function() {
   dummy_data <- tibble::tibble(
     Team=character(0),
-    Wins=integer(0),
-    Losses=integer(0),
+    W=integer(0),
+    L=integer(0),
     GB=double(0),
     Highlight=logical(0)
   )
