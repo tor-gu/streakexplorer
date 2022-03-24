@@ -71,4 +71,18 @@ lines_remove_branch_descenders <- function(lines, max_rank, hot) {
     )
 }
 
+lines_build_lines <- function(years, teams, max_rank, hot) {
+  sql_get_lines(years[[1]], years[[2]], teams, hot, max_rank) %>%
+    lines_remove_branch_descenders(max_rank, hot)
+}
+
+lines_get_selected_streak_id <- function(lines_to_streaks, line_id) {
+  if (is.null(line_id)) {
+    NULL
+  } else {
+    lines_to_streaks %>%
+      dplyr::filter(LineId == line_id) %>%
+      dplyr::pull(StreakId)
+  }
+}
 

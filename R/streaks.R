@@ -177,3 +177,10 @@ streak_get_standings <- function(streak, franchises) {
   )
 }
 
+streaks_get_selected_streak <- function(streak_id, hot) {
+  if (is.null(streak_id)) {
+    NULL
+  } else {
+    sql_get_streak(streak_id, hot)
+  }
+}

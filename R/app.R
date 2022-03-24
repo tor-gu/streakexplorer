@@ -122,7 +122,11 @@ server <- function(input, output, session) {
   })
 
   years <- reactive({ input$years }) %>% debounce(333)
-  max_rank <- reactiveVal(10)
+  max_rank <- reactive({
+    sql_get_max_rank(
+      years()[[1]], years()[[2]], input$teams, hot())
+  })
+
   selected_line_id <- reactiveVal(NULL)
   selected_years <- reactive({ years()[[1]]:years()[[2]] })
   selected_leagues <- reactiveVal(c("AL", "NL"))
@@ -153,34 +157,18 @@ server <- function(input, output, session) {
     )
   })
 
-  filtered_lines <- reactive({
-    req(years(), input$teams)
-    message("filtering lines")
-    max_rank(sql_get_max_rank(years()[[1]], years()[[2]], input$teams,
-                          hot()))
-    sql_get_lines(years()[[1]], years()[[2]], input$teams,
-              hot(), max_rank()) %>%
-      lines_remove_branch_descenders(max_rank(), hot())
+  lines <- reactive({
+    req(input$teams, max_rank())
+    lines_build_lines(years(), input$teams, max_rank(), hot())
   })
 
   selected_streak_id <- reactive({
-    message("selected_streak_id")
-    if (is.null(selected_line_id())) {
-      NULL
-    } else {
-      lines_to_streaks() %>%
-        dplyr::filter(LineId == selected_line_id()) %>%
-        dplyr::pull(StreakId)
-    }
+    lines_get_selected_streak_id(lines_to_streaks(),
+                                 selected_line_id())
   })
 
   selected_streak <- reactive({
-    message("selected_streak")
-    if (is.null(selected_streak_id())) {
-      NULL
-    } else {
-      sql_get_streak(selected_streak_id(), hot())
-    }
+    streaks_get_selected_streak(selected_streak_id(), hot())
   })
 
   selected_streak_standings <- reactive({
@@ -189,7 +177,7 @@ server <- function(input, output, session) {
 
   highlight_data <- reactive({
     lines_highlight(
-      filtered_lines(), concordances(),
+      lines(), concordances(),
       lines_to_streaks(), selected_line_id()
     )
   })
