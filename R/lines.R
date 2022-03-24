@@ -18,7 +18,6 @@ lines_highlight <- function(lines, concordances, lines_to_streaks,
   result <- lines %>%
     dplyr::mutate(
       line_colored = 1,
-      line_width = 1,
       line_type = "base"
     )
 
@@ -46,7 +45,6 @@ lines_highlight <- function(lines, concordances, lines_to_streaks,
           line_type = dplyr::if_else(LineId %in% related_line_ids, "related",
             line_type
           ),
-          line_width = dplyr::if_else(LineId %in% related_line_ids, 3, 1)
         ) %>%
         dplyr::mutate(
           line_colored = dplyr::if_else(LineId == id, 3, line_colored),

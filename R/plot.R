@@ -61,23 +61,20 @@ plot_lines <- function(lines, intensity_level_range, max_rank,
       alpha = 0.7,
       line = list(shape = "spline", width = 1),
       text = ~HoverText,
-      # linetype=~line_type, linetypes=line_types,
       color = ~ factor(line_colored), colors = colors
     ) %>%
     plot_add_lines_maybe(
       lines = split_lines$season,
       alpha = 0.7,
-      line = list(shape = "spline", width = 1),
+      line = list(shape = "spline", width = 3),
       text = ~HoverText,
-      # linetype=~line_type, linetypes=line_types,
       color = ~ factor(line_colored), colors = colors
     ) %>%
     plot_add_lines_maybe(
       lines = rbind(split_lines$related, split_lines$identical),
       alpha = 0.7,
-      line = list(shape = "spline", width = 3),
+      line = list(shape = "spline", width = 5),
       text = ~HoverText,
-      # linetype=~line_type, linetypes=line_types,
       color = ~ factor(line_colored), colors = colors
     ) %>%
     plotly::highlight(
