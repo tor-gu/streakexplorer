@@ -29,6 +29,53 @@ standings_DT_init <- function() {
     )
 }
 
+streak_summary_DT_init <- function() {
+  dummy_table <- tibble::tibble(
+    Dates=character(0),
+    Record=character(0),
+    `W-L%`=character(0),
+    RS=integer(0),
+    RA=integer(0),
+    `Pyth%`=character(0)
+  )
+  DT::datatable(
+    dummy_table,
+    caption = NULL,
+    rownames = FALSE,
+    options = list(
+      ordering = FALSE,
+      paging = FALSE,
+      searching = FALSE,
+      info = FALSE
+    ),
+    selection="none"
+  )
+}
+
+game_log_DT_init <- function() {
+  dummy_table <- tibble::tibble(
+    `Gm#` = integer(0),
+    Date = character(0),
+    Opp = "X",
+    `W/L` = character(0),
+    RS = integer(0),
+    RA = integer(0),
+    Completion = logical(0)
+  )
+  DT::datatable(
+    dummy_table,
+    caption = NULL,
+    rownames = FALSE,
+    options(
+      ordering = FALSE, searching = FALSE, pageLength = 15,
+      #paging = nrow(game_log$data) > 15,
+      pagingType = "simple",
+      lengthChange = FALSE
+    ),
+    selection="none"
+  )
+}
+
 standings_DT_update <- function(proxy, streak_info, standings) {
   standings <- standings %>%
     dplyr::mutate(Highlight=(Nickname==streak_info$Nickname)) %>%
@@ -38,3 +85,4 @@ standings_DT_update <- function(proxy, streak_info, standings) {
                   rownames = FALSE
   )
 }
+

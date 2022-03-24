@@ -72,7 +72,7 @@ ui <- fluidPage(
         column(12, plotly::plotlyOutput(outputId = "streaks"))
         ),
       fluidRow(id="summary_row",
-        column(12, h4(textOutput("streak_summary_caption")),
+        column(12, h4("Streak summary"),
                shinycssloaders::withSpinner(DT::DTOutput("streak_summary")))
         ),
       fluidRow(id="standings_row",
@@ -134,6 +134,9 @@ server <- function(input, output, session) {
     list("AL_None", "NL_None") %>%
       division_choice_values_as_league_and_division_list()
   )
+  selected_streak_summary_data <- reactive({
+    streak_summary_data(selected_streak(), hot())
+  })
 
   divisions_choices <- reactive({
     build_divisions_choices(
@@ -272,94 +275,6 @@ server <- function(input, output, session) {
     }
   })
 
-
-  # Renderers ----
-  output$streaks <- plotly::renderPlotly({
-    message("Rendering plotly...")
-    highlight_data() %>% plot_lines(
-      intensity_level_range,
-      max_rank(),
-      input$streak_type == "COLD"
-    )
-  })
-
-  # TODO MOVE
-  selected_streak_summary_data <- reactive({
-    streak_summary_data(selected_streak(), hot())
-  })
-
-  streak_summary_proxy <- DT::dataTableProxy("streak_summary",
-                                             session=session)
-
-  output$streak_summary <- DT::renderDT({
-    dummy_table <- tibble::tibble(
-      Dates=character(0),
-      Record=character(0),
-      `W-L%`=character(0),
-      RS=integer(0),
-      RA=integer(0),
-      `Pyth%`=character(0)
-    )
-    DT::datatable(
-      dummy_table,
-      caption = NULL,
-      rownames = FALSE,
-      options = list(
-        ordering = FALSE,
-        paging = FALSE,
-        searching = FALSE,
-        info = FALSE
-      ),
-      selection="none"
-    )
-  })
-
-  output$streak_summary_caption <- renderText({
-    if (is.null(selected_streak_id())) {
-      return(NULL)
-    }
-    selected_streak_summary_data()$caption
-  })
-  output$standings_before_caption <- renderText({
-    req(selected_streak_id())
-    paste0("Standings before ", selected_streak_summary_data()$data$Start)
-  })
-  output$standings_after_caption <- renderText({
-    req(selected_streak_id())
-    paste0("Standings after ", selected_streak_summary_data()$data$End)
-  })
-  output$standings_final_caption <- renderText({
-    req(selected_streak_id())
-    "Final standings"
-  })
-  output$standings_graph_caption <- renderText({
-    req(selected_streak_id())
-    "Standings graph"
-  })
-  output$game_log_caption <- renderText({
-    req(selected_streak_id())
-    "Game log"
-  })
-
-  output$standings_before <- DT::renderDT({
-    standings_DT_init()
-  })
-  output$standings_after <- DT::renderDT({
-    standings_DT_init()
-  })
-
-  output$standings_final <- DT::renderDT({
-    standings_DT_init()
-  })
-
-  standings_before_proxy <- DT::dataTableProxy("standings_before",
-                                               session=session)
-  standings_after_proxy <- DT::dataTableProxy("standings_after",
-                                               session=session)
-  standings_final_proxy <- DT::dataTableProxy("standings_final",
-                                               session=session)
-  game_log_proxy <- DT::dataTableProxy("game_log", session=session)
-
   observeEvent(selected_streak_id(), {
     standings_DT_update(
       standings_before_proxy,
@@ -385,13 +300,61 @@ server <- function(input, output, session) {
                     game_log$data,
                     resetPaging = FALSE,
                     rownames = FALSE
-                    )
+    )
     DT::replaceData(streak_summary_proxy,
                     selected_streak_summary_data()$data,
                     resetPaging = FALSE,
                     rownames = FALSE
     )
   })
+
+  # Proxies ----
+  streak_summary_proxy <- DT::dataTableProxy("streak_summary",
+                                             session=session)
+  standings_before_proxy <- DT::dataTableProxy("standings_before",
+                                               session=session)
+  standings_after_proxy <- DT::dataTableProxy("standings_after",
+                                              session=session)
+  standings_final_proxy <- DT::dataTableProxy("standings_final",
+                                              session=session)
+  game_log_proxy <- DT::dataTableProxy("game_log", session=session)
+
+
+  # Renderers ----
+
+  # This is the main graph
+  output$streaks <- plotly::renderPlotly({
+    plot_lines(highlight_data(),
+      intensity_level_range,
+      max_rank(),
+      input$streak_type == "COLD"
+    )
+  })
+
+  # Data tables.
+  # For each of these, we do an initial render with a dummy table, and then
+  # handle the updates through proxies
+
+  # Streak summary table
+  output$streak_summary <- DT::renderDT({
+    streak_summary_DT_init()
+  })
+
+  # Standings tables
+  output$standings_before <- DT::renderDT({
+    standings_DT_init()
+  })
+  output$standings_after <- DT::renderDT({
+    standings_DT_init()
+  })
+  output$standings_final <- DT::renderDT({
+    standings_DT_init()
+  })
+
+  output$game_log <- DT::renderDT({
+    game_log_DT_init()
+  })
+
 
   output$standings_graph <- renderPlot({
     req(selected_streak_id())
@@ -409,32 +372,6 @@ server <- function(input, output, session) {
   })
 
 
-  output$game_log <- DT::renderDT({
-    message(paste("Rendering game log table...",
-                  isolate(selected_streak_id())))
-
-    dummy_table <- tibble::tibble(
-      `Gm#` = integer(0),
-      Date = character(0),
-      Opp = "X",
-      `W/L` = character(0),
-      RS = integer(0),
-      RA = integer(0),
-      Completion = logical(0)
-    )
-    DT::datatable(
-      dummy_table,
-      caption = NULL,
-      rownames = FALSE,
-      options(
-        ordering = FALSE, searching = FALSE, pageLength = 15,
-        #paging = nrow(game_log$data) > 15,
-        pagingType = "simple",
-        lengthChange = FALSE
-      ),
-      selection="none"
-    )
-  })
 }
 
 shinyApp(ui, server)
