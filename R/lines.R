@@ -89,22 +89,3 @@ lines_remove_branch_descenders <- function(lines, max_rank, hot) {
 }
 
 
-add_descenders <- function(initial_rank_filter, initial_filter) {
-  filtered_left <- initial_filter %>%
-    dplyr::mutate(PrevIntensityLevel = IntensityLevel - 1) %>%
-    dplyr::semi_join(
-      initial_rank_filter,
-      by = c("StreakId", "PrevIntensityLevel" = "IntensityLevel")
-    ) %>%
-    dplyr::select(-PrevAdjLevel)
-
-  filtered_right <- initial_filter %>%
-    dplyr::mutate(NextIntensityLevel = IntensityLevel + 1) %>%
-    dplyr::semi_join(
-      initial_rank_filter,
-      by = c("StreakId", "NextIntensityLevel" = "IntensityLevel")
-    ) %>%
-    dplyr::select(-NextIntensityLevel)
-
-  rbind(initial_rank_filter, filtered_left, filtered_right) %>% unique()
-}
