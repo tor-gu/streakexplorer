@@ -57,21 +57,6 @@ lines_highlight <- function(lines, concordances, lines_to_streaks,
   result
 }
 
-lines_remove_nubs <- function(lines) {
-  # This is a cleanup function to be applied after a Rank filter has been
-  # applied.  The idea is to remove the initial element of a line when
-  # that element is from a different streak, and there is a gap between the
-  # initial element and the next one (because the intermediate ones were
-  # removed in a Rank filter)
-  lines %>%
-    dplyr::arrange(LineId, IntensityLevel) %>%
-    torgutil::filter_out(
-      dplyr::lead(LineId) == LineId,
-      dplyr::lead(StreakId) != StreakId,
-      dplyr::lead(IntensityLevel) - IntensityLevel != 1
-    )
-}
-
 lines_remove_branch_descenders <- function(lines, max_rank, hot) {
   if (hot) {
     lines <- lines %>%
