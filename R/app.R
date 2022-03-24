@@ -104,7 +104,6 @@ server <- function(input, output, session) {
   })
 
   lines_to_streaks <- reactive({
-    message("loading lines_to_streaks")
     if (hot()) {
       SOMData::hot_streaks_lines_to_streaks
     } else {
@@ -113,7 +112,6 @@ server <- function(input, output, session) {
   })
 
   concordances <- reactive({
-    message("loading concordances")
     if (hot()) {
       SOMData::hot_streaks_concordances
     } else {
@@ -334,13 +332,9 @@ server <- function(input, output, session) {
   # Data tables.
   # For each of these, we do an initial render with a dummy table, and then
   # handle the updates through proxies
-
-  # Streak summary table
   output$streak_summary <- DT::renderDT({
     streak_summary_DT_init()
   })
-
-  # Standings tables
   output$standings_before <- DT::renderDT({
     standings_DT_init()
   })
@@ -350,27 +344,16 @@ server <- function(input, output, session) {
   output$standings_final <- DT::renderDT({
     standings_DT_init()
   })
-
   output$game_log <- DT::renderDT({
     game_log_DT_init()
   })
 
-
+  # Standings graph
   output$standings_graph <- renderPlot({
-    req(selected_streak_id())
-    message(paste("Rendering standings graph...", selected_streak_id()))
-
-    streak <- selected_streak()
-
-    division_teams <- franchises_get_division_by_team_year(
-      SOMData::franchises, streak$Team, streak$Year)
-    standings <- SOMData::standings %>%
-      dplyr::filter(Year==streak$Year) %>%
-      dplyr::right_join(division_teams$division)
-    plot_standings_graph(standings, streak$Team, streak$StartDate,
-                         streak$EndDate)
+    build_standings_graph(
+      SOMData::franchises, SOMData::standings, selected_streak()
+    )
   })
-
 
 }
 

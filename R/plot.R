@@ -143,3 +143,13 @@ plot_standings_graph <- function(standings, team, start_date, end_date) {
     #ggplot2::scale_x_date(breaks=NULL) +
     ggplot2::scale_y_continuous(breaks=0, limits=c(y_min,y_max))
 }
+
+build_standings_graph <- function(franchises, standings, streak) {
+  division_teams <- franchises_get_division_by_team_year(
+    franchises, streak$Team, streak$Year)
+  standings <- standings %>%
+    dplyr::filter(Year==streak$Year) %>%
+    dplyr::right_join(division_teams$division)
+  plot_standings_graph(standings, streak$Team, streak$StartDate,
+                       streak$EndDate)
+}
