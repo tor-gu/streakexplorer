@@ -96,6 +96,8 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   # bslib::bs_themer()
 
+  intensity_level_range <- sql_get_intensity_level_range()
+
   # Reactives and reactive values ----
   hot <- reactive({
     input$streak_type == "HOT"
@@ -288,6 +290,7 @@ server <- function(input, output, session) {
   output$streaks <- plotly::renderPlotly({
     message("Rendering plotly...")
     highlight_data() %>% plot_lines(
+      intensity_level_range,
       max_rank(),
       input$streak_type == "COLD"
     )

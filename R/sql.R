@@ -3,6 +3,22 @@ sql_get_connection <- function() {
   DBI::dbConnect(RSQLite::SQLite(), db_file, extended_types = TRUE)
 }
 
+sql_get_intensity_level_range <- function() {
+  connection <- sql_get_connection()
+  on.exit(DBI::dbDisconnect(connection))
+
+  query <- ("
+    SELECT MAX(IntensityLevel) as max_level,
+           MIN(IntensityLevel) as min_level
+    FROM hot_streaks
+    WHERE Year == 1948
+  ")
+
+  result <- DBI::dbGetQuery(connection, query)
+  c(result$min_level, result$max_level)
+}
+
+
 sql_get_max_rank <- function(min_year, max_year, teams, hot) {
   connection <- sql_get_connection()
   on.exit(DBI::dbDisconnect(connection))
@@ -199,3 +215,4 @@ sql_get_division_season_games <- function(year, teams) {
       CompletedOn=lubridate::as_date(CompletedOn),
       CompletionOf=lubridate::as_date(CompletionOf))
 }
+
