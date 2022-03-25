@@ -15,11 +15,3 @@ franchises_get_division_by_team_year <- function(franchises, team, year) {
   list(division=division, teams=teams)
 }
 
-# TODO maybe delete
-franchises_by_seasons <- function(franchises, years) {
-  purrr::map(years, function(year) franchises_by_season(franchises, year)) %>%
-    data.table::rbindlist() %>%
-    tibble::as_tibble() %>%
-    unique()
-}
-
