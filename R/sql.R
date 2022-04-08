@@ -1,6 +1,14 @@
 sql_get_connection <- function() {
-  db_file <- system.file("extdata", "data.sqlite", package = "SOMData")
-  DBI::dbConnect(RSQLite::SQLite(), db_file, extended_types = TRUE)
+  # db_file <- system.file("extdata", "data.sqlite", package = "SOMData")
+  # DBI::dbConnect(RSQLite::SQLite(), db_file, extended_types = TRUE)
+  DBI::dbConnect(
+    RMySQL::MySQL(),
+    host = Sys.getenv("streak_explorer_db_host"),
+    port = as.integer(Sys.getenv("streak_explorer_db_port")),
+    user = Sys.getenv("streak_explorer_db_user"),
+    password = Sys.getenv("streak_explorer_db_password"),
+    dbname = Sys.getenv("streak_explorer_db_name")
+  )
 }
 
 sql_get_intensity_level_range <- function() {
@@ -11,7 +19,7 @@ sql_get_intensity_level_range <- function() {
     SELECT MAX(IntensityLevel) as max_level,
            MIN(IntensityLevel) as min_level
     FROM hot_streaks
-    WHERE Year == 1948
+    WHERE Year = 1948
   ")
 
   result <- DBI::dbGetQuery(connection, query)
@@ -27,14 +35,14 @@ sql_get_max_rank <- function(min_year, max_year, teams, hot) {
   query_template <- (
     "
   WITH group_rank AS
-     (SELECT Rank, row_number() OVER
-        ( PARTITION BY IntensityLevel ORDER BY Rank ) rn
-        FROM {table} WHERE
+     (SELECT `Rank`, row_number() OVER
+        ( PARTITION BY IntensityLevel ORDER BY `Rank` ) rn
+        FROM {`table`} WHERE
           Year >= {min_year} AND
           Year <= {max_year} AND
           Team IN ({teams*})
       )
-  SELECT MAX(Rank) AS max_rank FROM group_rank WHERE rn <= 10
+  SELECT MAX(`Rank`) AS max_rank FROM group_rank WHERE rn <= 10
   "
   )
   query <- glue::glue_sql(
@@ -83,11 +91,11 @@ sql_get_lines <- function(min_year, max_year, teams, hot, max_rank) {
   table <- ifelse(hot, "hot_streaks_lines", "cold_streaks_lines")
   query_template <- (
     "
-    SELECT DISTINCT LineId AS LineId FROM {table} WHERE
+    SELECT DISTINCT LineId AS LineId FROM {`table`} WHERE
       Year >= {min_year} AND
       Year <= {max_year} AND
       Team IN ({teams*}) AND
-      Rank <= {max_rank}
+      `Rank` <= {max_rank}
   "
   )
   query <- glue::glue_sql(
@@ -102,7 +110,7 @@ sql_get_lines <- function(min_year, max_year, teams, hot, max_rank) {
   line_ids <- DBI::dbGetQuery(connection, query) %>% dplyr::pull(LineId)
 
   query_template <- ("
-    SELECT * FROM {table} WHERE
+    SELECT * FROM {`table`} WHERE
       LineId in ({line_ids*})
   ")
   query <- glue::glue_sql(
@@ -151,7 +159,7 @@ sql_get_streak <- function(streak_id, hot) {
   query_template <- (
     "
     SELECT Year, Team, LoIndex, HiIndex
-    FROM {streak_table} WHERE StreakId = {streak_id} LIMIT 1
+    FROM {`streak_table`} WHERE StreakId = {streak_id} LIMIT 1
   "
   )
   query <- glue::glue_sql(
@@ -216,3 +224,10 @@ sql_get_division_season_games <- function(year, teams) {
       CompletionOf=lubridate::as_date(CompletionOf))
 }
 
+sql_load_franchises <- function() {
+  connection <- sql_get_connection()
+  on.exit(DBI::dbDisconnect(connection))
+
+  # Just load the whole thing into memory
+  dplyr::tbl(connection, "franchises") %>% tibble::as.tibble()
+}

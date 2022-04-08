@@ -15,3 +15,12 @@ franchises_get_division_by_team_year <- function(franchises, team, year) {
   list(division=division, teams=teams)
 }
 
+franchises_franchise_ids_to_team_ids <- function(franchises, franchise_ids,
+                                                 years) {
+  franchises %>%
+    dplyr::filter(FranchiseID %in% franchise_ids,
+                  years[1] <= FinalSeason | is.na(FinalSeason),
+                  years[2] >= FirstSeason) %>%
+    dplyr::pull(TeamID)
+}
+

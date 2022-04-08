@@ -7,6 +7,7 @@ theme <- bslib::bs_theme(
   heading_font = "1.2",
   font_scale = 0.8
 )
+
 ui <- fluidPage(
   shinyjs::useShinyjs(),
   tags$style("#game_log td, th {padding: 0; text-align: right}"),
@@ -15,7 +16,7 @@ ui <- fluidPage(
   tags$style("#standings_after td, th {padding: 0; text-align: right}"),
   tags$style("#standings_final td, th {padding: 0; text-align: right}"),
   theme = theme,
-  # theme=bslib::bs_theme(),
+  #theme=bslib::bs_theme(),
   titlePanel("Baseball Streak Explorer"),
   sidebarLayout(
     sidebarPanel(
@@ -94,9 +95,9 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  # bslib::bs_themer()
-
+  #bslib::bs_themer()
   intensity_level_range <- sql_get_intensity_level_range()
+  franchises <- sql_load_franchises()
 
   # Reactives and reactive values ----
   hot <- reactive({
@@ -121,8 +122,9 @@ server <- function(input, output, session) {
 
   years <- reactive({ input$years }) %>% debounce(333)
   max_rank <- reactive({
-    sql_get_max_rank(
-      years()[[1]], years()[[2]], input$teams, hot())
+    team_ids <- franchises_franchise_ids_to_team_ids(franchises,
+                                                     input$teams, years())
+    sql_get_max_rank(years()[[1]], years()[[2]], team_ids, hot())
   })
 
   selected_line_id <- reactiveVal(NULL)
@@ -146,7 +148,7 @@ server <- function(input, output, session) {
 
   teams_choices <- reactive({
     build_teams_choices(
-      SOMData::franchises,
+      franchises,
       selected_years(),
       selected_league_divisions()
     )
@@ -160,7 +162,10 @@ server <- function(input, output, session) {
 
   lines <- reactive({
     req(input$teams, max_rank())
-    lines_build_lines(years(), input$teams, max_rank(), hot())
+    print(input$teams)
+    print(max_rank())
+    lines_build_lines(years(), input$teams, SOMData::franchises,
+                      max_rank(), hot())
   })
 
   selected_streak_id <- reactive({

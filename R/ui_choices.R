@@ -159,7 +159,7 @@ generate_division_selection <- function(division_table) {
 }
 
 generate_team_selection <- function(team_table) {
-  selection_table <- team_table %>%
+  team_table %>%
     dplyr::arrange(desc(FirstSeason)) %>%
     dplyr::select(FranchiseID, Nickname) %>%
     unique() %>%
@@ -178,9 +178,11 @@ build_divisions_choices <- function(franchises, years, leagues) {
 }
 
 build_teams_choices <- function(franchises, years, league_divisions) {
-  franchises %>%
+  result <- franchises %>%
     filter_by_years(years) %>%
     filter_by_league_divisions(league_divisions) %>%
     truncate_years(years) %>%
     generate_team_selection()
+  print(result)
+  result
 }
