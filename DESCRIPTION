@@ -16,6 +16,7 @@ Imports:
     ggplot2,
     magrittr,
     plotly,
+    pool,
     shiny,
     shinycssloaders,
     shinyjs,

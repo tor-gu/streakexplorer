@@ -135,7 +135,7 @@ server <- function(input, output, session) {
       division_choice_values_as_league_and_division_list()
   )
   selected_streak_summary_data <- reactive({
-    streak_summary_data(selected_streak(), hot())
+    streak_summary_data(selected_streak(), hot(), franchises)
   })
 
   divisions_choices <- reactive({

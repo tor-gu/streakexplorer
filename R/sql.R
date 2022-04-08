@@ -1,20 +1,27 @@
-sql_get_connection <- function() {
-  # db_file <- system.file("extdata", "data.sqlite", package = "SOMData")
-  # DBI::dbConnect(RSQLite::SQLite(), db_file, extended_types = TRUE)
-  DBI::dbConnect(
-    RMySQL::MySQL(),
-    host = Sys.getenv("streak_explorer_db_host"),
-    port = as.integer(Sys.getenv("streak_explorer_db_port")),
-    user = Sys.getenv("streak_explorer_db_user"),
-    password = Sys.getenv("streak_explorer_db_password"),
-    dbname = Sys.getenv("streak_explorer_db_name")
-  )
-}
+pool <- pool::dbPool(
+  RMySQL::MySQL(),
+  host = Sys.getenv("streak_explorer_db_host"),
+  port = as.integer(Sys.getenv("streak_explorer_db_port")),
+  user = Sys.getenv("streak_explorer_db_user"),
+  password = Sys.getenv("streak_explorer_db_password"),
+  dbname = Sys.getenv("streak_explorer_db_name")
+)
+
+
+# sql_get_connection <- function() {
+#   # db_file <- system.file("extdata", "data.sqlite", package = "SOMData")
+#   # DBI::dbConnect(RSQLite::SQLite(), db_file, extended_types = TRUE)
+#   DBI::dbConnect(
+#     RMySQL::MySQL(),
+#     host = Sys.getenv("streak_explorer_db_host"),
+#     port = as.integer(Sys.getenv("streak_explorer_db_port")),
+#     user = Sys.getenv("streak_explorer_db_user"),
+#     password = Sys.getenv("streak_explorer_db_password"),
+#     dbname = Sys.getenv("streak_explorer_db_name")
+#   )
+# }
 
 sql_get_intensity_level_range <- function() {
-  connection <- sql_get_connection()
-  on.exit(DBI::dbDisconnect(connection))
-
   query <- ("
     SELECT MAX(IntensityLevel) as max_level,
            MIN(IntensityLevel) as min_level
@@ -22,15 +29,12 @@ sql_get_intensity_level_range <- function() {
     WHERE Year = 1948
   ")
 
-  result <- DBI::dbGetQuery(connection, query)
+  result <- DBI::dbGetQuery(pool, query)
   c(result$min_level, result$max_level)
 }
 
 
 sql_get_max_rank <- function(min_year, max_year, teams, hot) {
-  connection <- sql_get_connection()
-  on.exit(DBI::dbDisconnect(connection))
-
   table <- ifelse(hot, "hot_streaks", "cold_streaks")
   query_template <- (
     "
@@ -51,16 +55,13 @@ sql_get_max_rank <- function(min_year, max_year, teams, hot) {
     min_year = min_year,
     max_year = max_year,
     teams = teams,
-    .con = connection
+    .con = pool
   )
-  DBI::dbGetQuery(connection, query) %>% dplyr::pull(max_rank)
+  DBI::dbGetQuery(pool, query) %>% dplyr::pull(max_rank)
 }
 
 # TODO DELETE THIS
 sql_get_lines_old <- function(min_year, max_year, teams, hot, max_rank) {
-  connection <- sql_get_connection()
-  on.exit(DBI::dbDisconnect(connection))
-
   table <- ifelse(hot, "hot_streaks_lines", "cold_streaks_lines")
   query_template <- (
     "
@@ -78,16 +79,13 @@ sql_get_lines_old <- function(min_year, max_year, teams, hot, max_rank) {
     max_year = max_year,
     teams = teams,
     max_rank = max_rank,
-    .con = connection
+    .con = pool
   )
-  DBI::dbGetQuery(connection, query) %>% tibble::as_tibble()
+  DBI::dbGetQuery(pool, query) %>% tibble::as_tibble()
 }
 
 # TODO make this cleaner
 sql_get_lines <- function(min_year, max_year, teams, hot, max_rank) {
-  connection <- sql_get_connection()
-  on.exit(DBI::dbDisconnect(connection))
-
   table <- ifelse(hot, "hot_streaks_lines", "cold_streaks_lines")
   query_template <- (
     "
@@ -105,9 +103,9 @@ sql_get_lines <- function(min_year, max_year, teams, hot, max_rank) {
     max_year = max_year,
     teams = teams,
     max_rank = max_rank,
-    .con = connection
+    .con = pool
   )
-  line_ids <- DBI::dbGetQuery(connection, query) %>% dplyr::pull(LineId)
+  line_ids <- DBI::dbGetQuery(pool, query) %>% dplyr::pull(LineId)
 
   query_template <- ("
     SELECT * FROM {`table`} WHERE
@@ -117,18 +115,15 @@ sql_get_lines <- function(min_year, max_year, teams, hot, max_rank) {
     query_template,
     table = table,
     line_ids = line_ids,
-    .con = connection
+    .con = pool
   )
-  lines <- DBI::dbGetQuery(connection, query) %>% tibble::as_tibble()
+  lines <- DBI::dbGetQuery(pool, query) %>% tibble::as_tibble()
   lines %>% dplyr::filter(Rank <= max_rank) %>% dplyr::count(LineId) %>%
     dplyr::filter(n>1) %>% dplyr::select(LineId) %>%
     dplyr::left_join(lines)
 }
 
 sql_get_streak_game_log <- function(streak, hot) {
-  connection <- sql_get_connection()
-  on.exit(DBI::dbDisconnect(connection))
-
   query_template <- (
     "
     SELECT * FROM game_logs WHERE
@@ -142,9 +137,9 @@ sql_get_streak_game_log <- function(streak, hot) {
     query_template,
     streak_table = streak_table,
     streak_id = streak_id,
-    .con = connection
+    .con = pool
   )
-  DBI::dbGetQuery(connection, query) %>% tibble::as_tibble() %>%
+  DBI::dbGetQuery(pool, query) %>% tibble::as_tibble() %>%
     dplyr::mutate(
       Date=lubridate::as_date(Date),
       CompletedOn=lubridate::as_date(CompletedOn),
@@ -152,9 +147,6 @@ sql_get_streak_game_log <- function(streak, hot) {
 }
 
 sql_get_streak <- function(streak_id, hot) {
-  connection <- sql_get_connection()
-  on.exit(DBI::dbDisconnect(connection))
-
   streak_table <- ifelse(hot, "hot_streaks", "cold_streaks")
   query_template <- (
     "
@@ -166,9 +158,9 @@ sql_get_streak <- function(streak_id, hot) {
     query_template,
     streak_table = streak_table,
     streak_id = streak_id,
-    .con = connection
+    .con = pool
   )
-  streak <- DBI::dbGetQuery(connection, query) %>% tibble::as_tibble()
+  streak <- DBI::dbGetQuery(pool, query) %>% tibble::as_tibble()
 
   query_template <-("
     SELECT Date FROM game_logs WHERE
@@ -179,9 +171,9 @@ sql_get_streak <- function(streak_id, hot) {
   query <- glue::glue_sql(
     query_template,
     streak = streak,
-    .con = connection
+    .con = pool
   )
-  start_date <- DBI::dbGetQuery(connection, query) %>% dplyr::pull(Date) %>%
+  start_date <- DBI::dbGetQuery(pool, query) %>% dplyr::pull(Date) %>%
     lubridate::as_date()
 
   query_template <-("
@@ -193,18 +185,15 @@ sql_get_streak <- function(streak_id, hot) {
   query <- glue::glue_sql(
     query_template,
     streak = streak,
-    .con = connection
+    .con = pool
   )
-  end_date <- DBI::dbGetQuery(connection, query) %>% dplyr::pull(Date) %>%
+  end_date <- DBI::dbGetQuery(pool, query) %>% dplyr::pull(Date) %>%
     lubridate::as_date()
 
   streak %>% dplyr::mutate(StartDate=start_date, EndDate=end_date)
 }
 
 sql_get_division_season_games <- function(year, teams) {
-  connection <- sql_get_connection()
-  on.exit(DBI::dbDisconnect(connection))
-
   query_template <- ("
     SELECT *
     FROM game_logs WHERE
@@ -215,9 +204,9 @@ sql_get_division_season_games <- function(year, teams) {
     query_template,
     year = year,
     teams = teams,
-    .con = connection
+    .con = pool
   )
-  DBI::dbGetQuery(connection, query) %>% tibble::as_tibble() %>%
+  DBI::dbGetQuery(pool, query) %>% tibble::as_tibble() %>%
     dplyr::mutate(
       Date=lubridate::as_date(Date),
       CompletedOn=lubridate::as_date(CompletedOn),
@@ -225,9 +214,6 @@ sql_get_division_season_games <- function(year, teams) {
 }
 
 sql_load_franchises <- function() {
-  connection <- sql_get_connection()
-  on.exit(DBI::dbDisconnect(connection))
-
   # Just load the whole thing into memory
-  dplyr::tbl(connection, "franchises") %>% tibble::as.tibble()
+  dplyr::tbl(pool, "franchises") %>% tibble::as.tibble()
 }

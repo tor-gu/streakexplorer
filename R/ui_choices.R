@@ -183,6 +183,5 @@ build_teams_choices <- function(franchises, years, league_divisions) {
     filter_by_league_divisions(league_divisions) %>%
     truncate_years(years) %>%
     generate_team_selection()
-  print(result)
   result
 }

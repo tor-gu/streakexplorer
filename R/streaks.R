@@ -86,7 +86,7 @@ streak_game_log_data <- function(streak, hot) {
   )
 }
 
-streak_summary_data <- function(streak, hot) {
+streak_summary_data <- function(streak, hot, franchises) {
   summary_data <-
     sql_get_streak_game_log(streak, hot) %>%
     dplyr::summarise(
@@ -111,7 +111,7 @@ streak_summary_data <- function(streak, hot) {
     )
 
   franchise_season <- franchises_by_season(
-    SOMData::franchises,
+    franchises,
     summary_data$Year
   ) %>%
     dplyr::filter(FranchiseID == summary_data$Team)
