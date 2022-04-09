@@ -5,7 +5,15 @@ filter_by_year <- function(franchises, year) {
 }
 
 filter_by_years <- function(franchises, years, truncate_years = TRUE) {
-  purrr::map(years, function(year) filter_by_year(franchises, year)) %>%
+  print(franchises)
+  # purrr::map(years, function(year) filter_by_year(franchises, year)) %>%
+  #   data.table::rbindlist() %>%
+  #   tibble::as_tibble() %>%
+  #   unique()
+  x <- purrr::map(years, function(year) filter_by_year(franchises, year)) %>%
+    purrr::map(tibble::as_tibble)
+  print(x)
+  x %>%
     data.table::rbindlist() %>%
     tibble::as_tibble() %>%
     unique()
@@ -35,6 +43,7 @@ filter_by_league_divisions <- function(franchises, league_divisions) {
     league_divisions,
     function(ld) filter_by_league_division(franchises, ld)
   ) %>%
+    purrr::map(tibble::as_tibble) %>%
     data.table::rbindlist() %>%
     tibble::as_tibble() %>%
     unique()

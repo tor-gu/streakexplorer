@@ -140,34 +140,38 @@ streak_summary_data <- function(streak, hot, franchises) {
   list(data = data, caption = caption)
 }
 
-streak_get_standings <- function(streak, franchises) {
+streak_get_standings <- function(standings, game_logs, streak, franchises) {
   division <- franchises %>%
     franchises_get_division_by_team_year(streak$Team, streak$Year)
-  division_season_games <- sql_get_division_season_games(streak$Year,
-                                                     division$teams$TeamID)
+  division_teams <- division$teams %>% dplyr::pull(TeamID)
+  division_season_games <-
+    game_logs %>%
+    dplyr::filter(Year==local(streak$Year), Team %in% division_teams)
   first_game <- division_season_games %>%
-    dplyr::filter(Year==streak$Year,
-                  Team==streak$Team,
-                  GameIndex==streak$LoIndex)
+    dplyr::filter(Year==local(streak$Year),
+                  Team==local(streak$Team),
+                  GameIndex==local(streak$LoIndex)) %>%
+    dplyr::as_tibble()
   last_game <-  division_season_games %>%
-    dplyr::filter(Year==streak$Year,
-                  Team==streak$Team,
-                  GameIndex==streak$HiIndex)
+    dplyr::filter(Year==local(streak$Year),
+                  Team==local(streak$Team),
+                  GameIndex==local(streak$HiIndex)) %>%
+    dplyr::as_tibble()
   standings_before <-
-    standings_get_by_season_game_id(SOMData::standings, division,
+    standings_get_by_season_game_id(standings, division,
       division_season_games, first_game$SeasonGameId, before=TRUE) %>%
-    dplyr::left_join(division$teams, by=c("Team"="TeamID"))
+    dplyr::left_join(division$teams, by=c("Team"="TeamID"), copy=TRUE)
   standings_after <-
-    standings_get_by_season_game_id(SOMData::standings, division,
+    standings_get_by_season_game_id(standings, division,
       division_season_games, last_game$SeasonGameId, before=FALSE) %>%
-    dplyr::left_join(division$teams, by=c("Team"="TeamID"))
+    dplyr::left_join(division$teams, by=c("Team"="TeamID"), copy=TRUE)
   standings_final <- standings_from_game_logs(division_season_games) %>%
-    dplyr::left_join(division$teams, by=c("Team"="TeamID"))
+    dplyr::left_join(division$teams, by=c("Team"="TeamID"), copy=TRUE)
   streak_info <- division$division %>%
-    dplyr::mutate(Year=streak$Year,
-                  Team=streak$Team,
-                  Start=first_game$Date,
-                  End=last_game$Date) %>%
+    dplyr::mutate(Year=local(streak$Year),
+                  Team=local(streak$Team),
+                  Start=local(first_game$Date),
+                  End=local(last_game$Date)) %>%
     dplyr::left_join(division$teams, by=c("Team"="TeamID"))
   list(
     streak_info=streak_info,

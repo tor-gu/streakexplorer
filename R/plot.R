@@ -123,8 +123,9 @@ plot_standings_graph <- function(standings, team, start_date, end_date) {
   standings <- standings %>% dplyr::mutate(GamesAbove=Wins-Losses)
   y_min <- min(standings$GamesAbove) - 1
   y_max <- max(standings$GamesAbove) + 1
+  date_before_start <- start_date - 1
   y_range <- standings %>%
-    dplyr::filter(Date >= start_date - 1, Date <= end_date, Team==team) %>%
+    dplyr::filter(Date >= date_before_start, Date <= end_date, Team==team) %>%
     dplyr::pull(GamesAbove) %>% range()
   rect_y_min <- y_range[1] - 1
   rect_y_max <- y_range[2] + 1
@@ -148,8 +149,10 @@ build_standings_graph <- function(franchises, standings, streak) {
   division_teams <- franchises_get_division_by_team_year(
     franchises, streak$Team, streak$Year)
   standings <- standings %>%
-    dplyr::filter(Year==streak$Year) %>%
-    dplyr::right_join(division_teams$division)
+    dplyr::filter(Year==local(streak$Year)) %>%
+    dplyr::right_join(division_teams$division, na_matches="na") %>%
+    dplyr::as_tibble() %>%
+    dplyr::mutate(Date=lubridate::ymd(Date))
   plot_standings_graph(standings, streak$Team, streak$StartDate,
                        streak$EndDate)
 }

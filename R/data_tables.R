@@ -77,8 +77,10 @@ game_log_DT_init <- function() {
 }
 
 standings_DT_update <- function(proxy, streak_info, standings) {
+  nickname <- streak_info %>%
+    dplyr::pull(Nickname)
   standings <- standings %>%
-    dplyr::mutate(Highlight=(Nickname==streak_info$Nickname)) %>%
+    dplyr::mutate(Highlight=(Nickname==nickname)) %>%
     dplyr::select(Team=Nickname, W=Wins, L=Losses, GB, Highlight)
 
   DT::replaceData(proxy, standings, resetPaging = FALSE,

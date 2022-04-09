@@ -98,6 +98,8 @@ server <- function(input, output, session) {
   #bslib::bs_themer()
   intensity_level_range <- sql_get_intensity_level_range()
   franchises <- sql_load_franchises()
+  standings <- sql_load_standings()
+  game_logs <- sql_load_game_logs()
 
   # Reactives and reactive values ----
   hot <- reactive({
@@ -122,6 +124,7 @@ server <- function(input, output, session) {
 
   years <- reactive({ input$years }) %>% debounce(333)
   max_rank <- reactive({
+    req(input$teams)
     team_ids <- franchises_franchise_ids_to_team_ids(franchises,
                                                      input$teams, years())
     sql_get_max_rank(years()[[1]], years()[[2]], team_ids, hot())
@@ -140,7 +143,7 @@ server <- function(input, output, session) {
 
   divisions_choices <- reactive({
     build_divisions_choices(
-      SOMData::franchises,
+      franchises,
       selected_years(),
       selected_leagues()
     )
@@ -162,9 +165,7 @@ server <- function(input, output, session) {
 
   lines <- reactive({
     req(input$teams, max_rank())
-    print(input$teams)
-    print(max_rank())
-    lines_build_lines(years(), input$teams, SOMData::franchises,
+    lines_build_lines(years(), input$teams, franchises,
                       max_rank(), hot())
   })
 
@@ -178,7 +179,8 @@ server <- function(input, output, session) {
   })
 
   selected_streak_standings <- reactive({
-    streak_get_standings(selected_streak(), SOMData::franchises)
+    streak_get_standings(standings, game_logs, selected_streak(),
+                         franchises)
   })
 
   highlight_data <- reactive({
@@ -355,8 +357,9 @@ server <- function(input, output, session) {
 
   # Standings graph
   output$standings_graph <- renderPlot({
+    req(selected_streak())
     build_standings_graph(
-      SOMData::franchises, SOMData::standings, selected_streak()
+      franchises, standings, selected_streak()
     )
   })
 

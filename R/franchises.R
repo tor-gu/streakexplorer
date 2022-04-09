@@ -10,17 +10,20 @@ franchises_get_division_by_team_year <- function(franchises, team, year) {
     dplyr::select(League, Division) %>%
     dplyr::mutate(Year=year)
   teams <- season_franchises %>%
-    dplyr::right_join(division, by=c("League","Division")) %>%
+    dplyr::right_join(division, by=c("League","Division"),
+                      na_matches="na") %>%
     dplyr::select(TeamID, Location, Nickname)
   list(division=division, teams=teams)
 }
 
 franchises_franchise_ids_to_team_ids <- function(franchises, franchise_ids,
                                                  years) {
+  first_year <- years[[1]]
+  final_year <- years[[2]]
   franchises %>%
     dplyr::filter(FranchiseID %in% franchise_ids,
-                  years[1] <= FinalSeason | is.na(FinalSeason),
-                  years[2] >= FirstSeason) %>%
+                  first_year <= FinalSeason | is.na(FinalSeason),
+                  final_year >= FirstSeason) %>%
     dplyr::pull(TeamID)
 }
 

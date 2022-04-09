@@ -7,20 +7,6 @@ pool <- pool::dbPool(
   dbname = Sys.getenv("streak_explorer_db_name")
 )
 
-
-# sql_get_connection <- function() {
-#   # db_file <- system.file("extdata", "data.sqlite", package = "SOMData")
-#   # DBI::dbConnect(RSQLite::SQLite(), db_file, extended_types = TRUE)
-#   DBI::dbConnect(
-#     RMySQL::MySQL(),
-#     host = Sys.getenv("streak_explorer_db_host"),
-#     port = as.integer(Sys.getenv("streak_explorer_db_port")),
-#     user = Sys.getenv("streak_explorer_db_user"),
-#     password = Sys.getenv("streak_explorer_db_password"),
-#     dbname = Sys.getenv("streak_explorer_db_name")
-#   )
-# }
-
 sql_get_intensity_level_range <- function() {
   query <- ("
     SELECT MAX(IntensityLevel) as max_level,
@@ -117,7 +103,7 @@ sql_get_lines <- function(min_year, max_year, teams, hot, max_rank) {
     line_ids = line_ids,
     .con = pool
   )
-  lines <- DBI::dbGetQuery(pool, query) %>% tibble::as_tibble()
+  lines <- DBI::dbGetQuery(pool, query)
   lines %>% dplyr::filter(Rank <= max_rank) %>% dplyr::count(LineId) %>%
     dplyr::filter(n>1) %>% dplyr::select(LineId) %>%
     dplyr::left_join(lines)
@@ -206,7 +192,7 @@ sql_get_division_season_games <- function(year, teams) {
     teams = teams,
     .con = pool
   )
-  DBI::dbGetQuery(pool, query) %>% tibble::as_tibble() %>%
+  DBI::dbGetQuery(pool, query) %>%
     dplyr::mutate(
       Date=lubridate::as_date(Date),
       CompletedOn=lubridate::as_date(CompletedOn),
@@ -215,5 +201,14 @@ sql_get_division_season_games <- function(year, teams) {
 
 sql_load_franchises <- function() {
   # Just load the whole thing into memory
-  dplyr::tbl(pool, "franchises") %>% tibble::as.tibble()
+  #dplyr::tbl(pool, "franchises") %>% tibble::as.tibble()
+  dplyr::tbl(pool, "franchises")
+}
+
+sql_load_standings <- function() {
+  dplyr::tbl(pool, "standings")
+}
+
+sql_load_game_logs <- function() {
+  dplyr::tbl(pool, "game_logs")
 }
