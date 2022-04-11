@@ -266,9 +266,18 @@ server <- function(input, output, session) {
     selected_league_divisions(
       input$divisions %>% division_choice_values_as_league_and_division_list()
     )
+    choices <- teams_choices()
+    # If it makes sense, keep all previously selected teams
+    if (all(input$teams %in% unlist(choices))) {
+      selected <- input$teams
+    } else {
+      # Some previously selected teams are not available with the current
+      # options, so default back to all teams.
+      selected <- unlist(choices)
+    }
     updateSelectInput(session, "teams",
-      choices = teams_choices(),
-      selected = teams_choices()
+      choices = choices,
+      selected = selected
     )
   })
 
