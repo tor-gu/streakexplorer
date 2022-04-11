@@ -5,15 +5,8 @@ filter_by_year <- function(franchises, year) {
 }
 
 filter_by_years <- function(franchises, years, truncate_years = TRUE) {
-  print(franchises)
-  # purrr::map(years, function(year) filter_by_year(franchises, year)) %>%
-  #   data.table::rbindlist() %>%
-  #   tibble::as_tibble() %>%
-  #   unique()
-  x <- purrr::map(years, function(year) filter_by_year(franchises, year)) %>%
-    purrr::map(tibble::as_tibble)
-  print(x)
-  x %>%
+  purrr::map(years, function(year) filter_by_year(franchises, year)) %>%
+    purrr::map(tibble::as_tibble) %>%
     data.table::rbindlist() %>%
     tibble::as_tibble() %>%
     unique()
