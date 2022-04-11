@@ -1,12 +1,3 @@
-pool <- pool::dbPool(
-  RMySQL::MySQL(),
-  host = Sys.getenv("streak_explorer_db_host"),
-  port = as.integer(Sys.getenv("streak_explorer_db_port")),
-  user = Sys.getenv("streak_explorer_db_user"),
-  password = Sys.getenv("streak_explorer_db_password"),
-  dbname = Sys.getenv("streak_explorer_db_name")
-)
-
 sql_get_intensity_level_range <- function() {
   query <- ("
     SELECT MAX(IntensityLevel) as max_level,

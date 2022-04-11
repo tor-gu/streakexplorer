@@ -1,11 +1,19 @@
 library(shiny)
 
-
 initial_year_range <- c(1948, 1960)
 theme <- bslib::bs_theme(
   bootswatch = "slate",
   heading_font = "1.2",
   font_scale = 0.8
+)
+
+pool <- pool::dbPool(
+  RMySQL::MySQL(),
+  host = Sys.getenv("streak_explorer_db_host"),
+  port = as.integer(Sys.getenv("streak_explorer_db_port")),
+  user = Sys.getenv("streak_explorer_db_user"),
+  password = Sys.getenv("streak_explorer_db_password"),
+  dbname = Sys.getenv("streak_explorer_db_name")
 )
 
 ui <- fluidPage(
