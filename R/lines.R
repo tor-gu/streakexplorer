@@ -13,7 +13,6 @@ lines_get_related_lines <- function(line_id, lines_to_streaks, concordances) {
 
 lines_highlight <- function(lines, concordances, lines_to_streaks,
                             id = NULL) {
-  message(glue::glue("lines_highlight"))
   result <- lines %>%
     dplyr::mutate(
       line_colored = 1,

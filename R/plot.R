@@ -150,7 +150,9 @@ build_standings_graph <- function(franchises, standings, streak) {
     franchises, streak$Team, streak$Year)
   standings <- standings %>%
     dplyr::filter(Year==local(streak$Year)) %>%
-    dplyr::right_join(division_teams$division, na_matches="na") %>%
+    dplyr::right_join(division_teams$division,
+                      by=c("League","Division","Year"),
+                      na_matches="na") %>%
     dplyr::as_tibble() %>%
     dplyr::mutate(Date=lubridate::ymd(Date))
   plot_standings_graph(standings, streak$Team, streak$StartDate,

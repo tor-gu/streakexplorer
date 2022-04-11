@@ -61,7 +61,9 @@ standings_get_by_season_game_id <- function(standings,
                                               season_game_id,
                                               before = TRUE) {
   division_standings <-
-    standings %>% dplyr::right_join(division$division, na_matches="na")
+    standings %>% dplyr::right_join(division$division,
+                                    by=c("Year", "League", "Division"),
+                                    na_matches="na")
   games <- game_logs %>% dplyr::filter(SeasonGameId == season_game_id) %>%
     dplyr::as_tibble()
   date <- games$Date[[1]]

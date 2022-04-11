@@ -105,7 +105,7 @@ sql_get_lines <- function(min_year, max_year, teams, hot, max_rank) {
   lines <- DBI::dbGetQuery(pool, query)
   lines %>% dplyr::filter(Rank <= max_rank) %>% dplyr::count(LineId) %>%
     dplyr::filter(n>1) %>% dplyr::select(LineId) %>%
-    dplyr::left_join(lines)
+    dplyr::left_join(lines, by="LineId")
 }
 
 sql_get_streak_game_log <- function(streak, hot) {
