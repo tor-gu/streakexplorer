@@ -19,7 +19,6 @@ sql_get_intensity_level_range <- function() {
   c(result$min_level, result$max_level)
 }
 
-
 sql_get_max_rank <- function(min_year, max_year, teams, hot) {
   table <- ifelse(hot, "hot_streaks", "cold_streaks")
   query_template <- (
@@ -211,4 +210,20 @@ sql_load_standings <- function() {
 
 sql_load_game_logs <- function() {
   dplyr::tbl(pool, "game_logs")
+}
+
+sql_load_hot_streaks_lines_to_streaks <- function() {
+  dplyr::tbl(pool, "hot_streaks_lines_to_streaks")
+}
+
+sql_load_cold_streaks_lines_to_streaks <- function() {
+  dplyr::tbl(pool, "cold_streaks_lines_to_streaks")
+}
+
+sql_load_hot_streaks_concordances <- function() {
+  dplyr::tbl(pool, "hot_streaks_concordances")
+}
+
+sql_load_cold_streaks_concordances <- function() {
+  dplyr::tbl(pool, "cold_streaks_concordances")
 }

@@ -108,17 +108,17 @@ server <- function(input, output, session) {
 
   lines_to_streaks <- reactive({
     if (hot()) {
-      SOMData::hot_streaks_lines_to_streaks
+      sql_load_hot_streaks_lines_to_streaks()
     } else {
-      SOMData::cold_streaks_lines_to_streaks
+      sql_load_cold_streaks_lines_to_streaks()
     }
   })
 
   concordances <- reactive({
     if (hot()) {
-      SOMData::hot_streaks_concordances
+      sql_load_hot_streaks_concordances()
     } else {
-      SOMData::cold_streaks_concordances
+      sql_load_hot_streaks_concordances()
     }
   })
 

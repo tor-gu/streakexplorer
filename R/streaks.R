@@ -160,13 +160,16 @@ streak_get_standings <- function(standings, game_logs, streak, franchises) {
   standings_before <-
     standings_get_by_season_game_id(standings, division,
       division_season_games, first_game$SeasonGameId, before=TRUE) %>%
-    dplyr::left_join(division$teams, by=c("Team"="TeamID"), copy=TRUE)
+    dplyr::left_join(division$teams, by=c("Team"="TeamID"), copy=TRUE) %>%
+    dplyr::arrange(GB)
   standings_after <-
     standings_get_by_season_game_id(standings, division,
       division_season_games, last_game$SeasonGameId, before=FALSE) %>%
-    dplyr::left_join(division$teams, by=c("Team"="TeamID"), copy=TRUE)
+    dplyr::left_join(division$teams, by=c("Team"="TeamID"), copy=TRUE) %>%
+    arrange(GB)
   standings_final <- standings_from_game_logs(division_season_games) %>%
-    dplyr::left_join(division$teams, by=c("Team"="TeamID"), copy=TRUE)
+    dplyr::left_join(division$teams, by=c("Team"="TeamID"), copy=TRUE) %>%
+    arrange(GB)
   streak_info <- division$division %>%
     dplyr::mutate(Year=local(streak$Year),
                   Team=local(streak$Team),

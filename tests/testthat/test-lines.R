@@ -44,4 +44,3 @@ test_that("lines_get_related_lines handles multiple lines per streak", {
   expect_equal(actual, expected)
 })
 
-SOMData::hot_streaks_lines_to_streaks %>% dplyr::filter(StreakId==371)
