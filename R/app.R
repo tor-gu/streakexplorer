@@ -200,12 +200,21 @@ server <- function(input, output, session) {
 
   # UI functions ----
   update_divisions_selection <- function() {
+    choices <- divisions_choices()
+    # If it makes sense, keep previous division selections
+    if ( all(input$divisions %in% unlist(choices) ) ) {
+      selected <- input$divisions
+    } else {
+      # Some previously selected divsions don't exist anymore --
+      # default back to all choices in this case.
+      selected <- unlist(choices)
+    }
     updateSelectInput(session, "divisions",
-                      choices = divisions_choices(),
-                      selected = unlist(divisions_choices())
-    )
+                      choices = choices,
+                      selected = selected)
 
     if (no_divisions_choices()) {
+      updateCheckboxInput(session, "divisions_all", value=TRUE)
       shinyjs::disable("divisions")
       shinyjs::disable("divisions_all")
     } else {
