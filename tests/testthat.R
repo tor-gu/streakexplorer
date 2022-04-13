@@ -1,4 +1,4 @@
 library(testthat)
-library(SOMApp)
+library(streakexplorer)
 
-test_check("SOMApp")
+test_check("streakexplorer")
