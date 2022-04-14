@@ -12,28 +12,41 @@ sql_get_intensity_level_range <- function() {
 
 sql_get_max_rank <- function(min_year, max_year, teams, hot) {
   table <- ifelse(hot, "hot_streaks", "cold_streaks")
-  query_template <- (
-    "
-  WITH group_rank AS
-     (SELECT `Rank`, row_number() OVER
-        ( PARTITION BY IntensityLevel ORDER BY `Rank` ) rn
-        FROM {`table`} WHERE
-          Year >= {min_year} AND
-          Year <= {max_year} AND
-          Team IN ({teams*})
-      )
-  SELECT MAX(`Rank`) AS max_rank FROM group_rank WHERE rn <= 10
-  "
-  )
-  query <- glue::glue_sql(
-    query_template,
-    table = table,
-    min_year = min_year,
-    max_year = max_year,
-    teams = teams,
-    .con = se_pool
-  )
-  DBI::dbGetQuery(se_pool, query) %>% dplyr::pull(max_rank)
+  lzy_hot_streaks <- dplyr::tbl(se_pool, table)
+  lzy_hot_streaks %>%
+    dplyr::filter(Team %in% teams,
+                  dplyr::between(Year, min_year, max_year)) %>%
+    dplyr::collect() %>%
+    dplyr::group_by(IntensityLevel) %>%
+    dplyr::arrange(Rank) %>%
+    dplyr::mutate(rn=dplyr::row_number()) %>%
+    dplyr::filter(rn==10) %>%
+    dplyr::ungroup() %>%
+    dplyr::summarise(max_rank=max(Rank)) %>%
+    dplyr::pull(max_rank)
+
+  # query_template <- (
+  #   "
+  # WITH group_rank AS
+  #    (SELECT `Rank`, row_number() OVER
+  #       ( PARTITION BY IntensityLevel ORDER BY `Rank` ) rn
+  #       FROM {`table`} WHERE
+  #         Year >= {min_year} AND
+  #         Year <= {max_year} AND
+  #         Team IN ({teams*})
+  #     )
+  # SELECT MAX(`Rank`) AS max_rank FROM group_rank WHERE rn <= 10
+  # "
+  # )
+  # query <- glue::glue_sql(
+  #   query_template,
+  #   table = table,
+  #   min_year = min_year,
+  #   max_year = max_year,
+  #   teams = teams,
+  #   .con = se_pool
+  # )
+  # DBI::dbGetQuery(se_pool, query) %>% dplyr::pull(max_rank)
 }
 
 # TODO DELETE THIS
