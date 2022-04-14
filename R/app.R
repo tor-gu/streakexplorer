@@ -6,7 +6,6 @@
 #   password = Sys.getenv("streak_explorer_db_password"),
 #   dbname = Sys.getenv("streak_explorer_db_name")
 # )
-pool <- NULL
 
 #' Streak explorer app
 #'
@@ -16,7 +15,7 @@ pool <- NULL
 #' @return
 #' @export
 streakexplorerApp <- function(my_pool, ...) {
-  pool <<- my_pool
+  se_pool <<- my_pool
   initial_year_range <- c(1948, 1960)
   theme <- bslib::bs_theme(
     bootswatch = "slate",
