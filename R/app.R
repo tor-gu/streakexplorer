@@ -1,5 +1,3 @@
-library(shiny)
-
 pool <- pool::dbPool(
   RMySQL::MySQL(),
   host = Sys.getenv("streak_explorer_db_host"),
@@ -10,6 +8,12 @@ pool <- pool::dbPool(
 )
 
 
+#' Streak explorer app
+#'
+#' @param ...
+#'
+#' @return
+#' @export
 streakexplorerApp <- function(...) {
   initial_year_range <- c(1948, 1960)
   theme <- bslib::bs_theme(
@@ -18,22 +22,22 @@ streakexplorerApp <- function(...) {
     font_scale = 0.8
   )
 
-  ui <- fluidPage(
+  ui <- shiny::fluidPage(
     shinyjs::useShinyjs(),
-    tags$style("#game_log td, th {padding: 0; text-align: right}"),
-    tags$style("#streak_summary td, th {padding: 0; text-align: right}"),
-    tags$style("#standings_before td, th {padding: 0; text-align: right}"),
-    tags$style("#standings_after td, th {padding: 0; text-align: right}"),
-    tags$style("#standings_final td, th {padding: 0; text-align: right}"),
+    shiny::tags$style("#game_log td, th {padding: 0; text-align: right}"),
+    shiny::tags$style("#streak_summary td, th {padding: 0; text-align: right}"),
+    shiny::tags$style("#standings_before td, th {padding: 0; text-align: right}"),
+    shiny::tags$style("#standings_after td, th {padding: 0; text-align: right}"),
+    shiny::tags$style("#standings_final td, th {padding: 0; text-align: right}"),
     theme = theme,
     #theme=bslib::bs_theme(),
-    titlePanel("Baseball Streak Explorer"),
-    sidebarLayout(
-      sidebarPanel(
+    shiny::titlePanel("Baseball Streak Explorer"),
+    shiny::sidebarLayout(
+      shiny::sidebarPanel(
         width = 5,
-        fluidRow(column(
+        shiny::fluidRow(shiny::column(
           12,
-          sliderInput(
+          shiny::sliderInput(
             "years",
             "Years",
             min = 1948,
@@ -43,9 +47,9 @@ streakexplorerApp <- function(...) {
             sep = ""
           )
         )),
-        fluidRow(column(
+        shiny::fluidRow(shiny::column(
           9,
-          selectInput(
+          shiny::selectInput(
             "leagues",
             "League",
             choices = c(
@@ -55,65 +59,65 @@ streakexplorerApp <- function(...) {
             )
           )
         ),
-        column(3,)),
-        fluidRow(column(
+        shiny::column(3,)),
+        shiny::fluidRow(shiny::column(
           9,
-          selectInput(
+          shiny::selectInput(
             "divisions",
             "Divisions",
             choices = list(),
             multiple = TRUE
           ),
         ),
-        column(
+        shiny::column(
           3,
-          checkboxInput("divisions_all", "All", value = TRUE)
+          shiny::checkboxInput("divisions_all", "All", value = TRUE)
         )),
-        fluidRow(column(
+        shiny::fluidRow(shiny::column(
           9,
-          selectInput("teams", "Teams", choices = list(), multiple = TRUE),
+          shiny::selectInput("teams", "Teams", choices = list(), multiple = TRUE),
         ),
-        column(
+        shiny::column(
           3,
-          checkboxInput("teams_all", "All", value = TRUE)
+          shiny::checkboxInput("teams_all", "All", value = TRUE)
         )),
-        radioButtons(
+        shiny::radioButtons(
           "streak_type",
           "Streak Type",
           choices = c("HOT", "COLD"),
           selected = "HOT"
         )
       ),
-      mainPanel(
+      shiny::mainPanel(
         width = 7,
-        fluidRow(column(
+        shiny::fluidRow(shiny::column(
           12, plotly::plotlyOutput(outputId = "streaks")
         )),
-        fluidRow(id = "summary_row",
-                 column(
+        shiny::fluidRow(id = "summary_row",
+                        shiny::column(
                    12,
-                   h4("Streak summary"),
+                   shiny::h4("Streak summary"),
                    shinycssloaders::withSpinner(DT::DTOutput("streak_summary"))
                  )),
-        fluidRow(
+        shiny::fluidRow(
           id = "standings_row",
-          column(4, h5("Standings before"),
+          shiny::column(4, shiny::h5("Standings before"),
                  DT::DTOutput("standings_before")),
-          column(4, h5("Standings after"),
+          shiny::column(4, shiny::h5("Standings after"),
                  DT::DTOutput("standings_after")),
-          column(4, h5("Final standings"),
+          shiny::column(4, shiny::h5("Final standings"),
                  DT::DTOutput("standings_final"))
         ),
-        fluidRow(
+        shiny::fluidRow(
           id = "graph_log_row",
-          column(
+          shiny::column(
             6,
-            h5("Standings graph"),
-            shinycssloaders::withSpinner(plotOutput("standings_graph"))
+            shiny::h5("Standings graph"),
+            shinycssloaders::withSpinner(shiny::plotOutput("standings_graph"))
           ),
-          column(
+          shiny::column(
             6,
-            h5("Game log"),
+            shiny::h5("Game log"),
             shinycssloaders::withSpinner(DT::DTOutput("game_log"))
           )
         )
@@ -411,5 +415,5 @@ streakexplorerApp <- function(...) {
 
   }
 
-  shinyApp(ui, server, ...)
+  shiny::shinyApp(ui, server, ...)
 }
