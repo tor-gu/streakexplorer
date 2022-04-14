@@ -22,8 +22,8 @@ standings_from_game_logs <- function(game_logs) {
       Wins=sum(Result=="W", na.rm = TRUE),
       Losses=sum(Result=="L", na.rm = TRUE),
       Ties=sum(Result=="T", na.rm = TRUE)) %>%
-    dplyr::arrange(desc(Wins-Losses)) %>%
     dplyr::collect() %>%
+    dplyr::arrange(desc(Wins-Losses)) %>%
     dplyr::mutate(
       GB=(dplyr::first(Wins)-Wins + Losses-dplyr::first(Losses))/2)
 }
