@@ -1,20 +1,22 @@
-pool <- pool::dbPool(
-  RMySQL::MySQL(),
-  host = Sys.getenv("streak_explorer_db_host"),
-  port = as.integer(Sys.getenv("streak_explorer_db_port")),
-  user = Sys.getenv("streak_explorer_db_user"),
-  password = Sys.getenv("streak_explorer_db_password"),
-  dbname = Sys.getenv("streak_explorer_db_name")
-)
-
+# pool <- pool::dbPool(
+#   RMySQL::MySQL(),
+#   host = Sys.getenv("streak_explorer_db_host"),
+#   port = as.integer(Sys.getenv("streak_explorer_db_port")),
+#   user = Sys.getenv("streak_explorer_db_user"),
+#   password = Sys.getenv("streak_explorer_db_password"),
+#   dbname = Sys.getenv("streak_explorer_db_name")
+# )
+pool <- NULL
 
 #' Streak explorer app
 #'
+#' @param pool
 #' @param ...
 #'
 #' @return
 #' @export
-streakexplorerApp <- function(...) {
+streakexplorerApp <- function(my_pool, ...) {
+  pool <<- my_pool
   initial_year_range <- c(1948, 1960)
   theme <- bslib::bs_theme(
     bootswatch = "slate",

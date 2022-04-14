@@ -4,7 +4,7 @@
 \alias{streakexplorerApp}
 \title{Streak explorer app}
 \usage{
-streakexplorerApp(...)
+streakexplorerApp(my_pool, ...)
 }
 \arguments{
 \item{...}{}
