@@ -348,7 +348,7 @@ streakexplorerApp <- function(my_pool, ...) {
       game_log <- streak_game_log_data(selected_streak())
       DT::replaceData(game_log_proxy,
                       game_log$data,
-                      resetPaging = FALSE,
+                      resetPaging = TRUE,
                       rownames = FALSE)
       DT::replaceData(
         streak_summary_proxy,
