@@ -142,7 +142,7 @@ streakexplorerApp <- function(my_pool, ...) {
       if (hot()) {
         sql_load_hot_streaks_concordances()
       } else {
-        sql_load_hot_streaks_concordances()
+        sql_load_cold_streaks_concordances()
       }
     })
 

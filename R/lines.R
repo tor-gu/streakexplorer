@@ -72,7 +72,7 @@ lines_remove_branch_descenders <- function(lines, max_rank, hot) {
 lines_build_lines <- function(years, teams, franchises, max_rank, hot) {
   team_ids <- franchises_franchise_ids_to_team_ids(
     franchises, teams, years)
-  lines <- sql_get_lines(years[[1]], years[[2]], team_ids, hot, max_rank) %>%
+  sql_get_lines(years[[1]], years[[2]], team_ids, hot, max_rank) %>%
     lines_remove_branch_descenders(max_rank, hot)
 }
 
