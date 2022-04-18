@@ -115,7 +115,7 @@ streak_summary_data <- function(streak, franchises) {
     summary_data$Year
   ) %>%
     dplyr::filter(TeamID == local(summary_data$Team)) %>%
-    collect()
+    dplyr::collect()
 
   data <-
     summary_data %>%
@@ -215,7 +215,7 @@ streaks_get_max_rank_by_sampling <- function(lzy_streaks, min_year, max_year,
     streaks_get_max_rank_simple(min_year, max_year, teams) * scaling
 
   lzy_streaks %>%
-    filter(Rank <= initial_max_rank) %>%
+    dplyr::filter(Rank <= initial_max_rank) %>%
     streaks_get_max_rank_simple(min_year, max_year, teams)
 }
 
