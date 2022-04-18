@@ -1,12 +1,3 @@
-# pool <- pool::dbPool(
-#   RMySQL::MySQL(),
-#   host = Sys.getenv("streak_explorer_db_host"),
-#   port = as.integer(Sys.getenv("streak_explorer_db_port")),
-#   user = Sys.getenv("streak_explorer_db_user"),
-#   password = Sys.getenv("streak_explorer_db_password"),
-#   dbname = Sys.getenv("streak_explorer_db_name")
-# )
-
 #' Streak explorer app
 #'
 #' @param pool
@@ -97,7 +88,8 @@ streakexplorerApp <- function(my_pool, ...) {
         shiny::fluidRow(id = "summary_row",
                         shiny::column(
                    12,
-                   shiny::h4("Streak summary"),
+                   #shiny::h5("Streak summary"),
+                   shiny::h5(shiny::textOutput("streak_summary_caption")),
                    shinycssloaders::withSpinner(DT::DTOutput("streak_summary"))
                  )),
         shiny::fluidRow(
@@ -174,7 +166,7 @@ streakexplorerApp <- function(my_pool, ...) {
         division_choice_values_as_league_and_division_list()
     )
     selected_streak_summary_data <- reactive({
-      streak_summary_data(selected_streak(), hot(), franchises)
+      streak_summary_data(selected_streak(), franchises)
     })
 
     divisions_choices <- reactive({
@@ -355,8 +347,7 @@ streakexplorerApp <- function(my_pool, ...) {
         selected_streak_standings()$standings_final
       )
 
-      game_log <- streak_game_log_data(selected_streak(),
-                                       hot())
+      game_log <- streak_game_log_data(selected_streak())
       DT::replaceData(game_log_proxy,
                       game_log$data,
                       resetPaging = FALSE,
@@ -367,6 +358,8 @@ streakexplorerApp <- function(my_pool, ...) {
         resetPaging = FALSE,
         rownames = FALSE
       )
+      output$streak_summary_caption <- renderText(
+        selected_streak_summary_data()$caption)
     })
 
     # Proxies ----

@@ -31,7 +31,7 @@ streak_game_log <- function(streak_id, streaks, game_logs) {
   }
 }
 
-streak_game_log_data <- function(streak, hot) {
+streak_game_log_data <- function(streak) {
   date_template <- "{lubridate::month(Date)}/{lubridate::mday(Date)}"
   completed_on_template <-
     paste0(
@@ -45,7 +45,7 @@ streak_game_log_data <- function(streak, hot) {
       "{lubridate::month(CompletionOf)}/{lubridate::mday(CompletionOf)}"
     )
 
-  game_log_data <- sql_get_streak_game_log(streak, hot) %>%
+  game_log_data <- sql_get_streak_game_log(streak) %>%
     dplyr::mutate(
       GameResult = dplyr::case_when(
         GameRunsFor > GameRunsAgainst ~ "W",
@@ -86,9 +86,9 @@ streak_game_log_data <- function(streak, hot) {
   )
 }
 
-streak_summary_data <- function(streak, hot, franchises) {
+streak_summary_data <- function(streak, franchises) {
   summary_data <-
-    sql_get_streak_game_log(streak, hot) %>%
+    sql_get_streak_game_log(streak) %>%
     dplyr::summarise(
       Team            = unique(Team),
       Year            = unique(Year),
@@ -114,7 +114,8 @@ streak_summary_data <- function(streak, hot, franchises) {
     franchises,
     summary_data$Year
   ) %>%
-    dplyr::filter(FranchiseID == summary_data$Team)
+    dplyr::filter(TeamID == local(summary_data$Team)) %>%
+    collect()
 
   data <-
     summary_data %>%
@@ -131,12 +132,12 @@ streak_summary_data <- function(streak, hot, franchises) {
     ) %>%
     dplyr::select(Dates:`Pyth%`)
 
-  caption <- glue::glue(paste0(
+  caption_pattern <- paste0(
     "{summary_data$Year} ",
     "{franchise_season$Location} {franchise_season$Nickname}, ",
     "Games {summary_data$FirstGameNumber}-{summary_data$LastGameNumber}"
-  ))
-
+  )
+  caption <- glue::glue(caption_pattern)
   list(data = data, caption = caption)
 }
 

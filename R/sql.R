@@ -49,7 +49,7 @@ sql_get_lines <- function(min_year, max_year, teams, hot, max_rank) {
     dplyr::left_join(lines, by="LineId")
 }
 
-sql_get_streak_game_log <- function(streak, hot) {
+sql_get_streak_game_log <- function(streak) {
   query_template <- (
     "
     SELECT * FROM game_logs WHERE
