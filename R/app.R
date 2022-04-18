@@ -166,6 +166,7 @@ streakexplorerApp <- function(my_pool, ...) {
         division_choice_values_as_league_and_division_list()
     )
     selected_streak_summary_data <- reactive({
+      req(selected_streak())
       streak_summary_data(selected_streak(), franchises)
     })
 
@@ -191,13 +192,10 @@ streakexplorerApp <- function(my_pool, ...) {
                         max_rank(), hot())
     })
 
-    selected_streak_id <- reactive({
-      lines_get_selected_streak_id(lines_to_streaks(),
-                                   selected_line_id())
-    })
-
     selected_streak <- reactive({
-      streaks_get_selected_streak(selected_streak_id(), hot())
+      lines_to_streaks() %>%
+      lines_get_selected_streak_id(selected_line_id()) %>%
+      streaks_get_selected_streak(hot())
     })
 
     selected_streak_standings <- reactive({
@@ -319,7 +317,7 @@ streakexplorerApp <- function(my_pool, ...) {
     })
 
     observe({
-      if (is.null(selected_streak_id())) {
+      if (is.null(selected_streak())) {
         shinyjs::hide("summary_row")
         shinyjs::hide("standings_row")
         shinyjs::hide("graph_log_row")
@@ -330,7 +328,7 @@ streakexplorerApp <- function(my_pool, ...) {
       }
     })
 
-    observeEvent(selected_streak_id(), {
+    observeEvent(selected_streak(), {
       standings_DT_update(
         standings_before_proxy,
         selected_streak_standings()$streak_info,
