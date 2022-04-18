@@ -18,7 +18,7 @@ streakexplorerApp <- function(my_pool, ...) {
   se_pool <<- my_pool
   initial_year_range <- c(1948, 1960)
   theme <- bslib::bs_theme(
-    bootswatch = "slate",
+    bootswatch = "lumen",
     heading_font = "1.2",
     font_scale = 0.8
   )
@@ -161,7 +161,7 @@ streakexplorerApp <- function(my_pool, ...) {
       req(input$teams)
       team_ids <- franchises_franchise_ids_to_team_ids(franchises,
                                                        input$teams, years())
-      sql_get_max_rank(years()[[1]], years()[[2]], team_ids, hot())
+      streaks_get_max_rank(years()[[1]], years()[[2]], team_ids, hot())
     })
 
     selected_line_id <- reactiveVal(NULL)
@@ -293,8 +293,12 @@ streakexplorerApp <- function(my_pool, ...) {
     observeEvent(input$divisions, {
       selected_league_divisions(input$divisions %>% division_choice_values_as_league_and_division_list())
       choices <- teams_choices()
-      # If it makes sense, keep all previously selected teams
-      if (all(input$teams %in% unlist(choices))) {
+      if (input$teams_all) {
+        # We want all teams
+        selected <- unlist(choices)
+      }
+      else if (all(input$teams %in% unlist(choices))) {
+        # If it makes sense, keep all previously selected teams
         selected <- input$teams
       } else {
         # Some previously selected teams are not available with the current

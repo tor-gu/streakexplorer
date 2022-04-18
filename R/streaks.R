@@ -191,3 +191,44 @@ streaks_get_selected_streak <- function(streak_id, hot) {
     sql_get_streak(streak_id, hot)
   }
 }
+
+streaks_get_max_rank_simple <- function(lzy_streaks, min_year, max_year,
+                                        teams) {
+  lzy_streaks %>%
+    dplyr::filter(Team %in% teams,
+                  dplyr::between(Year, min_year, max_year)) %>%
+    dplyr::collect() %>%
+    dplyr::group_by(IntensityLevel) %>%
+    dplyr::arrange(Rank) %>%
+    dplyr::mutate(rn=dplyr::row_number()) %>%
+    dplyr::filter(rn==10) %>%
+    dplyr::ungroup() %>%
+    dplyr::summarise(max_rank=max(Rank)) %>%
+    dplyr::pull(max_rank)
+}
+
+streaks_get_max_rank_by_sampling <- function(lzy_streaks, min_year, max_year,
+                                             teams, levels, scaling) {
+  initial_max_rank <- lzy_streaks %>%
+    dplyr::filter(IntensityLevel %in% levels) %>%
+    streaks_get_max_rank_simple(min_year, max_year, teams) * scaling
+
+  lzy_streaks %>%
+    filter(Rank <= initial_max_rank) %>%
+    streaks_get_max_rank_simple(min_year, max_year, teams)
+}
+
+streaks_get_max_rank <- function(min_year, max_year, teams, hot) {
+  table <- ifelse(hot, "hot_streaks", "cold_streaks")
+  lzy_streaks <- dplyr::tbl(se_pool, table)
+  season_count <- (max_year - min_year + 1) * length(teams)
+  if (season_count < 25)
+    streaks_get_max_rank_simple(lzy_streaks, min_year, max_year, teams)
+  else if (season_count < 750) {
+    streaks_get_max_rank_by_sampling(lzy_streaks, min_year, max_year,
+                                     teams, 1:4 * 20, 3/2)
+  } else {
+    streaks_get_max_rank_by_sampling(lzy_streaks, min_year, max_year,
+                                     teams, 1:4 * 20, 4/3)
+  }
+}
