@@ -187,3 +187,34 @@ build_teams_choices <- function(franchises, years, league_divisions) {
     generate_team_selection()
   result
 }
+
+get_updated_division_selection <- function(division_choices, input_divisions,
+                                           input_divisions_all) {
+  # If it makes sense, keep previous division selections
+  if (input_divisions_all) {
+    unlist(division_choices)
+  } else if (all(input_divisions %in% unlist(division_choices))) {
+    input_divisions
+  } else {
+    # Some previously selected divsions don't exist anymore --
+    # default back to all choices in this case.
+    unlist(division_choices)
+  }
+}
+
+get_updated_teams_selection <- function(teams_choices, input_teams,
+                                        input_teams_all) {
+  if (input_teams_all) {
+    # We want all teams
+    selected <- unlist(teams_choices)
+  }
+  else if (all(input_teams %in% unlist(teams_choices))) {
+    # If it makes sense, keep all previously selected teams
+    selected <- input_teams
+  } else {
+    # Some previously selected teams are not available with the current
+    # options, so default back to all teams.
+    selected <- unlist(teams_choices)
+  }
+}
+

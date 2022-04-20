@@ -159,11 +159,12 @@ streakexplorerApp <- function(my_pool, ...) {
   server <- function(input, output, session) {
     #bslib::bs_themer()
     intensity_level_range <- sql_get_intensity_level_range()
-    franchises <- sql_load_franchises()
-    standings <- sql_load_standings()
-    game_logs <- sql_load_game_logs()
+    lzy_franchises <- sql_load_franchises()
+    lzy_standings <- sql_load_standings()
+    lzy_game_logs <- sql_load_game_logs()
+    franchises <- lzy_franchises %>% dplyr::collect()
 
-    # Reactives and reactive values ----
+    ## Reactives and reactive values ----
     hot <- reactive({
       input$streak_type == "HOT"
     })
@@ -205,7 +206,7 @@ streakexplorerApp <- function(my_pool, ...) {
     )
     selected_streak_summary_data <- reactive({
       req(selected_streak())
-      streak_summary_data(selected_streak(), franchises)
+      streak_summary_data(selected_streak(), lzy_franchises)
     })
 
     divisions_choices <- reactive({
@@ -226,7 +227,7 @@ streakexplorerApp <- function(my_pool, ...) {
 
     lines <- reactive({
       req(input$teams, max_rank())
-      lines_build_lines(years(), input$teams, franchises,
+      lines_build_lines(years(), input$teams, lzy_franchises,
                         max_rank(), hot())
     })
 
@@ -237,8 +238,8 @@ streakexplorerApp <- function(my_pool, ...) {
     })
 
     selected_streak_standings <- reactive({
-      streak_get_standings(standings, game_logs, selected_streak(),
-                           franchises)
+      streak_get_standings(lzy_standings, lzy_game_logs, selected_streak(),
+                           lzy_franchises)
     })
 
     highlight_data <- reactive({
@@ -248,22 +249,8 @@ streakexplorerApp <- function(my_pool, ...) {
                       selected_line_id())
     })
 
-    # UI functions ----
+    ## UI functions ----
     update_divisions_selection <- function() {
-      choices <- divisions_choices()
-      # If it makes sense, keep previous division selections
-      if (all(input$divisions %in% unlist(choices))) {
-        selected <- input$divisions
-      } else {
-        # Some previously selected divsions don't exist anymore --
-        # default back to all choices in this case.
-        selected <- unlist(choices)
-      }
-      updateSelectInput(session,
-                        "divisions",
-                        choices = choices,
-                        selected = selected)
-
       if (no_divisions_choices()) {
         updateCheckboxInput(session, "divisions_all", value = TRUE)
         shinyjs::disable("divisions")
@@ -277,29 +264,35 @@ streakexplorerApp <- function(my_pool, ...) {
           shinyjs::enable("divisions_all")
         }
       }
-      if (input$divisions_all) {
-        updateSelectInput(
-          session,
-          "divisions",
-          choices = divisions_choices(),
-          selected = unlist(divisions_choices())
-        )
-      }
+      selected <- get_updated_division_selection(divisions_choices(),
+                                                 input$divisions,
+                                                 input$divisions_all)
+      updateSelectInput(
+        session,
+        "divisions",
+        choices = divisions_choices(),
+        selected = selected
+      )
     }
 
-    # Observers ----
-    observeEvent(input$teams_all, {
+    update_teams_selection <- function() {
       if (input$teams_all) {
-        updateSelectInput(
-          session,
-          "teams",
-          choices = teams_choices(),
-          selected = unlist(teams_choices())
-        )
         shinyjs::disable("teams")
       } else {
         shinyjs::enable("teams")
       }
+      selected <- get_updated_teams_selection(teams_choices(),
+                                              input$teams,
+                                              input$teams_all)
+      updateSelectInput(session,
+                        "teams",
+                        choices = teams_choices(),
+                        selected = selected)
+    }
+
+    ## Observers ----
+    observeEvent(input$teams_all, {
+      update_teams_selection()
     })
 
     observeEvent(input$divisions_all, {
@@ -322,35 +315,18 @@ streakexplorerApp <- function(my_pool, ...) {
       selected_league_divisions(
         input$divisions %>%
           division_choice_values_as_league_and_division_list())
-      choices <- teams_choices()
-      if (input$teams_all) {
-        # We want all teams
-        selected <- unlist(choices)
-      }
-      else if (all(input$teams %in% unlist(choices))) {
-        # If it makes sense, keep all previously selected teams
-        selected <- input$teams
-      } else {
-        # Some previously selected teams are not available with the current
-        # options, so default back to all teams.
-        selected <- unlist(choices)
-      }
-      updateSelectInput(session,
-                        "teams",
-                        choices = choices,
-                        selected = selected)
+      update_teams_selection()
     })
 
-    observeEvent(plotly::event_data("plotly_click", source = "lines_plot"),
-                 {
-                   click_data <-
-                     plotly::event_data("plotly_click", source = "lines_plot")
-                   if (is.null(click_data)) {
-                     selected_line_id(NULL)
-                   } else {
-                     selected_line_id(click_data %>% dplyr::pull("key"))
-                   }
-                 })
+    observeEvent(
+      plotly::event_data("plotly_click", source = "lines_plot"), {
+        click_data <- plotly::event_data("plotly_click", source = "lines_plot")
+        if (is.null(click_data)) {
+          selected_line_id(NULL)
+        } else {
+          selected_line_id(click_data %>% dplyr::pull("key"))
+        }
+    })
 
     observeEvent(hot(), ignoreInit = TRUE, {
       selected_line_id(NULL)
@@ -400,7 +376,7 @@ streakexplorerApp <- function(my_pool, ...) {
         selected_streak_summary_data()$caption)
     })
 
-    # Proxies ----
+    ## Proxies ----
     streak_summary_proxy <- DT::dataTableProxy("streak_summary",
                                                session = session)
     standings_before_proxy <- DT::dataTableProxy("standings_before",
@@ -413,7 +389,7 @@ streakexplorerApp <- function(my_pool, ...) {
       DT::dataTableProxy("game_log", session = session)
 
 
-    # Renderers ----
+    ## Renderers ----
 
     # This is the main graph
     output$streaks <- plotly::renderPlotly({
@@ -447,7 +423,7 @@ streakexplorerApp <- function(my_pool, ...) {
     # Standings graph
     output$standings_graph <- renderPlot({
       req(selected_streak())
-      build_standings_graph(franchises, standings, selected_streak())
+      build_standings_graph(lzy_franchises, lzy_standings, selected_streak())
     })
 
   }
