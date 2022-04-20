@@ -40,6 +40,16 @@ test_that("ui_filter_by_league_divisions handles not-found values", {
   expect_equal(actual, 0)
 })
 
+test_that("ui_division_choice_values_as_league_and_division_list handles basic scenario", {
+  choice_values <- list("AL_None", "NL_West")
+  expected <- list(
+    list(league="AL", division=NA),
+    list(league="NL", division="West")
+  )
+  actual <- ui_division_choice_values_as_league_and_division_list(choice_values)
+  expect_equal(actual, expected)
+})
+
 test_that("division_as_choice_label handles case without years specified", {
   division_table <- tibble::tribble(
     ~League, ~Division, ~FirstSeason, ~FinalSeason,

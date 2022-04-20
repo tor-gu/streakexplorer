@@ -53,7 +53,7 @@ ui_get_divisions <- function(franchises) {
     )
 }
 
-division_as_choice_value <- function(league, division) {
+ui_division_as_choice_value <- function(league, division) {
   if (is.na(division)) {
     glue::glue("{league}_None")
   } else {
@@ -61,7 +61,7 @@ division_as_choice_value <- function(league, division) {
   }
 }
 
-division_choice_value_as_league_and_division <- function(choice_value) {
+ui_division_choice_value_as_league_and_division <- function(choice_value) {
   split_value <- as.list(stringr::str_split(choice_value, "_", simplify = TRUE))
   names(split_value) <- c("league", "division")
   split_value$division <- ifelse(split_value$division == "None", NA,
@@ -70,8 +70,8 @@ division_choice_value_as_league_and_division <- function(choice_value) {
   split_value
 }
 
-division_choice_values_as_league_and_division_list <- function(choice_values) {
-  purrr::map(choice_values, ~ division_choice_value_as_league_and_division(.))
+ui_division_choice_values_as_league_and_division_list <- function(choice_values) {
+  purrr::map(choice_values, ~ ui_division_choice_value_as_league_and_division(.))
 }
 
 division_as_choice_label <- function(league, division, first_year = NULL,
@@ -98,7 +98,7 @@ generate_league_division_selection <- function(division_table, league) {
   choices <- purrr::pmap(
     league_divisions,
     function(League, Division, ...) {
-      division_as_choice_value(League, Division)
+      ui_division_as_choice_value(League, Division)
     }
   )
   if (torgutil::tbl_is_column_value_unique(league_divisions, FirstSeason) &&

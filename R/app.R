@@ -214,7 +214,7 @@ streakexplorerApp <- function(my_pool, ...) {
     selected_leagues <- reactiveVal(c("AL", "NL"))
     selected_league_divisions <- reactiveVal(
       list("AL_None", "NL_None") %>%
-        division_choice_values_as_league_and_division_list()
+        ui_division_choice_values_as_league_and_division_list()
     )
     selected_streak_summary_data <- reactive({
       req(selected_streak())
@@ -326,7 +326,7 @@ streakexplorerApp <- function(my_pool, ...) {
     observeEvent(input$divisions, {
       selected_league_divisions(
         input$divisions %>%
-          division_choice_values_as_league_and_division_list())
+          ui_division_choice_values_as_league_and_division_list())
       update_teams_selection()
     })
 
