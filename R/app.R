@@ -222,15 +222,15 @@ streakexplorerApp <- function(my_pool, ...) {
     })
 
     divisions_choices <- reactive({
-      build_divisions_choices(franchises,
-                              selected_years(),
-                              selected_leagues())
+      ui_build_divisions_choices(franchises,
+                                 selected_years(),
+                                 selected_leagues())
     })
 
     teams_choices <- reactive({
-      build_teams_choices(franchises,
-                          selected_years(),
-                          selected_league_divisions())
+      ui_build_teams_choices(franchises,
+                             selected_years(),
+                             selected_league_divisions())
     })
 
     no_divisions_choices <- reactive({
@@ -276,9 +276,10 @@ streakexplorerApp <- function(my_pool, ...) {
           shinyjs::enable("divisions_all")
         }
       }
-      selected <- get_updated_division_selection(divisions_choices(),
-                                                 input$divisions,
-                                                 input$divisions_all)
+      selected <-
+        ui_get_updated_division_selection(divisions_choices(),
+                                          input$divisions,
+                                          input$divisions_all)
       updateSelectInput(
         session,
         "divisions",
@@ -293,9 +294,9 @@ streakexplorerApp <- function(my_pool, ...) {
       } else {
         shinyjs::enable("teams")
       }
-      selected <- get_updated_teams_selection(teams_choices(),
-                                              input$teams,
-                                              input$teams_all)
+      selected <- ui_get_updated_teams_selection(teams_choices(),
+                                                 input$teams,
+                                                 input$teams_all)
       updateSelectInput(session,
                         "teams",
                         choices = teams_choices(),

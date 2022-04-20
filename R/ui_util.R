@@ -92,7 +92,7 @@ ui_division_as_choice_label <- function(league, division, first_year = NULL,
   glue::glue("{league} {division_part}{year_part}")
 }
 
-generate_league_division_selection <- function(division_table, league) {
+ui_generate_league_division_selection <- function(division_table, league) {
   league_divisions <- division_table %>%
     dplyr::filter(League == league)
   choices <- purrr::pmap(
@@ -123,7 +123,7 @@ generate_league_division_selection <- function(division_table, league) {
   choices
 }
 
-generate_division_selection <- function(division_table) {
+ui_generate_division_selection <- function(division_table) {
   leagues <- division_table %>%
     dplyr::pull(League) %>%
     unique()
@@ -132,21 +132,18 @@ generate_division_selection <- function(division_table) {
   # are multiple leagues, we want to return a list-of-lists, so that we have
   # divisions.
   if (length(leagues) == 1) {
-    generate_league_division_selection(division_table, leagues)
+    ui_generate_league_division_selection(division_table, leagues)
   } else {
     result <- purrr::map(
       leagues,
-      ~ generate_league_division_selection(
-        division_table,
-        .
-      )
+      ~ ui_generate_league_division_selection(division_table, .)
     )
     names(result) <- glue::glue("{leagues} Divisions")
     result
   }
 }
 
-generate_team_selection <- function(team_table) {
+ui_generate_team_selection <- function(team_table) {
   team_table %>%
     dplyr::arrange(desc(FirstSeason)) %>%
     dplyr::select(FranchiseID, Nickname) %>%
@@ -156,25 +153,25 @@ generate_team_selection <- function(team_table) {
     torgutil::tbl_as_named_list(FranchiseID, Nicknames)
 }
 
-build_divisions_choices <- function(franchises, years, leagues) {
+ui_build_divisions_choices <- function(franchises, years, leagues) {
   franchises %>%
     ui_filter_by_years(years) %>%
     ui_filter_by_league(leagues) %>%
     ui_truncate_years(years) %>%
     ui_get_divisions() %>%
-    generate_division_selection()
+    ui_generate_division_selection()
 }
 
-build_teams_choices <- function(franchises, years, league_divisions) {
+ui_build_teams_choices <- function(franchises, years, league_divisions) {
   result <- franchises %>%
     ui_filter_by_years(years) %>%
     ui_filter_by_league_divisions(league_divisions) %>%
     ui_truncate_years(years) %>%
-    generate_team_selection()
+    ui_generate_team_selection()
   result
 }
 
-get_updated_division_selection <- function(division_choices, input_divisions,
+ui_get_updated_division_selection <- function(division_choices, input_divisions,
                                            input_divisions_all) {
   # If it makes sense, keep previous division selections
   if (input_divisions_all) {
@@ -188,7 +185,7 @@ get_updated_division_selection <- function(division_choices, input_divisions,
   }
 }
 
-get_updated_teams_selection <- function(teams_choices, input_teams,
+ui_get_updated_teams_selection <- function(teams_choices, input_teams,
                                         input_teams_all) {
   if (input_teams_all) {
     # We want all teams
