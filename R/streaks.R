@@ -185,14 +185,6 @@ streak_get_standings <- function(standings, game_logs, streak, franchises) {
   )
 }
 
-streaks_get_selected_streak <- function(streak_id, hot) {
-  if (is.null(streak_id)) {
-    NULL
-  } else {
-    sql_get_streak(streak_id, hot)
-  }
-}
-
 streaks_get_max_rank_simple <- function(lzy_streaks, min_year, max_year,
                                         teams) {
   lzy_streaks %>%

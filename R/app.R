@@ -181,11 +181,19 @@ streakexplorerApp <- function(my_pool, ...) {
       input$streak_type == "HOT"
     })
 
-    lines_to_streaks <- reactive({
+    lzy_lines_to_streaks <- reactive({
       if (hot()) {
         sql_load_hot_streaks_lines_to_streaks()
       } else {
         sql_load_cold_streaks_lines_to_streaks()
+      }
+    })
+
+    lzy_streaks <- reactive({
+      if (hot()) {
+        sql_load_hot_streaks()
+      } else {
+        sql_load_cold_streaks()
       }
     })
 
@@ -244,9 +252,11 @@ streakexplorerApp <- function(my_pool, ...) {
     })
 
     selected_streak <- reactive({
-      lines_to_streaks() %>%
-        lines_get_selected_streak_id(selected_line_id()) %>%
-        streaks_get_selected_streak(hot())
+      lines_get_selected_streak(
+        lzy_lines_to_streaks(),
+        lzy_streaks(),
+        lzy_game_logs,
+        selected_line_id())
     })
 
     selected_streak_standings <- reactive({
@@ -257,7 +267,7 @@ streakexplorerApp <- function(my_pool, ...) {
     highlight_data <- reactive({
       lines_highlight(lines(),
                       concordances(),
-                      lines_to_streaks(),
+                      lzy_lines_to_streaks(),
                       selected_line_id())
     })
 

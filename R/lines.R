@@ -76,13 +76,27 @@ lines_build_lines <- function(years, teams, franchises, max_rank, hot) {
     lines_remove_branch_descenders(max_rank, hot)
 }
 
-lines_get_selected_streak_id <- function(lines_to_streaks, line_id) {
+lines_get_selected_streak <- function(lzy_lines_to_streaks, lzy_streaks,
+                                      lzy_game_logs, line_id) {
   if (is.null(line_id)) {
     NULL
   } else {
-    lines_to_streaks %>%
-      dplyr::filter(LineId == line_id) %>%
-      dplyr::pull(StreakId)
+    # We will only need a few fields from the game logs.
+    lzy_game_logs <- lzy_game_logs %>%
+      dplyr::select(Year,Team,GameIndex,Date)
+    # Now build the query
+    lzy_lines_to_streaks %>%
+      dplyr::filter(LineId==line_id) %>%
+      dplyr::left_join(lzy_streaks, by="StreakId") %>%
+      dplyr::select(Year, Team, LoIndex, HiIndex) %>%
+      dplyr::left_join(lzy_game_logs,
+                       by=c("Year","Team","LoIndex"="GameIndex")) %>%
+      dplyr::left_join(lzy_game_logs,
+                       by=c("Year","Team","HiIndex"="GameIndex")) %>%
+      head(1) %>%
+      dplyr::collect() %>%
+      dplyr::mutate(StartDate = lubridate::as_date(Date.x)) %>%
+      dplyr::mutate(EndDate = lubridate::as_date(Date.y)) %>%
+      dplyr::select(Year, Team, LoIndex, HiIndex, StartDate, EndDate)
   }
 }
-

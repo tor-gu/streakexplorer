@@ -72,53 +72,6 @@ sql_get_streak_game_log <- function(streak) {
       CompletionOf=lubridate::as_date(CompletionOf))
 }
 
-sql_get_streak <- function(streak_id, hot) {
-  streak_table <- ifelse(hot, "hot_streaks", "cold_streaks")
-  query_template <- (
-    "
-    SELECT Year, Team, LoIndex, HiIndex
-    FROM {`streak_table`} WHERE StreakId = {streak_id} LIMIT 1
-  "
-  )
-  query <- glue::glue_sql(
-    query_template,
-    streak_table = streak_table,
-    streak_id = streak_id,
-    .con = se_pool
-  )
-  streak <- DBI::dbGetQuery(se_pool, query) %>% tibble::as_tibble()
-
-  query_template <-("
-    SELECT Date FROM game_logs WHERE
-      Year = {streak$Year} AND
-      Team = {streak$Team} AND
-      GameIndex = {streak$LoIndex}
-  ")
-  query <- glue::glue_sql(
-    query_template,
-    streak = streak,
-    .con = se_pool
-  )
-  start_date <- DBI::dbGetQuery(se_pool, query) %>% dplyr::pull(Date) %>%
-    lubridate::as_date()
-
-  query_template <-("
-    SELECT Date FROM game_logs WHERE
-      Year = {streak$Year} AND
-      Team = {streak$Team} AND
-      GameIndex = {streak$HiIndex}
-  ")
-  query <- glue::glue_sql(
-    query_template,
-    streak = streak,
-    .con = se_pool
-  )
-  end_date <- DBI::dbGetQuery(se_pool, query) %>% dplyr::pull(Date) %>%
-    lubridate::as_date()
-
-  streak %>% dplyr::mutate(StartDate=start_date, EndDate=end_date)
-}
-
 sql_get_division_season_games <- function(year, teams) {
   query_template <- ("
     SELECT *
@@ -151,6 +104,14 @@ sql_load_standings <- function() {
 
 sql_load_game_logs <- function() {
   dplyr::tbl(se_pool, "game_logs")
+}
+
+sql_load_hot_streaks <- function() {
+  dplyr::tbl(se_pool, "hot_streaks")
+}
+
+sql_load_cold_streaks <- function() {
+  dplyr::tbl(se_pool, "cold_streaks")
 }
 
 sql_load_hot_streaks_lines_to_streaks <- function() {
