@@ -1,22 +1,22 @@
-filter_by_year <- function(franchises, year) {
+ui_filter_by_year <- function(franchises, year) {
   franchises %>% dplyr::filter(
     FirstSeason <= year & (FinalSeason >= year | is.na(FinalSeason))
   )
 }
 
-filter_by_years <- function(franchises, years, truncate_years = TRUE) {
-  purrr::map(years, function(year) filter_by_year(franchises, year)) %>%
+ui_filter_by_years <- function(franchises, years, truncate_years = TRUE) {
+  purrr::map(years, function(year) ui_filter_by_year(franchises, year)) %>%
     purrr::map(tibble::as_tibble) %>%
     data.table::rbindlist() %>%
     unique()
 }
 
-filter_by_league <- function(franchises, leagues) {
+ui_filter_by_league <- function(franchises, leagues) {
   franchises %>% dplyr::filter(League %in% leagues)
 }
 
 
-filter_by_league_division <- function(franchises, league_division) {
+ui_filter_by_league_division <- function(franchises, league_division) {
   if (is.na(league_division$division)) {
     franchises %>% dplyr::filter(
       League == league_division$league,
@@ -29,11 +29,11 @@ filter_by_league_division <- function(franchises, league_division) {
   }
 }
 
-filter_by_league_divisions <- function(franchises, league_divisions) {
+ui_filter_by_league_divisions <- function(franchises, league_divisions) {
   # TODO use formula
   purrr::map(
     league_divisions,
-    function(ld) filter_by_league_division(franchises, ld)
+    function(ld) ui_filter_by_league_division(franchises, ld)
   ) %>%
     purrr::map(tibble::as_tibble) %>%
     data.table::rbindlist() %>%
@@ -171,7 +171,7 @@ generate_team_selection <- function(team_table) {
 
 build_divisions_choices <- function(franchises, years, leagues) {
   franchises %>%
-    filter_by_years(years) %>%
+    ui_filter_by_years(years) %>%
     filter_by_league(leagues) %>%
     truncate_years(years) %>%
     get_divisions() %>%
@@ -180,8 +180,8 @@ build_divisions_choices <- function(franchises, years, leagues) {
 
 build_teams_choices <- function(franchises, years, league_divisions) {
   result <- franchises %>%
-    filter_by_years(years) %>%
-    filter_by_league_divisions(league_divisions) %>%
+    ui_filter_by_years(years) %>%
+    ui_filter_by_league_divisions(league_divisions) %>%
     truncate_years(years) %>%
     generate_team_selection()
   result

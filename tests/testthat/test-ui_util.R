@@ -1,4 +1,45 @@
-# TODO description
+test_that("ui_filter_by_league_divisions handles division text and NA", {
+  franchises <- tibble::tribble(
+    ~FranchiseID, ~League, ~Division,
+    "ALE",       "AL",     "East",
+    "ALW",       "AL",     "West",
+    "ALN",       "AL",     NA,
+    "NLE",       "NL",     "East",
+    "NLW",       "NL",     "West",
+    "NLN",       "NL",     NA,
+  )
+  league_divisions <- list(
+    list(league="AL", division="East"),
+    list(league="NL", division=NA)
+  )
+  actual <- ui_filter_by_league_divisions(franchises, league_divisions)
+  expected <- tibble::tribble(
+    ~FranchiseID, ~League, ~Division,
+    "ALE",       "AL",     "East",
+    "NLN",       "NL",     NA,
+  )
+  expect_equal(actual, expected, ignore_attr=TRUE)
+})
+
+test_that("ui_filter_by_league_divisions handles not-found values", {
+  franchises <- tibble::tribble(
+    ~FranchiseID, ~League, ~Division,
+    "ALE",       "AL",     "East",
+    "ALW",       "AL",     "West",
+    "ALN",       "AL",     NA,
+    "NLE",       "NL",     "East",
+    "NLW",       "NL",     "West",
+    "NLN",       "NL",     NA,
+  )
+  league_divisions <- list(
+    list(league="AL", division="Central"),
+    list(league="ZZ", division="East")
+  )
+  actual <- ui_filter_by_league_divisions(franchises, league_divisions) %>%
+    nrow()
+  expect_equal(actual, 0)
+})
+
 test_that("division_as_choice_label handles case without years specified", {
   division_table <- tibble::tribble(
     ~League, ~Division, ~FirstSeason, ~FinalSeason,
