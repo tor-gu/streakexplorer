@@ -358,32 +358,27 @@ streakexplorerApp <- function(my_pool, ...) {
     })
 
     observeEvent(selected_streak(), {
-      standings_DT_update(
+      DT_standings_update(
         standings_before_proxy,
         selected_streak_standings()$streak_info,
         selected_streak_standings()$standings_before
       )
-      standings_DT_update(
+      DT_standings_update(
         standings_after_proxy,
         selected_streak_standings()$streak_info,
         selected_streak_standings()$standings_after
       )
-      standings_DT_update(
+      DT_standings_update(
         standings_final_proxy,
         selected_streak_standings()$streak_info,
         selected_streak_standings()$standings_final
       )
 
       game_log <- streak_game_log_data(selected_streak())
-      DT::replaceData(game_log_proxy,
-                      game_log$data,
-                      resetPaging = TRUE,
-                      rownames = FALSE)
-      DT::replaceData(
+      DT_game_log_update(game_log_proxy, game_log$data)
+      DT_streak_summary_update(
         streak_summary_proxy,
-        selected_streak_summary_data()$data,
-        resetPaging = FALSE,
-        rownames = FALSE
+        selected_streak_summary_data()$data
       )
       output$streak_summary_caption <- renderText(
         selected_streak_summary_data()$caption)
@@ -418,19 +413,19 @@ streakexplorerApp <- function(my_pool, ...) {
     # For each of these, we do an initial render with a dummy table, and then
     # handle the updates through proxies
     output$streak_summary <- DT::renderDT({
-      streak_summary_DT_init()
+      DT_streak_summary_init()
     })
     output$standings_before <- DT::renderDT({
-      standings_DT_init()
+      DT_standings_init()
     })
     output$standings_after <- DT::renderDT({
-      standings_DT_init()
+      DT_standings_init()
     })
     output$standings_final <- DT::renderDT({
-      standings_DT_init()
+      DT_standings_init()
     })
     output$game_log <- DT::renderDT({
-      game_log_DT_init()
+      DT_game_log_init()
     })
 
     # Standings graph

@@ -1,4 +1,4 @@
-standings_DT_init <- function() {
+DT_standings_init <- function() {
   dummy_data <- tibble::tibble(
     Team=character(0),
     W=integer(0),
@@ -29,7 +29,7 @@ standings_DT_init <- function() {
     )
 }
 
-streak_summary_DT_init <- function() {
+DT_streak_summary_init <- function() {
   dummy_table <- tibble::tibble(
     Dates=character(0),
     Record=character(0),
@@ -52,7 +52,7 @@ streak_summary_DT_init <- function() {
   )
 }
 
-game_log_DT_init <- function() {
+DT_game_log_init <- function() {
   dummy_table <- tibble::tibble(
     `Gm#` = integer(0),
     Date = character(0),
@@ -76,7 +76,7 @@ game_log_DT_init <- function() {
   )
 }
 
-standings_DT_update <- function(proxy, streak_info, standings) {
+DT_standings_update <- function(proxy, streak_info, standings) {
   nickname <- streak_info %>%
     dplyr::pull(Nickname)
   standings <- standings %>%
@@ -86,5 +86,21 @@ standings_DT_update <- function(proxy, streak_info, standings) {
   DT::replaceData(proxy, standings, resetPaging = FALSE,
                   rownames = FALSE
   )
+}
+
+DT_streak_summary_update <- function(proxy, streak_summary_data) {
+  DT::replaceData(
+    proxy,
+    streak_summary_data,
+    resetPaging = FALSE,
+    rownames = FALSE
+  )
+}
+
+DT_game_log_update <- function(proxy, game_log_data) {
+  DT::replaceData(proxy,
+                  game_log_data,
+                  resetPaging = TRUE,
+                  rownames = FALSE)
 }
 
