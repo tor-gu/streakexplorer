@@ -30,14 +30,10 @@ ui_filter_by_league_division <- function(franchises, league_division) {
 }
 
 ui_filter_by_league_divisions <- function(franchises, league_divisions) {
-  # TODO use formula
   purrr::map(
-    league_divisions,
-    function(ld) ui_filter_by_league_division(franchises, ld)
+    league_divisions, ~ ui_filter_by_league_division(franchises, .)
   ) %>%
-    purrr::map(tibble::as_tibble) %>%
     data.table::rbindlist() %>%
-    tibble::as_tibble() %>%
     unique()
 }
 
