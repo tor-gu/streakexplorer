@@ -4,7 +4,7 @@ ui_filter_by_year <- function(franchises, year) {
   )
 }
 
-ui_filter_by_years <- function(franchises, years, truncate_years = TRUE) {
+ui_filter_by_years <- function(franchises, years) {
   purrr::map(years, function(year) ui_filter_by_year(franchises, year)) %>%
     purrr::map(tibble::as_tibble) %>%
     data.table::rbindlist() %>%
@@ -37,25 +37,16 @@ ui_filter_by_league_divisions <- function(franchises, league_divisions) {
     unique()
 }
 
-truncate_years <- function(franchises, years) {
+ui_truncate_years <- function(franchises, years) {
   franchises %>% dplyr::mutate(
     FirstSeason = pmax(FirstSeason, min(years)),
     FinalSeason = pmin(max(years), FinalSeason, na.rm = TRUE)
   )
 }
 
-get_divisions <- function(franchises) {
+ui_get_divisions <- function(franchises) {
   franchises %>%
     dplyr::group_by(League, Division) %>%
-    dplyr::summarise(
-      FirstSeason = min(FirstSeason), FinalSeason = max(FinalSeason),
-      .groups = "drop"
-    )
-}
-
-get_teams <- function(franchises) {
-  franchises %>%
-    dplyr::group_by(FranchiseID) %>%
     dplyr::summarise(
       FirstSeason = min(FirstSeason), FinalSeason = max(FinalSeason),
       .groups = "drop"
@@ -168,9 +159,9 @@ generate_team_selection <- function(team_table) {
 build_divisions_choices <- function(franchises, years, leagues) {
   franchises %>%
     ui_filter_by_years(years) %>%
-    filter_by_league(leagues) %>%
-    truncate_years(years) %>%
-    get_divisions() %>%
+    ui_filter_by_league(leagues) %>%
+    ui_truncate_years(years) %>%
+    ui_get_divisions() %>%
     generate_division_selection()
 }
 
@@ -178,7 +169,7 @@ build_teams_choices <- function(franchises, years, league_divisions) {
   result <- franchises %>%
     ui_filter_by_years(years) %>%
     ui_filter_by_league_divisions(league_divisions) %>%
-    truncate_years(years) %>%
+    ui_truncate_years(years) %>%
     generate_team_selection()
   result
 }
