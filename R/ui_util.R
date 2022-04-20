@@ -74,7 +74,7 @@ ui_division_choice_values_as_league_and_division_list <- function(choice_values)
   purrr::map(choice_values, ui_division_choice_value_as_league_and_division)
 }
 
-division_as_choice_label <- function(league, division, first_year = NULL,
+ui_division_as_choice_label <- function(league, division, first_year = NULL,
                                      final_year = NULL,
                                      min_first_year = NULL,
                                      max_final_year = NULL) {
@@ -105,7 +105,7 @@ generate_league_division_selection <- function(division_table, league) {
     torgutil::tbl_is_column_value_unique(league_divisions, FinalSeason)) {
     names(choices) <- purrr::pmap(
       league_divisions, function(League, Division, FirstSeason, FinalSeason) {
-        division_as_choice_label(League, Division)
+        ui_division_as_choice_label(League, Division)
       }
     )
   } else {
@@ -113,7 +113,7 @@ generate_league_division_selection <- function(division_table, league) {
     max_final_season <- max(division_table$FinalSeason)
     names(choices) <- purrr::pmap(
       league_divisions, function(League, Division, FirstSeason, FinalSeason) {
-        division_as_choice_label(
+        ui_division_as_choice_label(
           League, Division, FirstSeason, FinalSeason,
           min_first_season, max_final_season
         )
