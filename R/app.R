@@ -14,7 +14,9 @@ streakexplorerApp <- function(my_pool, ...) {
     font_scale = 0.8
   )
 
+  # UI ----
   ui <- shiny::fluidPage(
+    ## Styling and header ----
     shinyjs::useShinyjs(),
     shiny::tags$style("#game_log td, th {padding: 0; text-align: right}"),
     shiny::tags$style("#streak_summary td, th {padding: 0; text-align: right}"),
@@ -23,10 +25,17 @@ streakexplorerApp <- function(my_pool, ...) {
     shiny::tags$style("#standings_final td, th {padding: 0; text-align: right}"),
     theme = theme,
     #theme=bslib::bs_theme(),
+
+    ## Title ----
     shiny::titlePanel("Baseball Streak Explorer"),
+
+    ## Sidebar layout ----
     shiny::sidebarLayout(
+      ### Sidebar ----
       shiny::sidebarPanel(
         width = 5,
+
+        #### Years slider ----
         shiny::fluidRow(shiny::column(
           12,
           shiny::sliderInput(
@@ -39,6 +48,8 @@ streakexplorerApp <- function(my_pool, ...) {
             sep = ""
           )
         )),
+
+        #### League selection ----
         shiny::fluidRow(shiny::column(
           9,
           shiny::selectInput(
@@ -51,28 +62,35 @@ streakexplorerApp <- function(my_pool, ...) {
             )
           )
         ),
-        shiny::column(3,)),
-        shiny::fluidRow(shiny::column(
-          9,
-          shiny::selectInput(
-            "divisions",
-            "Divisions",
-            choices = list(),
-            multiple = TRUE
+        # This empty column is a placeholder, where the 'all' box would go
+        shiny::column(3, )),
+
+        #### Division selection ----
+        shiny::fluidRow(
+          shiny::column(
+            9,
+            shiny::selectInput(
+              "divisions",
+              "Divisions",
+              choices = list(),
+              multiple = TRUE
+            ),
           ),
+          shiny::column(3,
+                        shiny::checkboxInput("divisions_all", "All",
+                                             value = TRUE))
         ),
-        shiny::column(
-          3,
-          shiny::checkboxInput("divisions_all", "All", value = TRUE)
-        )),
-        shiny::fluidRow(shiny::column(
-          9,
-          shiny::selectInput("teams", "Teams", choices = list(), multiple = TRUE),
+
+        #### Team selection ----
+        shiny::fluidRow(
+          shiny::column(
+            9,
+            shiny::selectInput("teams", "Teams", choices = list(),
+                               multiple = TRUE),
+          ),
+          shiny::column(3,
+                        shiny::checkboxInput("teams_all", "All", value = TRUE))
         ),
-        shiny::column(
-          3,
-          shiny::checkboxInput("teams_all", "All", value = TRUE)
-        )),
         shiny::radioButtons(
           "streak_type",
           "Streak Type",
@@ -80,27 +98,46 @@ streakexplorerApp <- function(my_pool, ...) {
           selected = "HOT"
         )
       ),
+
+      ### Main Panel ----
       shiny::mainPanel(
         width = 7,
+
+        #### Streaks graph ----
         shiny::fluidRow(shiny::column(
           12, plotly::plotlyOutput(outputId = "streaks")
         )),
-        shiny::fluidRow(id = "summary_row",
-                        shiny::column(
-                   12,
-                   #shiny::h5("Streak summary"),
-                   shiny::h5(shiny::textOutput("streak_summary_caption")),
-                   shinycssloaders::withSpinner(DT::DTOutput("streak_summary"))
-                 )),
+
+        #### Selected streak summary ----
+        shiny::fluidRow(
+          id = "summary_row",
+          shiny::column(
+            12,
+            #shiny::h5("Streak summary"),
+            shiny::h5(shiny::textOutput("streak_summary_caption")),
+            shinycssloaders::withSpinner(DT::DTOutput("streak_summary"))
+          )
+        ),
+        #### Selected streak standings row ----
         shiny::fluidRow(
           id = "standings_row",
-          shiny::column(4, shiny::h5("Standings before"),
-                 DT::DTOutput("standings_before")),
-          shiny::column(4, shiny::h5("Standings after"),
-                 DT::DTOutput("standings_after")),
-          shiny::column(4, shiny::h5("Final standings"),
-                 DT::DTOutput("standings_final"))
+          shiny::column(
+            4,
+            shiny::h5("Standings before"),
+            DT::DTOutput("standings_before")
+          ),
+          shiny::column(
+            4,
+            shiny::h5("Standings after"),
+            DT::DTOutput("standings_after")
+          ),
+          shiny::column(
+            4,
+            shiny::h5("Final standings"),
+            DT::DTOutput("standings_final")
+          )
         ),
+        #### Selected streaks graphs and game_log row
         shiny::fluidRow(
           id = "graph_log_row",
           shiny::column(
@@ -118,6 +155,7 @@ streakexplorerApp <- function(my_pool, ...) {
     )
   )
 
+  # Server ----
   server <- function(input, output, session) {
     #bslib::bs_themer()
     intensity_level_range <- sql_get_intensity_level_range()
@@ -194,8 +232,8 @@ streakexplorerApp <- function(my_pool, ...) {
 
     selected_streak <- reactive({
       lines_to_streaks() %>%
-      lines_get_selected_streak_id(selected_line_id()) %>%
-      streaks_get_selected_streak(hot())
+        lines_get_selected_streak_id(selected_line_id()) %>%
+        streaks_get_selected_streak(hot())
     })
 
     selected_streak_standings <- reactive({
@@ -281,7 +319,9 @@ streakexplorerApp <- function(my_pool, ...) {
     })
 
     observeEvent(input$divisions, {
-      selected_league_divisions(input$divisions %>% division_choice_values_as_league_and_division_list())
+      selected_league_divisions(
+        input$divisions %>%
+          division_choice_values_as_league_and_division_list())
       choices <- teams_choices()
       if (input$teams_all) {
         # We want all teams
@@ -369,7 +409,8 @@ streakexplorerApp <- function(my_pool, ...) {
                                                 session = session)
     standings_final_proxy <- DT::dataTableProxy("standings_final",
                                                 session = session)
-    game_log_proxy <- DT::dataTableProxy("game_log", session = session)
+    game_log_proxy <-
+      DT::dataTableProxy("game_log", session = session)
 
 
     # Renderers ----
