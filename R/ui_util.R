@@ -71,7 +71,7 @@ ui_division_choice_value_as_league_and_division <- function(choice_value) {
 }
 
 ui_division_choice_values_as_league_and_division_list <- function(choice_values) {
-  purrr::map(choice_values, ~ ui_division_choice_value_as_league_and_division(.))
+  purrr::map(choice_values, ui_division_choice_value_as_league_and_division)
 }
 
 division_as_choice_label <- function(league, division, first_year = NULL,
