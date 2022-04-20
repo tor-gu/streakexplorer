@@ -1,10 +1,22 @@
 #' Streak explorer app
 #'
-#' @param pool
-#' @param ...
+#' @param my_pool RMySQL DB pool
+#' @param ... Additional arguments passed on to shiny::shinyApp
 #'
-#' @return
+#' @return A shiny::shinyApp
 #' @export
+#' @examples
+#' \dontrun{
+#' my_pool <- pool::dbPool(
+#'   RMySQL::MySQL(),
+#'   host = Sys.getenv("streak_explorer_db_host"),
+#'   port = as.integer(Sys.getenv("streak_explorer_db_port")),
+#'   user = Sys.getenv("streak_explorer_db_user"),
+#'   password = Sys.getenv("streak_explorer_db_password"),
+#'   dbname = Sys.getenv("streak_explorer_db_name")
+#' )
+#' streakexplorerApp(my_pool)
+#' }
 streakexplorerApp <- function(my_pool, ...) {
   se_pool <<- my_pool
   initial_year_range <- c(1948, 1960)

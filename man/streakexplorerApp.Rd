@@ -7,11 +7,26 @@
 streakexplorerApp(my_pool, ...)
 }
 \arguments{
-\item{...}{}
+\item{my_pool}{RMySQL DB pool}
+
+\item{...}{Additional arguments passed on to shiny::shinyApp}
 }
 \value{
-
+A shiny::shinyApp
 }
 \description{
 Streak explorer app
+}
+\examples{
+\dontrun{
+my_pool <- pool::dbPool(
+  RMySQL::MySQL(),
+  host = Sys.getenv("streak_explorer_db_host"),
+  port = as.integer(Sys.getenv("streak_explorer_db_port")),
+  user = Sys.getenv("streak_explorer_db_user"),
+  password = Sys.getenv("streak_explorer_db_password"),
+  dbname = Sys.getenv("streak_explorer_db_name")
+)
+streakexplorerApp(my_pool)
+}
 }
