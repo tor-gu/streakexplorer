@@ -234,7 +234,7 @@ streakexplorerApp <- function(my_pool, ...) {
     )
     selected_streak_summary_data <- reactive({
       req(selected_streak())
-      streak_summary_data(selected_streak(), lzy_franchises)
+      streak_summary_data(selected_streak(), lzy_game_logs, lzy_franchises)
     })
 
     divisions_choices <- reactive({
@@ -392,7 +392,7 @@ streakexplorerApp <- function(my_pool, ...) {
         selected_streak_standings()$standings_final
       )
 
-      game_log <- streak_game_log_data(selected_streak())
+      game_log <- streak_game_log_data(lzy_game_logs, selected_streak())
       DT_game_log_update(game_log_proxy, game_log$data)
       DT_streak_summary_update(
         streak_summary_proxy,

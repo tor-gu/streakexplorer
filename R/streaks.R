@@ -31,7 +31,7 @@ streak_game_log <- function(streak_id, streaks, game_logs) {
   }
 }
 
-streak_game_log_data <- function(streak) {
+streak_game_log_data <- function(lzy_game_logs, streak) {
   date_template <- "{lubridate::month(Date)}/{lubridate::mday(Date)}"
   completed_on_template <-
     paste0(
@@ -45,7 +45,7 @@ streak_game_log_data <- function(streak) {
       "{lubridate::month(CompletionOf)}/{lubridate::mday(CompletionOf)}"
     )
 
-  game_log_data <- sql_get_streak_game_log(streak) %>%
+  game_log_data <- streaks_get_game_log(lzy_game_logs, streak) %>%
     dplyr::mutate(
       GameResult = dplyr::case_when(
         GameRunsFor > GameRunsAgainst ~ "W",
@@ -86,9 +86,9 @@ streak_game_log_data <- function(streak) {
   )
 }
 
-streak_summary_data <- function(streak, franchises) {
+streak_summary_data <- function(streak, lzy_game_logs, lzy_franchises) {
   summary_data <-
-    sql_get_streak_game_log(streak) %>%
+    streaks_get_game_log(lzy_game_logs, streak) %>%
     dplyr::summarise(
       Team            = unique(Team),
       Year            = unique(Year),
@@ -111,7 +111,7 @@ streak_summary_data <- function(streak, franchises) {
     )
 
   franchise_season <- franchises_by_season(
-    franchises,
+    lzy_franchises,
     summary_data$Year
   ) %>%
     dplyr::filter(TeamID == local(summary_data$Team)) %>%
@@ -235,4 +235,14 @@ streaks_get_intensity_range <- function(lzy_streaks, year) {
                      max_level=max(IntensityLevel)) %>%
     purrr::transpose() %>%
     unlist()
+}
+
+streaks_get_game_log <- function(lzy_game_logs, streak) {
+  lzy_game_logs %>%
+    dplyr::filter(Year==local(streak$Year),
+                  Team==local(streak$Team),
+                  between(GameIndex,
+                          local(streak$LoIndex),
+                          local(streak$HiIndex))) %>%
+    dplyr::collect()
 }
