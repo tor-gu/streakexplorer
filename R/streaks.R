@@ -125,12 +125,13 @@ streaks_summary_data <- function(streak, lzy_game_logs, lzy_franchises) {
   list(data = data, caption = caption)
 }
 
-streaks_get_standings <- function(standings, game_logs, streak, franchises) {
-  division <- franchises %>%
+streaks_get_standings <- function(lzy_standings, lzy_game_logs, streak,
+                                  lzy_franchises) {
+  division <- lzy_franchises %>%
     franchises_get_division_by_team_year(streak$Team, streak$Year)
   division_teams <- division$teams %>% dplyr::pull(TeamID)
   division_season_games <-
-    game_logs %>%
+    lzy_game_logs %>%
     dplyr::filter(Year==local(streak$Year), Team %in% division_teams)
   first_game <- division_season_games %>%
     dplyr::filter(Year==local(streak$Year),
@@ -143,12 +144,12 @@ streaks_get_standings <- function(standings, game_logs, streak, franchises) {
                   GameIndex==local(streak$HiIndex)) %>%
     dplyr::collect()
   standings_before <-
-    standings_get_by_season_game_id(standings, division,
+    standings_get_by_season_game_id(lzy_standings, division,
       division_season_games, first_game$SeasonGameId, before=TRUE) %>%
     dplyr::left_join(division$teams, by=c("Team"="TeamID"), copy=TRUE) %>%
     dplyr::arrange(GB)
   standings_after <-
-    standings_get_by_season_game_id(standings, division,
+    standings_get_by_season_game_id(lzy_standings, division,
       division_season_games, last_game$SeasonGameId, before=FALSE) %>%
     dplyr::left_join(division$teams, by=c("Team"="TeamID"), copy=TRUE) %>%
     dplyr::arrange(GB)

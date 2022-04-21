@@ -205,7 +205,7 @@ streakexplorerApp <- function(my_pool, ...) {
         sql_load_cold_streaks_lines()
       }
     })
-    concordances <- reactive({
+    lzy_concordances <- reactive({
       if (hot()) {
         sql_load_hot_streaks_concordances()
       } else {
@@ -274,7 +274,7 @@ streakexplorerApp <- function(my_pool, ...) {
 
     highlight_data <- reactive({
       lines_highlight(lines(),
-                      concordances(),
+                      lzy_concordances(),
                       lzy_lines_to_streaks(),
                       selected_line_id())
     })

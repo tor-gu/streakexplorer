@@ -11,7 +11,7 @@ lines_get_related_lines <- function(line_id, lines_to_streaks, concordances) {
 }
 
 
-lines_highlight <- function(lines, concordances, lines_to_streaks,
+lines_highlight <- function(lines, lzy_concordances, lzy_lines_to_streaks,
                             id = NULL) {
   result <- lines %>%
     dplyr::mutate(
@@ -27,8 +27,8 @@ lines_highlight <- function(lines, concordances, lines_to_streaks,
       team <- row %>% dplyr::pull(Team)
       year <- row %>% dplyr::pull(Year)
       related_line_ids <- lines_get_related_lines(
-        id, lines_to_streaks,
-        concordances
+        id, lzy_lines_to_streaks,
+        lzy_concordances
       )
       result <- result %>%
         dplyr::mutate(
