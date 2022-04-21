@@ -5,7 +5,7 @@ pct_formatter <- function(pct) {
   )
 }
 
-streaks_get_realted_streak_id <- function(streak_id, concordances) {
+streaks_get_related_streak_id <- function(streak_id, concordances) {
   inner <- concordances %>%
     dplyr::filter(Inner == streak_id) %>%
     dplyr::pull(Outer)
@@ -136,12 +136,12 @@ streaks_get_standings <- function(standings, game_logs, streak, franchises) {
     dplyr::filter(Year==local(streak$Year),
                   Team==local(streak$Team),
                   GameIndex==local(streak$LoIndex)) %>%
-    dplyr::as_tibble()
+    dplyr::collect()
   last_game <-  division_season_games %>%
     dplyr::filter(Year==local(streak$Year),
                   Team==local(streak$Team),
                   GameIndex==local(streak$HiIndex)) %>%
-    dplyr::as_tibble()
+    dplyr::collect()
   standings_before <-
     standings_get_by_season_game_id(standings, division,
       division_season_games, first_game$SeasonGameId, before=TRUE) %>%

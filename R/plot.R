@@ -153,7 +153,7 @@ build_standings_graph <- function(franchises, standings, streak) {
     dplyr::right_join(division_teams$division,
                       by=c("League","Division","Year"),
                       na_matches="na") %>%
-    dplyr::as_tibble() %>%
+    dplyr::collect() %>%
     dplyr::mutate(Date=lubridate::ymd(Date))
   plot_standings_graph(standings, streak$Team, streak$StartDate,
                        streak$EndDate)

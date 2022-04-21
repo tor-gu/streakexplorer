@@ -1,6 +1,6 @@
 standings_update_from_game_logs <- function(standings, game_logs) {
-  standings <- standings %>% dplyr::as_tibble()
-  game_logs <- game_logs %>% dplyr::as_tibble() %>%
+  standings <- standings %>% dplyr::collect()
+  game_logs <- game_logs %>% dplyr::collect() %>%
     dplyr::filter(!is.na(Result))
   if (nrow(game_logs) > 0) {
     for (i in 1:nrow(game_logs)) {
