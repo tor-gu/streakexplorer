@@ -1,15 +1,15 @@
-franchises_by_season <- function(lzy_franchises, year) {
+franchises_by_season_lzy <- function(lzy_franchises, year) {
   lzy_franchises %>% dplyr::filter(FirstSeason <= year &
     (FinalSeason >= year | is.na(FinalSeason)))
 }
 
 franchises_get_division_by_team_year <- function(lzy_franchises, team, year) {
-  season_franchises <- franchises_by_season(lzy_franchises, year)
-  lzy_division <- season_franchises %>%
+  lzy_season_franchises <- franchises_by_season_lzy(lzy_franchises, year)
+  lzy_division <- lzy_season_franchises %>%
     dplyr::filter(TeamID==team) %>%
     dplyr::select(League, Division) %>%
     dplyr::mutate(Year=year)
-  lzy_teams <- season_franchises %>%
+  lzy_teams <- lzy_season_franchises %>%
     dplyr::right_join(lzy_division, by=c("League","Division"),
                       na_matches="na") %>%
     dplyr::select(TeamID, Location, Nickname)

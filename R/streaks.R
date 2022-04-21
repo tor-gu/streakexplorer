@@ -94,7 +94,7 @@ streaks_summary_data <- function(streak, lzy_game_logs, lzy_franchises) {
       AwayGames       = sum(AtHome == FALSE)
     )
 
-  franchise_season <- franchises_by_season(
+  franchise_season <- franchises_by_season_lzy(
     lzy_franchises,
     summary_data$Year
   ) %>%
