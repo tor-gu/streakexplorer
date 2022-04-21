@@ -11,16 +11,22 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
 Imports: 
     bslib,
+    data.table,
     dplyr,
     DT,
     ggplot2,
+    glue,
+    lubridate,
     magrittr,
     plotly,
     pool,
+    purrr,
     RMySQL,
     shiny,
     shinycssloaders,
     shinyjs,
+    stringr,
+    tibble,
     torgutil
 Suggests: 
     testthat (>= 3.0.0)
