@@ -3,7 +3,7 @@ franchises_by_season_lzy <- function(lzy_franchises, year) {
     (FinalSeason >= year | is.na(FinalSeason)))
 }
 
-franchises_get_division_by_team_year <- function(lzy_franchises, team, year) {
+franchises_get_division_by_team_year_lzy <- function(lzy_franchises, team, year) {
   lzy_season_franchises <- franchises_by_season_lzy(lzy_franchises, year)
   lzy_division <- lzy_season_franchises %>%
     dplyr::filter(TeamID==team) %>%

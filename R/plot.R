@@ -146,7 +146,7 @@ plot_standings_graph <- function(standings, team, start_date, end_date) {
 }
 
 build_standings_graph <- function(lzy_franchises, lzy_standings, streak) {
-  division_teams <- franchises_get_division_by_team_year(
+  division_teams <- franchises_get_division_by_team_year_lzy(
     lzy_franchises, streak$Team, streak$Year)
   standings <- lzy_standings %>%
     dplyr::filter(Year==local(streak$Year)) %>%

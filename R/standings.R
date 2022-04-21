@@ -28,18 +28,6 @@ standings_from_game_logs <- function(game_logs) {
       GB=(dplyr::first(Wins)-Wins + Losses-dplyr::first(Losses))/2)
 }
 
-standings_get_by_date <- function(game_logs, date, .include=FALSE) {
-  if (.include) {
-    game_logs %>%
-      dplyr::filter(Date <= date) %>%
-      standings_from_game_logs()
-  } else {
-    game_logs %>%
-      dplyr::filter(Date < date) %>%
-      standings_from_game_logs()
-  }
-}
-
 standings_get_same_day_team_games <- function(lzy_game_logs, season_game_id,
                                               before=TRUE) {
   games <- lzy_game_logs %>%

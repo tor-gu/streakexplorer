@@ -128,7 +128,7 @@ streaks_summary_data <- function(streak, lzy_game_logs, lzy_franchises) {
 streaks_get_standings <- function(lzy_standings, lzy_game_logs, streak,
                                   lzy_franchises) {
   division <- lzy_franchises %>%
-    franchises_get_division_by_team_year(streak$Team, streak$Year)
+    franchises_get_division_by_team_year_lzy(streak$Team, streak$Year)
   division_teams <- division$lzy_teams %>% dplyr::pull(TeamID)
   lzy_division_season_games <-
     lzy_game_logs %>%
