@@ -1,23 +1,3 @@
-sql_get_division_season_games <- function(year, teams) {
-  query_template <- ("
-    SELECT *
-    FROM game_logs WHERE
-      Year = {year} AND
-      Team IN ({teams*})
-  ")
-  query <- glue::glue_sql(
-    query_template,
-    year = year,
-    teams = teams,
-    .con = se_pool
-  )
-  DBI::dbGetQuery(se_pool, query) %>%
-    dplyr::mutate(
-      Date=lubridate::as_date(Date),
-      CompletedOn=lubridate::as_date(CompletedOn),
-      CompletionOf=lubridate::as_date(CompletionOf))
-}
-
 sql_load_franchises <- function() {
   dplyr::tbl(se_pool, "franchises")
 }
