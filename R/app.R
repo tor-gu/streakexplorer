@@ -174,8 +174,7 @@ streakexplorerApp <- function(my_pool, ...) {
     lzy_standings <- sql_load_standings()
     lzy_game_logs <- sql_load_game_logs()
     franchises <- lzy_franchises %>% dplyr::collect()
-    intensity_level_range <- streaks_get_intensity_range(
-      sql_load_hot_streaks(), 1948)
+    intensity_level_range <- streaks_get_intensity_range(sql_load_hot_streaks(), 1948)
 
     ## Reactives and reactive values ----
     hot <- reactive({

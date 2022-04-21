@@ -81,7 +81,7 @@ standings_get_by_season_game_id <- function(lzy_standings,
       # are no examples of this in the db.)
       date_before <- lubridate::ymd(date) - 1
       lzy_earlier_games <- lzy_game_logs %>%
-        standings_get_same_day_team_games(season_game_id, .before = TRUE)
+        standings_get_same_day_team_games(season_game_id, before = TRUE)
       lzy_division_standings %>%
         dplyr::filter(Date == date_before) %>%
         standings_update_from_game_logs(games) %>%
