@@ -279,6 +279,16 @@ streakexplorerApp <- function(my_pool, ...) {
                       selected_line_id())
     })
 
+    # This is the main graph
+    main_plot <- reactive(
+      plot_lines(
+        highlight_data(),
+        intensity_level_range,
+        max_rank(),
+        input$streak_type == "COLD"
+      )
+    )
+
     ## UI functions ----
     update_divisions_selection <- function() {
       if (no_divisions_choices()) {
@@ -349,15 +359,21 @@ streakexplorerApp <- function(my_pool, ...) {
       update_teams_selection()
     })
 
+    # Set up an observer for the plot click, but wait until the plot
+    # is created before creating the observer.
     observeEvent(
-      plotly::event_data("plotly_click", source = "lines_plot"), {
-        click_data <- plotly::event_data("plotly_click", source = "lines_plot")
-        if (is.null(click_data)) {
-          selected_line_id(NULL)
-        } else {
-          selected_line_id(click_data %>% dplyr::pull("key"))
-        }
-    })
+      main_plot(),
+      observeEvent(
+        plotly::event_data("plotly_click", source = "lines_plot"), {
+          click_data <- plotly::event_data("plotly_click", source = "lines_plot")
+          if (is.null(click_data)) {
+            selected_line_id(NULL)
+          } else {
+            selected_line_id(click_data %>% dplyr::pull("key"))
+          }
+        }),
+      once = TRUE
+    )
 
     observeEvent(hot(), ignoreInit = TRUE, {
       selected_line_id(NULL)
@@ -417,15 +433,8 @@ streakexplorerApp <- function(my_pool, ...) {
 
     ## Renderers ----
 
-    # This is the main graph
-    output$streaks <- plotly::renderPlotly({
-      plot_lines(
-        highlight_data(),
-        intensity_level_range,
-        max_rank(),
-        input$streak_type == "COLD"
-      )
-    })
+    # Main plot
+    output$streaks <- plotly::renderPlotly(main_plot())
 
     # Data tables.
     # For each of these, we do an initial render with a dummy table, and then
