@@ -10,45 +10,6 @@ sql_get_intensity_level_range <- function() {
   c(result$min_level, result$max_level)
 }
 
-# TODO make this cleaner
-sql_get_lines <- function(min_year, max_year, teams, hot, max_rank) {
-  table <- ifelse(hot, "hot_streaks_lines", "cold_streaks_lines")
-  query_template <- (
-    "
-    SELECT DISTINCT LineId AS LineId FROM {`table`} WHERE
-      Year >= {min_year} AND
-      Year <= {max_year} AND
-      Team IN ({teams*}) AND
-      `Rank` <= {max_rank}
-  "
-  )
-  query <- glue::glue_sql(
-    query_template,
-    table = table,
-    min_year = min_year,
-    max_year = max_year,
-    teams = teams,
-    max_rank = max_rank,
-    .con = se_pool
-  )
-  line_ids <- DBI::dbGetQuery(se_pool, query) %>% dplyr::pull(LineId)
-
-  query_template <- ("
-    SELECT * FROM {`table`} WHERE
-      LineId in ({line_ids*})
-  ")
-  query <- glue::glue_sql(
-    query_template,
-    table = table,
-    line_ids = line_ids,
-    .con = se_pool
-  )
-  lines <- DBI::dbGetQuery(se_pool, query)
-  lines %>% dplyr::filter(Rank <= max_rank) %>% dplyr::count(LineId) %>%
-    dplyr::filter(n>1) %>% dplyr::select(LineId) %>%
-    dplyr::left_join(lines, by="LineId")
-}
-
 sql_get_streak_game_log <- function(streak) {
   query_template <- (
     "
@@ -112,6 +73,14 @@ sql_load_hot_streaks <- function() {
 
 sql_load_cold_streaks <- function() {
   dplyr::tbl(se_pool, "cold_streaks")
+}
+
+sql_load_hot_streaks_lines <- function() {
+  dplyr::tbl(se_pool, "hot_streaks_lines")
+}
+
+sql_load_cold_streaks_lines <- function() {
+  dplyr::tbl(se_pool, "cold_streaks_lines")
 }
 
 sql_load_hot_streaks_lines_to_streaks <- function() {

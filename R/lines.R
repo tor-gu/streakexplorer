@@ -69,12 +69,26 @@ lines_remove_branch_descenders <- function(lines, max_rank, hot) {
     )
 }
 
-lines_build_lines <- function(years, teams, franchises, max_rank, hot) {
+lines_build_lines <- function(lzy_lines, years, teams, franchises, max_rank, hot) {
   team_ids <- franchises_franchise_ids_to_team_ids(
     franchises, teams, years)
-  sql_get_lines(years[[1]], years[[2]], team_ids, hot, max_rank) %>%
+  min_year <- years[[1]]
+  max_year <- years[[2]]
+  lzy_lines %>%
+    # Initial filter by years, teams, and ranks
+    dplyr::filter(between(Year, min_year, max_year),
+                  Team %in% teams, Rank <= max_rank) %>%
+    # Now filter out lines that have only a single node above the cutoff
+    dplyr::count(LineId) %>%
+    dplyr::filter(n>1) %>%
+    # Now add back in the whole lines for what remains
+    dplyr::select(LineId) %>%
+    dplyr::left_join(lzy_lines, by="LineId") %>%
+    dplyr::collect() %>%
+    # Remove any "descenders"
     lines_remove_branch_descenders(max_rank, hot)
 }
+
 
 lines_get_selected_streak <- function(lzy_lines_to_streaks, lzy_streaks,
                                       lzy_game_logs, line_id) {
@@ -100,3 +114,4 @@ lines_get_selected_streak <- function(lzy_lines_to_streaks, lzy_streaks,
       dplyr::select(Year, Team, LoIndex, HiIndex, StartDate, EndDate)
   }
 }
+

@@ -197,6 +197,13 @@ streakexplorerApp <- function(my_pool, ...) {
       }
     })
 
+    lzy_lines <- reactive({
+      if (hot()) {
+        sql_load_hot_streaks_lines()
+      } else {
+        sql_load_cold_streaks_lines()
+      }
+    })
     concordances <- reactive({
       if (hot()) {
         sql_load_hot_streaks_concordances()
@@ -247,7 +254,7 @@ streakexplorerApp <- function(my_pool, ...) {
 
     lines <- reactive({
       req(input$teams, max_rank())
-      lines_build_lines(years(), input$teams, lzy_franchises,
+      lines_build_lines(lzy_lines(), years(), input$teams, franchises,
                         max_rank(), hot())
     })
 
