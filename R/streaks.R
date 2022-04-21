@@ -225,3 +225,14 @@ streaks_get_max_rank <- function(min_year, max_year, teams, hot) {
                                      teams, 1:4 * 20, 4/3)
   }
 }
+
+streaks_get_intensity_range <- function(lzy_streaks, year) {
+  lzy_streaks %>%
+    dplyr::filter(Year==year) %>%
+    dplyr::distinct(IntensityLevel) %>%
+    dplyr::collect() %>%
+    dplyr::summarize(min_level=min(IntensityLevel),
+                     max_level=max(IntensityLevel)) %>%
+    purrr::transpose() %>%
+    unlist()
+}

@@ -1,15 +1,3 @@
-sql_get_intensity_level_range <- function() {
-  query <- ("
-    SELECT MAX(IntensityLevel) as max_level,
-           MIN(IntensityLevel) as min_level
-    FROM hot_streaks
-    WHERE Year = 1948
-  ")
-
-  result <- DBI::dbGetQuery(se_pool, query)
-  c(result$min_level, result$max_level)
-}
-
 sql_get_streak_game_log <- function(streak) {
   query_template <- (
     "
