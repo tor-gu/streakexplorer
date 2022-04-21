@@ -2,7 +2,7 @@ lines_get_related_lines <- function(line_id, lines_to_streaks, concordances) {
   related_streak_ids <- lines_to_streaks %>%
     dplyr::filter(LineId == line_id) %>%
     dplyr::pull(StreakId) %>%
-    purrr::map(streak_get_related_streak_ids, concordances) %>%
+    purrr::map(streaks_get_realted_streak_id, concordances) %>%
     unlist(recursive = FALSE) %>%
     unique()
   lines_to_streaks %>%

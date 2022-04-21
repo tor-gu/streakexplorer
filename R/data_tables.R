@@ -88,10 +88,10 @@ DT_standings_update <- function(proxy, streak_info, standings) {
   )
 }
 
-DT_streak_summary_update <- function(proxy, streak_summary_data) {
+DT_streak_summary_update <- function(proxy, streaks_summary_data) {
   DT::replaceData(
     proxy,
-    streak_summary_data,
+    streaks_summary_data,
     resetPaging = FALSE,
     rownames = FALSE
   )

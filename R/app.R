@@ -232,9 +232,9 @@ streakexplorerApp <- function(my_pool, ...) {
       list("AL_None", "NL_None") %>%
         ui_division_choice_values_as_league_and_division_list()
     )
-    selected_streak_summary_data <- reactive({
+    selected_streaks_summary_data <- reactive({
       req(selected_streak())
-      streak_summary_data(selected_streak(), lzy_game_logs, lzy_franchises)
+      streaks_summary_data(selected_streak(), lzy_game_logs, lzy_franchises)
     })
 
     divisions_choices <- reactive({
@@ -268,7 +268,7 @@ streakexplorerApp <- function(my_pool, ...) {
     })
 
     selected_streak_standings <- reactive({
-      streak_get_standings(lzy_standings, lzy_game_logs, selected_streak(),
+      streaks_get_standings(lzy_standings, lzy_game_logs, selected_streak(),
                            lzy_franchises)
     })
 
@@ -392,14 +392,14 @@ streakexplorerApp <- function(my_pool, ...) {
         selected_streak_standings()$standings_final
       )
 
-      game_log <- streak_game_log_data(lzy_game_logs, selected_streak())
+      game_log <- streaks_game_log_data(lzy_game_logs, selected_streak())
       DT_game_log_update(game_log_proxy, game_log$data)
       DT_streak_summary_update(
         streak_summary_proxy,
-        selected_streak_summary_data()$data
+        selected_streaks_summary_data()$data
       )
       output$streak_summary_caption <- renderText(
-        selected_streak_summary_data()$caption)
+        selected_streaks_summary_data()$caption)
     })
 
     ## Proxies ----
