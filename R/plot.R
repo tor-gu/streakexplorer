@@ -150,7 +150,7 @@ build_standings_graph <- function(lzy_franchises, lzy_standings, streak) {
     lzy_franchises, streak$Team, streak$Year)
   standings <- lzy_standings %>%
     dplyr::filter(Year==local(streak$Year)) %>%
-    dplyr::right_join(division_teams$division,
+    dplyr::right_join(division_teams$lzy_division,
                       by=c("League","Division","Year"),
                       na_matches="na") %>%
     dplyr::collect() %>%

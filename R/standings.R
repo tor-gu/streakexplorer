@@ -56,32 +56,33 @@ standings_get_same_day_team_games <- function(game_logs, season_game_id,
   }
 }
 
-standings_get_by_season_game_id <- function(standings,
-                                              division,
-                                              game_logs,
-                                              season_game_id,
-                                              before = TRUE) {
-  division_standings <-
-    standings %>% dplyr::right_join(division$division,
+standings_get_by_season_game_id <- function(lzy_standings,
+                                            division,
+                                            lzy_game_logs,
+                                            season_game_id,
+                                            before = TRUE) {
+  lzy_division_standings <-
+    lzy_standings %>% dplyr::right_join(division$lzy_division,
                                     by=c("Year", "League", "Division"),
                                     na_matches="na")
-  games <- game_logs %>% dplyr::filter(SeasonGameId == season_game_id) %>%
-    dplyr::as_tibble()
+  games <- lzy_game_logs %>%
+    dplyr::filter(SeasonGameId == season_game_id) %>%
+    dplyr::collect()
   date <- games$Date[[1]]
   year <- games$Year[[1]]
   if (before) {
     # include all games before the date, plus any games this team
     # has played earlier in the day
     date_before <- lubridate::ymd(date) - 1
-    earlier_games <- game_logs %>%
+    lzy_earlier_games <- lzy_game_logs %>%
       standings_get_same_day_team_games(season_game_id, .before = TRUE)
-    division_standings %>% dplyr::filter(Date == date_before) %>%
-      standings_update_from_game_logs(earlier_games)
+    lzy_division_standings %>% dplyr::filter(Date == date_before) %>%
+      standings_update_from_game_logs(lzy_earlier_games)
   } else {
     # Was this both teams' last game of the day or not?
-    later_games <- game_logs %>%
+    lzy_later_games <- lzy_game_logs %>%
       standings_get_same_day_team_games(season_game_id, .before = FALSE)
-    if (later_games %>% dplyr::as_tibble() %>% nrow() > 0) {
+    if (lzy_later_games %>% dplyr::collect() %>% nrow() > 0) {
       # This is not the last game of the day -- only include
       # games played before this date, the current game, and
       # any games this team played earlier in the day.
@@ -89,14 +90,17 @@ standings_get_by_season_game_id <- function(standings,
       # are *three* games in a day and we have picked the middle game. There
       # are no examples of this in the db.)
       date_before <- lubridate::ymd(date) - 1
-      earlier_games <- game_logs %>%
+      lzy_earlier_games <- lzy_game_logs %>%
         standings_get_same_day_team_games(season_game_id, .before = TRUE)
-      division_standings %>% dplyr::filter(Date == date_before) %>%
+      lzy_division_standings %>%
+        dplyr::filter(Date == date_before) %>%
         standings_update_from_game_logs(games) %>%
-        standings_update_from_game_logs(earlier_games)
+        standings_update_from_game_logs(lzy_earlier_games)
     } else {
       # This is the last game of the day -- include the whole day
-      division_standings %>% dplyr::filter(Date == date)
+      lzy_division_standings %>%
+        dplyr::filter(Date == date) %>%
+        dplyr::collect()
     }
   }
 }
