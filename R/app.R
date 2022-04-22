@@ -170,46 +170,12 @@ streakexplorerApp <- function(my_pool, ...) {
   # Server ----
   server <- function(input, output, session) {
     #bslib::bs_themer()
-    lzy_franchises <- sql_load_franchises()
-    lzy_standings <- sql_load_standings()
-    lzy_game_logs <- sql_load_game_logs()
-    franchises <- lzy_franchises %>% dplyr::collect()
+    franchises <- sql_load_franchises() %>% dplyr::collect()
     intensity_level_range <- streaks_get_intensity_range(sql_load_hot_streaks(), 1948)
 
     ## Reactives and reactive values ----
     hot <- reactive({
       input$streak_type == "HOT"
-    })
-
-    lzy_lines_to_streaks <- reactive({
-      if (hot()) {
-        sql_load_hot_streaks_lines_to_streaks()
-      } else {
-        sql_load_cold_streaks_lines_to_streaks()
-      }
-    })
-
-    lzy_streaks <- reactive({
-      if (hot()) {
-        sql_load_hot_streaks()
-      } else {
-        sql_load_cold_streaks()
-      }
-    })
-
-    lzy_lines <- reactive({
-      if (hot()) {
-        sql_load_hot_streaks_lines()
-      } else {
-        sql_load_cold_streaks_lines()
-      }
-    })
-    lzy_concordances <- reactive({
-      if (hot()) {
-        sql_load_hot_streaks_concordances()
-      } else {
-        sql_load_cold_streaks_concordances()
-      }
     })
 
     years <- reactive({
@@ -233,7 +199,7 @@ streakexplorerApp <- function(my_pool, ...) {
     )
     selected_streaks_summary_data <- reactive({
       req(selected_streak())
-      streaks_summary_data(selected_streak(), lzy_game_logs, lzy_franchises)
+      server_streak_summary_data(selected_streak())
     })
 
     divisions_choices <- reactive({
@@ -254,28 +220,19 @@ streakexplorerApp <- function(my_pool, ...) {
 
     lines <- reactive({
       req(input$teams, max_rank())
-      lines_build_lines(lzy_lines(), years(), input$teams, franchises,
-                        max_rank(), hot())
+      server_build_lines(years(), input$teams, franchises, max_rank(), hot())
     })
 
     selected_streak <- reactive({
-      lines_get_selected_streak(
-        lzy_lines_to_streaks(),
-        lzy_streaks(),
-        lzy_game_logs,
-        selected_line_id())
+      server_get_selected_streak(selected_line_id(), hot())
     })
 
     selected_streak_standings <- reactive({
-      streaks_get_standings(lzy_standings, lzy_game_logs, selected_streak(),
-                           lzy_franchises)
+      server_get_streak_standings(selected_streak())
     })
 
     highlight_data <- reactive({
-      lines_highlight(lines(),
-                      lzy_concordances(),
-                      lzy_lines_to_streaks(),
-                      selected_line_id())
+      server_lines_highlight(lines(), selected_line_id(), hot())
     })
 
     # This is the main graph
@@ -407,7 +364,7 @@ streakexplorerApp <- function(my_pool, ...) {
         selected_streak_standings()$standings_final
       )
 
-      game_log <- streaks_game_log_data(lzy_game_logs, selected_streak())
+      game_log <- server_get_streak_game_logs(selected_streak())
       DT_game_log_update(game_log_proxy, game_log$data)
       DT_streak_summary_update(
         streak_summary_proxy,
@@ -457,7 +414,7 @@ streakexplorerApp <- function(my_pool, ...) {
     # Standings graph
     output$standings_graph <- renderPlot({
       req(selected_streak())
-      build_standings_graph(lzy_franchises, lzy_standings, selected_streak())
+      server_build_streak_standings_graph(selected_streak())
     })
 
   }
