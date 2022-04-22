@@ -1,8 +1,5 @@
 lines_get_related_lines <- function(line_id, lzy_lines_to_streaks,
                                     lzy_concordances) {
-  fname <- "lines_get_related_lines"
-  start_time <- Sys.time()
-  on.exit(message(paste(fname, Sys.time() - start_time)))
   related_streak_ids <- lzy_lines_to_streaks %>%
     dplyr::filter(LineId == line_id) %>%
     dplyr::pull(StreakId) %>%
@@ -17,9 +14,6 @@ lines_get_related_lines <- function(line_id, lzy_lines_to_streaks,
 
 lines_highlight <- function(lines, lzy_concordances, lzy_lines_to_streaks,
                             id = NULL) {
-  fname <- "lines_highlight"
-  start_time <- Sys.time()
-  on.exit(message(paste(fname, Sys.time() - start_time)))
   result <- lines %>%
     dplyr::mutate(
       line_colored = 1,
@@ -61,9 +55,6 @@ lines_highlight <- function(lines, lzy_concordances, lzy_lines_to_streaks,
 }
 
 lines_remove_branch_descenders <- function(lines, max_rank, hot) {
-  fname <- "lines_remove_branch_descenders"
-  start_time <- Sys.time()
-  on.exit(message(paste(fname, Sys.time() - start_time)))
   if (hot) {
     lines <- lines %>%
       dplyr::arrange(LineId, IntensityLevel)
@@ -80,9 +71,6 @@ lines_remove_branch_descenders <- function(lines, max_rank, hot) {
 }
 
 lines_build_lines <- function(lzy_lines, years, teams, franchises, max_rank, hot) {
-  fname <- "lines_build_lines"
-  start_time <- Sys.time()
-  on.exit(message(paste(fname, Sys.time() - start_time)))
   team_ids <- franchises_franchise_ids_to_team_ids(
     franchises, teams, years)
   min_year <- years[[1]]
@@ -105,9 +93,6 @@ lines_build_lines <- function(lzy_lines, years, teams, franchises, max_rank, hot
 
 lines_get_selected_streak <- function(lzy_lines_to_streaks, lzy_streaks,
                                       lzy_game_logs, line_id) {
-  fname <- "lines_get_selected_streak"
-  start_time <- Sys.time()
-  on.exit(message(paste(fname, Sys.time() - start_time)))
   if (is.null(line_id)) {
     NULL
   } else {
@@ -120,7 +105,6 @@ lines_get_selected_streak <- function(lzy_lines_to_streaks, lzy_streaks,
                        by=c("Year","Team","LoIndex"="GameIndex")) %>%
       dplyr::left_join(lzy_game_logs,
                        by=c("Year","Team","HiIndex"="GameIndex")) %>%
-      dplyr::show_query() %>%
       dplyr::collect() %>%
       dplyr::mutate(StartDate = lubridate::as_date(Date.x)) %>%
       dplyr::mutate(EndDate = lubridate::as_date(Date.y)) %>%
