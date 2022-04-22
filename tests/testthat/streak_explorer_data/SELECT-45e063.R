@@ -1,0 +1,3 @@
+structure(list(Outer = c(0x1.3p+5, 0x1.38p+5, 0x1.4p+5, 0x1.5p+5, 
+0x1.8p+5, 0x1.a8p+5, 0x1.04p+6, 0x1.1p+6, 0x1.24p+6)), row.names = c(NA, 
+-9L), class = "data.frame")

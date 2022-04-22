@@ -64,7 +64,7 @@ streaks_game_log_data <- function(lzy_game_logs, streak) {
     dplyr::select(`Gm#`:Completion) %>%
     dplyr::rename(Date=Dat)
 
-  result <- list(
+  list(
     data = game_log_data,
     caption = "Game Log"
   )
