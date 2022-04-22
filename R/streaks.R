@@ -5,11 +5,11 @@ pct_formatter <- function(pct) {
   )
 }
 
-streaks_get_related_streak_id <- function(streak_id, concordances) {
-  inner <- concordances %>%
+streaks_get_related_streak_ids <- function(streak_id, lzy_concordances) {
+  inner <- lzy_concordances %>%
     dplyr::filter(Inner == streak_id) %>%
     dplyr::pull(Outer)
-  outer <- concordances %>%
+  outer <- lzy_concordances %>%
     dplyr::filter(Outer == streak_id) %>%
     dplyr::pull(Inner)
   c(inner, outer) %>% unique()
