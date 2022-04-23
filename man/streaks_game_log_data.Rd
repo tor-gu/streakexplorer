@@ -7,10 +7,12 @@
 streaks_game_log_data(lzy_game_logs, streak)
 }
 \arguments{
-\item{streak}{}
+\item{lzy_game_logs}{Lazy game logs}
+
+\item{streak}{streak}
 }
 \value{
-
+list with \code{data} and \code{caption}
 }
 \description{
 Given a streak -- a list with fields Year, Team, LoIndex and HiIndex --

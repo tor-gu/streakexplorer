@@ -39,11 +39,12 @@ streaks_get_related_streak_ids <- function(streak_id, lzy_concordances) {
 #' return a list with with elements, return a list with two elements: `caption`
 #' which contains a string like "Game Log", and `data`, which is a table
 #' suitable for displaying as a game log
-#' @param lzy_game_logs
-#' @param streak
+#' @param lzy_game_logs Lazy game logs
+#' @param streak streak
 #'
-#' @return
+#' @return list with `data` and `caption`
 streaks_game_log_data <- function(lzy_game_logs, streak) {
+  # Templates to use when computing the summary data
   date_template <- "{lubridate::month(Date)}/{lubridate::mday(Date)}"
   completed_on_template <-
     paste0(
@@ -57,6 +58,7 @@ streaks_game_log_data <- function(lzy_game_logs, streak) {
       "{lubridate::month(CompletionOf)}/{lubridate::mday(CompletionOf)}"
     )
 
+  # Get the game logs and compute summary data
   game_log_data <- streaks_get_game_log(lzy_game_logs, streak) %>%
     dplyr::mutate(
       GameResult = dplyr::case_when(
@@ -86,13 +88,28 @@ streaks_game_log_data <- function(lzy_game_logs, streak) {
     dplyr::select(`Gm#`:Completion) %>%
     dplyr::rename(Date=Dat)
 
+  # Assemble the result
   list(
     data = game_log_data,
     caption = "Game Log"
   )
 }
 
+#' streaks_summary_data
+#'
+#' Build streak summary data from a streak.  The will be two data elements
+#' to the return values:  `data` will be a single-row summary table suitable
+#' for displaying, and `caption` will contain a string like
+#' "2004 Cincinnati Reds, Games 100-104"
+#'
+#' @param lzy_game_logs Lazy game logs table
+#' @param lzy_franchises Lazy franchise table
+#' @param streak streak
+#'
+#' @return list with `data` and `caption`
 streaks_summary_data <- function(lzy_game_logs, lzy_franchises, streak) {
+  # Get the game logs and compute some summary data.  This is not yet
+  # the result we want to return.
   summary_data <-
     streaks_get_game_log(lzy_game_logs, streak) %>%
     dplyr::summarise(
@@ -116,6 +133,7 @@ streaks_summary_data <- function(lzy_game_logs, lzy_franchises, streak) {
       AwayGames       = sum(AtHome == FALSE)
     )
 
+  # Look up this team's season in the franchises table.
   franchise_season <- franchises_by_season_lzy(
     lzy_franchises,
     summary_data$Year
@@ -123,6 +141,7 @@ streaks_summary_data <- function(lzy_game_logs, lzy_franchises, streak) {
     dplyr::filter(TeamID == local(summary_data$Team)) %>%
     dplyr::collect()
 
+  # Now compute the displayable summary
   data <-
     summary_data %>%
     dplyr::mutate(
@@ -138,12 +157,15 @@ streaks_summary_data <- function(lzy_game_logs, lzy_franchises, streak) {
     ) %>%
     dplyr::select(Dates:`Pyth%`)
 
+  # Build the caption
   caption_pattern <- paste0(
     "{summary_data$Year} ",
     "{franchise_season$Location} {franchise_season$Nickname}, ",
     "Games {summary_data$FirstGameNumber}-{summary_data$LastGameNumber}"
   )
   caption <- glue::glue(caption_pattern)
+
+  # Assemble the result
   list(data = data, caption = caption)
 }
 

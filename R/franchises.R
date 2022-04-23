@@ -1,3 +1,4 @@
+# TODO converting these to use a non-lazy table.
 franchises_by_season_lzy <- function(lzy_franchises, year) {
   lzy_franchises %>% dplyr::filter(FirstSeason <= year &
     (FinalSeason >= year | is.na(FinalSeason)))
