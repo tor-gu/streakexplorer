@@ -54,3 +54,27 @@ test_that("streaks_game_log_data works with 'completions'", {
   expect_equal(actual$data, expected_data)
 })
 
+
+test_that("streaks_summary_data works with 'completions'", {
+  with_mock_db({
+    mock_conn <- suppressWarnings(
+      dbConnect(RMySQL::MySQL(), dbname="streak_explorer_data")
+    )
+    lzy_game_logs <- dplyr::tbl(mock_conn, "game_logs")
+    lzy_franchises <- dplyr::tbl(mock_conn, "franchises")
+    streak <- list(Year=2004, Team="CIN", LoIndex=100, HiIndex=105)
+    actual <- streaks_summary_data(lzy_game_logs, lzy_franchises, streak)
+    dbDisconnect(mock_conn)
+  })
+  expected_caption <- "2004 Cincinnati Reds, Games 100-104"
+  expected_data <- tibble::tibble(
+    Dates="7/26 - 7/31",
+    Record="1-4",
+    `W-L%`=".200",
+    RS=19,
+    RA=36,
+    `Pyth%`=".218"
+  )
+  expect_equal(actual$caption, expected_caption)
+  expect_equal(actual$data, expected_data)
+})

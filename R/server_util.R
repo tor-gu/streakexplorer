@@ -33,7 +33,7 @@ lzy_concordances <- function(hot) {
 server_streak_summary_data <- function(selected_streak) {
   lzy_franchises <- sql_load_franchises()
   lzy_game_logs <- sql_load_game_logs()
-  streaks_summary_data(selected_streak, lzy_game_logs, lzy_franchises)
+  streaks_summary_data(lzy_game_logs, lzy_franchises, selected_streak)
 }
 
 server_build_lines <- function(years, teams, franchises, max_rank, hot) {
@@ -61,8 +61,8 @@ server_get_streak_standings <- function(selected_streak) {
   lzy_franchises <- sql_load_franchises()
   lzy_game_logs <- sql_load_game_logs()
 
-  streaks_get_standings(lzy_standings, lzy_game_logs, selected_streak,
-                        lzy_franchises)
+  streaks_get_standings(lzy_standings, lzy_game_logs, lzy_franchises,
+                        selected_streak)
 }
 
 server_get_streak_game_logs <- function(selected_streak) {

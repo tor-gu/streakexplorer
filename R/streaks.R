@@ -1,3 +1,12 @@
+#' pct_formatter
+#'
+#' Formats winning percentages as a string with three digits after the
+#' the decimal point and no leading zero, e.g. ".542".
+#' Will return "1.000" for a perfect record.
+#'
+#' @param pct Number to format
+#'
+#' @return Formatted winning percentage.
 pct_formatter <- function(pct) {
   ifelse(pct < 1,
          paste0(".", sprintf("%03d", round(1000 * pct))),
@@ -5,6 +14,15 @@ pct_formatter <- function(pct) {
   )
 }
 
+#' streaks_get_related_streak_ids
+#'
+#' Given a streak ID, returns all related streaks in the concordance table --
+#' both super-streaks and sub-streaks -- including the streak itself.
+#'
+#' @param streak_id  Streak ID
+#' @param lzy_concordances Lazy conconcrdance table
+#'
+#' @return vector of related streak IDs.
 streaks_get_related_streak_ids <- function(streak_id, lzy_concordances) {
   inner <- lzy_concordances %>%
     dplyr::filter(Inner == streak_id) %>%
@@ -15,6 +33,16 @@ streaks_get_related_streak_ids <- function(streak_id, lzy_concordances) {
   c(inner, outer) %>% unique()
 }
 
+#' streaks_game_log_data
+#'
+#' Given a streak -- a list with fields Year, Team, LoIndex and HiIndex --
+#' return a list with with elements, return a list with two elements: `caption`
+#' which contains a string like "Game Log", and `data`, which is a table
+#' suitable for displaying as a game log
+#' @param lzy_game_logs
+#' @param streak
+#'
+#' @return
 streaks_game_log_data <- function(lzy_game_logs, streak) {
   date_template <- "{lubridate::month(Date)}/{lubridate::mday(Date)}"
   completed_on_template <-
@@ -47,12 +75,6 @@ streaks_game_log_data <- function(lzy_game_logs, streak) {
       RA = RunsAgainst,
       Completion = NA
     ) %>%
-    #dplyr::mutate(Completion = dplyr::case_when(
-    #  !is.na(CompletedOn) ~ glue::glue(completed_on_template),
-    #  !is.na(CompletionOf) ~ glue::glue(completion_of_template),
-    #  TRUE ~ Completion
-    #)) %>%
-    # TODO delete
     dplyr::mutate(Completion = ifelse(!is.na(CompletedOn),
       glue::glue(completed_on_template),
       Completion
@@ -70,7 +92,7 @@ streaks_game_log_data <- function(lzy_game_logs, streak) {
   )
 }
 
-streaks_summary_data <- function(streak, lzy_game_logs, lzy_franchises) {
+streaks_summary_data <- function(lzy_game_logs, lzy_franchises, streak) {
   summary_data <-
     streaks_get_game_log(lzy_game_logs, streak) %>%
     dplyr::summarise(
@@ -125,8 +147,8 @@ streaks_summary_data <- function(streak, lzy_game_logs, lzy_franchises) {
   list(data = data, caption = caption)
 }
 
-streaks_get_standings <- function(lzy_standings, lzy_game_logs, streak,
-                                  lzy_franchises) {
+streaks_get_standings <- function(lzy_standings, lzy_game_logs,
+                                  lzy_franchises, streak) {
   division <- lzy_franchises %>%
     franchises_get_division_by_team_year_lzy(streak$Team, streak$Year)
   division_teams <- division$lzy_teams %>% dplyr::pull(TeamID)
