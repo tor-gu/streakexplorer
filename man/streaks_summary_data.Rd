@@ -4,12 +4,12 @@
 \alias{streaks_summary_data}
 \title{streaks_summary_data}
 \usage{
-streaks_summary_data(lzy_game_logs, lzy_franchises, streak)
+streaks_summary_data(lzy_game_logs, franchises, streak)
 }
 \arguments{
 \item{lzy_game_logs}{Lazy game logs table}
 
-\item{lzy_franchises}{Lazy franchise table}
+\item{franchises}{franchise table}
 
 \item{streak}{streak}
 }

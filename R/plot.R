@@ -145,16 +145,26 @@ plot_standings_graph <- function(standings, team, start_date, end_date) {
     ggplot2::scale_y_continuous(breaks=0, limits=c(y_min,y_max))
 }
 
-build_standings_graph <- function(lzy_franchises, lzy_standings, streak) {
-  division_teams <- franchises_get_division_by_team_year_lzy(
-    lzy_franchises, streak$Team, streak$Year)
-  standings <- lzy_standings %>%
-    dplyr::filter(Year==local(streak$Year)) %>%
-    dplyr::right_join(division_teams$lzy_division,
-                      by=c("League","Division","Year"),
-                      na_matches="na") %>%
-    dplyr::collect() %>%
-    dplyr::mutate(Date=lubridate::ymd(Date))
+build_standings_graph <- function(lzy_standings, franchises, streak) {
+  division_teams <- franchises_get_division_by_team_year(
+    franchises, streak$Team, streak$Year)
+  # TODO simplify this if/then
+  if (is.na(division_teams$division$Division)) {
+    standings <- lzy_standings %>%
+      dplyr::filter(Year == local(streak$Year),
+                    League == local(division_teams$division$League)) %>%
+      dplyr::collect() %>%
+      dplyr::mutate(Date = lubridate::ymd(Date))
+  } else{
+    standings <- lzy_standings %>%
+      dplyr::filter(
+        Year == local(streak$Year),
+        League == local(division_teams$division$League),
+        Division == local(division_teams$division$Division)
+      ) %>%
+      dplyr::collect() %>%
+      dplyr::mutate(Date = lubridate::ymd(Date))
+  }
   plot_standings_graph(standings, streak$Team, streak$StartDate,
                        streak$EndDate)
 }

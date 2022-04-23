@@ -1,4 +1,4 @@
-test_that("franchises_by_season_lzy handles basic scenarios", {
+test_that("franchises_by_season handles basic scenarios", {
   franchises <- tibble::tribble(
     ~Id, ~FirstSeason, ~FinalSeason,
     1,   0,            1,
@@ -12,12 +12,12 @@ test_that("franchises_by_season_lzy handles basic scenarios", {
     0,  100,           NA
   )
 
-  actual <- franchises_by_season_lzy(franchises, 37)
+  actual <- franchises_by_season(franchises, 37)
   expected <- franchises[c(2, 3, 4, 5, 6, 7), ]
   expect_equal(actual, expected)
 })
 
-test_that("franchises_get_division_by_team_year_lzy handles division", {
+test_that("franchises_get_division_by_team_year handles division", {
   franchises <- tibble::tribble(
     ~TeamID, ~League, ~Division, ~Location, ~Nickname, ~FirstSeason, ~FinalSeason,
     "AA1",   "AL",    "EAST",    "AA1 Loc", "AA1 Team", 1,           100,
@@ -29,10 +29,10 @@ test_that("franchises_get_division_by_team_year_lzy handles division", {
     "BB5",   "AL",    "EAST",    "BB5 Loc", "BB5 Team", 1,           36,
     "BB6",   "AL",    "EAST",    "BB6 Loc", "BB6 Team", 38,          100,
   )
-  actual <- franchises_get_division_by_team_year_lzy(franchises, "AA1", 37)
+  actual <- franchises_get_division_by_team_year(franchises, "AA1", 37)
   expected <- list(
-    lzy_division=tibble::tibble(League="AL", Division="EAST", Year=37 ),
-    lzy_teams=tibble::tribble(
+    division=tibble::tibble(League="AL", Division="EAST", Year=37 ),
+    teams=tibble::tribble(
       ~TeamID, ~Location, ~Nickname,
       "AA1",   "AA1 Loc", "AA1 Team",
       "AA2",   "AA2 Loc", "AA2 Team",
@@ -42,7 +42,7 @@ test_that("franchises_get_division_by_team_year_lzy handles division", {
 })
 
 
-test_that("franchises_get_division_by_team_year_lzy handles NA division", {
+test_that("franchises_get_division_by_team_year handles NA division", {
   franchises <- tibble::tribble(
     ~TeamID, ~League, ~Division, ~Location, ~Nickname, ~FirstSeason, ~FinalSeason,
     "AA1",   "AL",    NA,        "AA1 Loc", "AA1 Team", 1,           100,
@@ -54,10 +54,10 @@ test_that("franchises_get_division_by_team_year_lzy handles NA division", {
     "BB5",   "AL",    "EAST",    "BB5 Loc", "BB5 Team", 1,           36,
     "BB6",   "AL",    "EAST",    "BB6 Loc", "BB6 Team", 38,          100,
   )
-  actual <- franchises_get_division_by_team_year_lzy(franchises, "AA1", 37)
+  actual <- franchises_get_division_by_team_year(franchises, "AA1", 37)
   expected <- list(
-    lzy_division=tibble::tibble(League="AL", Division=NA_character_, Year=37 ),
-    lzy_teams=tibble::tribble(
+    division=tibble::tibble(League="AL", Division=NA_character_, Year=37 ),
+    teams=tibble::tribble(
       ~TeamID, ~Location, ~Nickname,
       "AA1",   "AA1 Loc", "AA1 Team",
       "AA2",   "AA2 Loc", "AA2 Team",

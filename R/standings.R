@@ -50,10 +50,17 @@ standings_get_by_season_game_id <- function(lzy_standings,
                                             lzy_game_logs,
                                             season_game_id,
                                             before = TRUE) {
-  lzy_division_standings <- lzy_standings %>%
-    dplyr::right_join(division$lzy_division,
-                      by=c("Year", "League", "Division"),
-                      na_matches="na")
+  # TODO simplify this if/then
+  if (is.na(division$division$Division)) {
+    lzy_division_standings <- lzy_standings %>%
+      dplyr::filter(Year==local(division$division$Year),
+                    League==local(division$division$League))
+  } else {
+    lzy_division_standings <- lzy_standings %>%
+      dplyr::filter(Year==local(division$division$Year),
+                    League==local(division$division$League),
+                    Division==local(division$division$Division))
+  }
   games <- lzy_game_logs %>%
     dplyr::filter(SeasonGameId == season_game_id) %>%
     dplyr::collect()

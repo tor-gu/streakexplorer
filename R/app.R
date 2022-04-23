@@ -199,7 +199,7 @@ streakexplorerApp <- function(my_pool, ...) {
     )
     selected_streaks_summary_data <- reactive({
       req(selected_streak())
-      server_streak_summary_data(selected_streak())
+      server_streak_summary_data(franchises, selected_streak())
     })
 
     divisions_choices <- reactive({
@@ -228,7 +228,7 @@ streakexplorerApp <- function(my_pool, ...) {
     })
 
     selected_streak_standings <- reactive({
-      server_get_streak_standings(selected_streak())
+      server_get_streak_standings(franchises, selected_streak())
     })
 
     highlight_data <- reactive({
@@ -414,7 +414,7 @@ streakexplorerApp <- function(my_pool, ...) {
     # Standings graph
     output$standings_graph <- renderPlot({
       req(selected_streak())
-      server_build_streak_standings_graph(selected_streak())
+      server_build_streak_standings_graph(franchises, selected_streak())
     })
 
   }

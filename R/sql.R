@@ -1,3 +1,5 @@
+# TODO delete this entire file, I think
+
 sql_load_franchises <- function() {
   dplyr::tbl(se_pool, "franchises")
 }

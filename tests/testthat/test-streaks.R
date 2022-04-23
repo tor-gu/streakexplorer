@@ -61,9 +61,9 @@ test_that("streaks_summary_data works with 'completions'", {
       dbConnect(RMySQL::MySQL(), dbname="streak_explorer_data")
     )
     lzy_game_logs <- dplyr::tbl(mock_conn, "game_logs")
-    lzy_franchises <- dplyr::tbl(mock_conn, "franchises")
+    franchises <- dplyr::tbl(mock_conn, "franchises") %>% dplyr::collect()
     streak <- list(Year=2004, Team="CIN", LoIndex=100, HiIndex=105)
-    actual <- streaks_summary_data(lzy_game_logs, lzy_franchises, streak)
+    actual <- streaks_summary_data(lzy_game_logs, franchises, streak)
     dbDisconnect(mock_conn)
   })
   expected_caption <- "2004 Cincinnati Reds, Games 100-104"
