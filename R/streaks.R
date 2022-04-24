@@ -248,19 +248,16 @@ streaks_get_standings <- function(lzy_standings, lzy_game_logs,
 
 #' streaks_get_max_rank_simple
 #'
-#' Given a year range and a list of teams, find the maximum of the
-#' nth highest rank over all intensity levels.
+#' Given a year range and a list of teams and a value n, find the maximum
+#  of the nth highest rank over all intensity levels.
 #'
-#' @param lzy_streaks
-#' @param n
-#' @param min_year
-#' @param max_year
-#' @param teams
+#' @param lzy_streaks Lazy streaks table
+#' @param n Function will maximize value of `n`th highest rank
+#' @param min_year Minimun year for filter
+#' @param max_year Maximum year for filter
+#' @param teams Vector of team IDs for filter.
 #'
-#' @return
-#' @export
-#'
-#' @examples
+#' @return Maximum value
 streaks_get_max_rank_simple <- function(lzy_streaks, n, min_year, max_year,
                                         teams) {
   lzy_streaks %>%

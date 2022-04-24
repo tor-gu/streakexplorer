@@ -134,3 +134,19 @@ test_that("streaks_get_standings works with 'completions'", {
   expect_equal(actual$standings_after,  expected_standings_after)
   expect_equal(actual$standings_final,  expected_standings_final)
 })
+
+test_that("streaks_get_max_rank_simple basic test", {
+  with_mock_db({
+    mock_conn <- suppressWarnings(
+      dbConnect(RMySQL::MySQL(), dbname="streak_explorer_data")
+    )
+    lzy_streaks <- dplyr::tbl(mock_conn, "hot_streaks")
+    teams <- c("BOS","CIN")
+    min_year <- 1948
+    max_year <- 1949
+    actual <- streaks_get_max_rank_simple(lzy_streaks, 3, min_year, max_year,
+                                          teams)
+    dbDisconnect(mock_conn)
+  })
+  expect_equal(actual, 2022)
+})

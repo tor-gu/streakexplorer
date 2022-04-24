@@ -20,7 +20,7 @@ list with \code{streak_info}, \code{standings_before}, \code{standings_after},
 and \code{standings_final}
 }
 \description{
-Givn a streak, return the division standings before the streak started
+Given a streak, return the division standings before the streak started
 (\code{standings_before}), after the last game of the streak (\code{standings_after}),
 and at the end of the season (\code{standings_final}). Also compute a summary
 object (\code{streak_info}).
