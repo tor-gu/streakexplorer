@@ -7,11 +7,11 @@
 streaks_get_max_rank_simple(lzy_streaks, n, min_year, max_year, teams)
 }
 \arguments{
-\item{lzy_streaks}{Lazy streaks table}
+\item{lzy_streaks}{Lazy streaks table (possibly with a filter)}
 
 \item{n}{Function will maximize value of \code{n}th highest rank}
 
-\item{min_year}{Minimun year for filter}
+\item{min_year}{Minimum year for filter}
 
 \item{max_year}{Maximum year for filter}
 
@@ -22,4 +22,8 @@ Maximum value
 }
 \description{
 Given a year range and a list of teams and a value n, find the maximum
+}
+\details{
+Note: This function is inefficient when the number number of intensity
+levels, teams and years is large.
 }

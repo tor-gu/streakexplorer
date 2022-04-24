@@ -251,9 +251,12 @@ streaks_get_standings <- function(lzy_standings, lzy_game_logs,
 #' Given a year range and a list of teams and a value n, find the maximum
 #  of the nth highest rank over all intensity levels.
 #'
-#' @param lzy_streaks Lazy streaks table
+#' Note: This function is inefficient when the number number of intensity
+#' levels, teams and years is large.
+#'
+#' @param lzy_streaks Lazy streaks table (possibly with a filter)
 #' @param n Function will maximize value of `n`th highest rank
-#' @param min_year Minimun year for filter
+#' @param min_year Minimum year for filter
 #' @param max_year Maximum year for filter
 #' @param teams Vector of team IDs for filter.
 #'
@@ -273,12 +276,50 @@ streaks_get_max_rank_simple <- function(lzy_streaks, n, min_year, max_year,
     dplyr::pull(max_rank)
 }
 
-streaks_get_max_rank_by_sampling <- function(lzy_streaks, n, min_year, max_year,
-                                             teams, levels, scaling) {
+#' streaks_get_max_rank_by_sampling
+#'
+#' Given an estimate of the rank returned by `streaks_get_max_rank_simple`
+#' using this method:
+#' * First: Apply the algorithm of `streaks_get_max_rank_simple` to a limited
+#' set of intensity levels (e.g. `c(25,50,75)` instead of `1:101`).
+#' * Second, increase the returned rank and increase it by a scaling factor
+#' (e.g. `1.5`).
+#' * Third, restrict the full streaks table to `Rank` values below the scaled
+#' initial estimate.
+#' * Finally, apply `streaks_get_max_rank_simple` to the restricted streak
+#' table, this time across all intensity levels.
+#'
+#' Notes:
+#' * This estimate will always be less than or equal to the true value.
+#' * This function calls `streaks_get_max_rank_simple` twice, but each time
+#' with a filter applied to the `lzy_streaks_tbl`.  It is less efficient
+#' than `streaks_get_max_rank_simple` on smaller datasets, but much faster
+#' on larger datasets.
+#' * Increasing the scaling factor or the intensity sample space increases
+#' the accuracy at the cost of speed.
+#' * Smaller datasets require larger scaling factors, and larger datasets
+#' require smaller scaling factors.
+#'
+#' @param lzy_streaks Lazy streaks table
+#' @param n Function will maximize value of `n`th highest rank
+#' @param min_year Minimum year for filter
+#' @param max_year Maximum year for filter
+#' @param teams Vector of team IDs for filter.
+#' @param levels Intensity levels for the sampling, e.g. `c(25,50,75)`
+#' @param scaling Scaling factor, e.g. `1.5`
+#'
+#' @return Estimate of maximum value
+streaks_get_max_rank_by_sampling <- function(lzy_streaks, n, min_year,
+                                             max_year, teams, levels,
+                                             scaling) {
+  # Get the max over the IntensityLevel sample space, and scale the result
+  # using the scaling factor
   initial_max_rank <- lzy_streaks %>%
     dplyr::filter(IntensityLevel %in% levels) %>%
     streaks_get_max_rank_simple(n, min_year, max_year, teams) * scaling
 
+  # Now get the max over all intensity levels, restricted by the scaled
+  # sample value.
   lzy_streaks %>%
     dplyr::filter(Rank <= initial_max_rank) %>%
     streaks_get_max_rank_simple(n, min_year, max_year, teams)
