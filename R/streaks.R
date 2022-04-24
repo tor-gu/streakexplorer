@@ -356,6 +356,15 @@ streaks_get_max_rank <- function(n, min_year, max_year, teams, hot) {
   }
 }
 
+#' streaks_get_intensity_range
+#'
+#' Use the streaks table to get the the minimum and maximum intensity
+#' levels in the DB.  The year is specified to make the query quicker.
+#'
+#' @param lzy_streaks  Lazy streaks table
+#' @param year  Year to query.
+#'
+#' @return Vector with min and max intensity levels, e.g. `c(1,101)`
 streaks_get_intensity_range <- function(lzy_streaks, year) {
   lzy_streaks %>%
     dplyr::filter(Year==year) %>%
@@ -367,6 +376,15 @@ streaks_get_intensity_range <- function(lzy_streaks, year) {
     unlist()
 }
 
+#' streaks_get_game_log
+#'
+#' Filter a game log using a streak (using year, team, and the game index).
+#' The input is lazy, and the output is in memory.
+#'
+#' @param lzy_game_logs Lazy game log
+#' @param streak Streak
+#'
+#' @return filtered game log
 streaks_get_game_log <- function(lzy_game_logs, streak) {
   lzy_game_logs %>%
     dplyr::filter(Year==local(streak$Year),

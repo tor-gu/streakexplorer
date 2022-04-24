@@ -166,3 +166,31 @@ test_that("streaks_get_max_rank_by_sampling basic test", {
   })
   expect_equal(actual, 1784)
 })
+
+test_that("streaks_get_intensity_range basic test", {
+  with_mock_db({
+    mock_conn <- suppressWarnings(
+      dbConnect(RMySQL::MySQL(), dbname="streak_explorer_data")
+    )
+    lzy_streaks <- dplyr::tbl(mock_conn, "hot_streaks")
+    actual <- streaks_get_intensity_range(lzy_streaks, 1948)
+    dbDisconnect(mock_conn)
+  })
+  names(actual) <- NULL
+  expect_equal(actual, c(1,101))
+})
+
+test_that("streaks_get_game_log basic test", {
+  with_mock_db({
+    mock_conn <- suppressWarnings(
+      dbConnect(RMySQL::MySQL(), dbname="streak_explorer_data")
+    )
+    lzy_game_logs <- dplyr::tbl(mock_conn, "game_logs")
+    streak <- list(Year=2004, Team="CIN", LoIndex=100, HiIndex=105)
+    streak_game_log <- streaks_get_game_log(lzy_game_logs, streak)
+    dbDisconnect(mock_conn)
+  })
+  actual_ids <- streak_game_log %>% dplyr::pull(Id)
+  expected_ids <- 208768:208773
+  expect_equal(actual_ids, expected_ids)
+})
