@@ -33,7 +33,7 @@ streaks_get_max_rank_by_sampling(
 Estimate of maximum value
 }
 \description{
-Given an estimate of the rank returned by \code{streaks_get_max_rank_simple}
+Give an estimate of the rank returned by \code{streaks_get_max_rank_simple}
 using this method:
 \itemize{
 \item First: Apply the algorithm of \code{streaks_get_max_rank_simple} to a limited

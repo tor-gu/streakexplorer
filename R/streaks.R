@@ -278,7 +278,7 @@ streaks_get_max_rank_simple <- function(lzy_streaks, n, min_year, max_year,
 
 #' streaks_get_max_rank_by_sampling
 #'
-#' Given an estimate of the rank returned by `streaks_get_max_rank_simple`
+#' Give an estimate of the rank returned by `streaks_get_max_rank_simple`
 #' using this method:
 #' * First: Apply the algorithm of `streaks_get_max_rank_simple` to a limited
 #' set of intensity levels (e.g. `c(25,50,75)` instead of `1:101`).
@@ -325,6 +325,23 @@ streaks_get_max_rank_by_sampling <- function(lzy_streaks, n, min_year,
     streaks_get_max_rank_simple(n, min_year, max_year, teams)
 }
 
+#' streaks_get_max_rank
+#'
+#' Given a year range and a list of teams and a value n, find an
+#' estimate of the maximum of the nth highest rank over all intensity levels.
+#'
+#' This function is a wrapper around `streaks_get_max_rank_simple` and
+#' `streaks_get_max_rank_by_sampling` and will decide the appropriate
+#' function and parameters to use based on the number of years and
+#' the number of teams.
+#'
+#' @param n Function will maximize value of `n`th highest rank
+#' @param min_year Minimum year for filter
+#' @param max_year Maximum year for filter
+#' @param teams Vector of team IDs for filter.
+#' @param hot If `TRUE` use hot streaks, otherwise cold streaks
+#'
+#' @return Max value estimate
 streaks_get_max_rank <- function(n, min_year, max_year, teams, hot) {
   lzy_streaks <- lzy_streaks(hot)
   season_count <- (max_year - min_year + 1) * length(teams)
