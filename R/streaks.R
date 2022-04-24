@@ -246,7 +246,22 @@ streaks_get_standings <- function(lzy_standings, lzy_game_logs,
   )
 }
 
-streaks_get_max_rank_simple <- function(lzy_streaks, min_year, max_year,
+#' streaks_get_max_rank_simple
+#'
+#' Given a year range and a list of teams, find the maximum of the
+#' nth highest rank over all intensity levels.
+#'
+#' @param lzy_streaks
+#' @param n
+#' @param min_year
+#' @param max_year
+#' @param teams
+#'
+#' @return
+#' @export
+#'
+#' @examples
+streaks_get_max_rank_simple <- function(lzy_streaks, n, min_year, max_year,
                                         teams) {
   lzy_streaks %>%
     dplyr::filter(Team %in% teams,
@@ -255,35 +270,33 @@ streaks_get_max_rank_simple <- function(lzy_streaks, min_year, max_year,
     dplyr::group_by(IntensityLevel) %>%
     dplyr::arrange(Rank) %>%
     dplyr::mutate(rn=dplyr::row_number()) %>%
-    dplyr::filter(rn==10) %>%
+    dplyr::filter(rn==n) %>%
     dplyr::ungroup() %>%
     dplyr::summarise(max_rank=max(Rank)) %>%
     dplyr::pull(max_rank)
 }
 
-streaks_get_max_rank_by_sampling <- function(lzy_streaks, min_year, max_year,
+streaks_get_max_rank_by_sampling <- function(lzy_streaks, n, min_year, max_year,
                                              teams, levels, scaling) {
   initial_max_rank <- lzy_streaks %>%
     dplyr::filter(IntensityLevel %in% levels) %>%
-    streaks_get_max_rank_simple(min_year, max_year, teams) * scaling
+    streaks_get_max_rank_simple(n, min_year, max_year, teams) * scaling
 
   lzy_streaks %>%
     dplyr::filter(Rank <= initial_max_rank) %>%
-    streaks_get_max_rank_simple(min_year, max_year, teams)
+    streaks_get_max_rank_simple(n, min_year, max_year, teams)
 }
 
-streaks_get_max_rank <- function(min_year, max_year, teams, hot) {
-  # TODO get the streaks as a param
-  table <- ifelse(hot, "hot_streaks", "cold_streaks")
-  lzy_streaks <- dplyr::tbl(se_pool, table)
+streaks_get_max_rank <- function(n, min_year, max_year, teams, hot) {
+  lzy_streaks <- lzy_streaks(hot)
   season_count <- (max_year - min_year + 1) * length(teams)
   if (season_count < 25)
-    streaks_get_max_rank_simple(lzy_streaks, min_year, max_year, teams)
+    streaks_get_max_rank_simple(lzy_streaks, n, min_year, max_year, teams)
   else if (season_count < 750) {
-    streaks_get_max_rank_by_sampling(lzy_streaks, min_year, max_year,
+    streaks_get_max_rank_by_sampling(lzy_streaks, n, min_year, max_year,
                                      teams, 1:4 * 20, 3/2)
   } else {
-    streaks_get_max_rank_by_sampling(lzy_streaks, min_year, max_year,
+    streaks_get_max_rank_by_sampling(lzy_streaks, n, min_year, max_year,
                                      teams, 1:4 * 20, 4/3)
   }
 }

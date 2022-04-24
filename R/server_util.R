@@ -1,3 +1,4 @@
+# TODO make arguments to server_ functions more consistent
 lzy_lines <- function(hot) {
   if (hot) {
     sql_load_hot_streaks_lines()
@@ -85,4 +86,12 @@ server_build_streak_standings_graph <- function(franchises, selected_streak) {
   on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
   lzy_standings <- sql_load_standings()
   build_standings_graph(lzy_standings, franchises, selected_streak)
+}
+
+server_get_max_rank <- function(franchises, years, teams, hot) {
+  # Get the max rank using n=10
+  start_time <- Sys.time()
+  on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
+  team_ids <- franchises_franchise_ids_to_team_ids(franchises, teams, years)
+  streaks_get_max_rank(10, years[[1]], years[[2]], team_ids, hot)
 }

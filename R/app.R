@@ -183,9 +183,7 @@ streakexplorerApp <- function(my_pool, ...) {
     }) %>% debounce(333)
     max_rank <- reactive({
       req(input$teams)
-      team_ids <- franchises_franchise_ids_to_team_ids(franchises,
-                                                       input$teams, years())
-      streaks_get_max_rank(years()[[1]], years()[[2]], team_ids, hot())
+      server_get_max_rank(franchises, years(), input$teams, hot())
     })
 
     selected_line_id <- reactiveVal(NULL)
