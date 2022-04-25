@@ -75,4 +75,19 @@ test_that("lines_highlight basic test", {
   expect_equal(actual, expected)
 })
 
+test_that("lines_highlight basic test", {
+  with_mock_db({
+    mock_conn <- suppressWarnings(
+      dbConnect(RMySQL::MySQL(), dbname="streak_explorer_data")
+    )
+    lzy_lines <- dplyr::tbl(mock_conn, "hot_streaks_lines")
+    franchises <- dplyr::tbl(mock_conn, "franchises") %>% dplyr::collect()
+    lines <- lines_build_lines(lzy_lines, 1948, 1948, c("BOS","CIN"),
+                               franchises, 80)
+    dbDisconnect(mock_conn)
+  })
+  expect_equal(nrow(lines), 107)
+  expect_equal(unique(lines$LineId),
+               c(6298, 6311, 6312, 6317, 6320, 6324, 6325, 6327))
+})
 
