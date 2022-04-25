@@ -79,10 +79,20 @@ lines_highlight <- function(lines, lzy_concordances, lzy_lines_to_streaks,
   result
 }
 
-lines_build_lines <- function(lzy_lines, years, teams, franchises, max_rank,
-                              hot) {
-  min_year <- years[[1]]
-  max_year <- years[[2]]
+#' lines_build_lines
+#'
+#' Generate the table of lines for the given filter (years, teams and rank)
+#'
+#' @param lzy_lines Lazy lines table
+#' @param min_year Min Year
+#' @param max_year Max Year
+#' @param teams Vector of teamIDs
+#' @param franchises Franchises table
+#' @param max_rank Max Rank
+#'
+#' @return
+lines_build_lines <- function(lzy_lines, min_year, max_year, teams,
+                              franchises, max_rank) {
   team_ids <- franchises_franchise_ids_to_team_ids(
     franchises, teams, min_year, max_year)
   lzy_lines %>%

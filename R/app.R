@@ -218,7 +218,7 @@ streakexplorerApp <- function(my_pool, ...) {
 
     lines <- reactive({
       req(input$teams, max_rank())
-      server_build_lines(years(), input$teams, franchises, max_rank(), hot())
+      server_build_lines(years(), input$teams, franchises, max_rank())
     })
 
     selected_streak <- reactive({
