@@ -20,7 +20,9 @@
 streakexplorerApp <- function(my_pool, ...) {
   se_pool <<- my_pool
   franchises <- dplyr::tbl(se_pool, "franchises") %>% dplyr::collect()
-  intensity_level_range <- streaks_get_intensity_range(sql_load_hot_streaks(), 1948)
+  # TODO make 1948 & 1960 parameters
+  intensity_level_range <- dplyr::tbl(se_pool, "hot_streaks") %>%
+    streaks_get_intensity_range(1948)
   initial_year_range <- c(1948, 1960)
   theme <- bslib::bs_theme(
     bootswatch = "lumen",
