@@ -14,7 +14,7 @@ plot_add_lines_maybe(p, lines = NULL, ...)
 \item{...}{Additional params for plotly::add_lines}
 }
 \value{
-modified plot_l object
+modified plot_ly object
 }
 \description{
 Given plot_ly object and a set of table of lines, add the lines to

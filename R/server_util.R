@@ -99,3 +99,40 @@ server_get_max_rank <- function(franchises, years, teams, hot) {
                                                    max_year)
   streaks_get_max_rank(10, min_year, max_year, team_ids, hot)
 }
+
+server_main_plot <- function(highlighted_lines, intensity_level_range,
+                             max_rank, hot) {
+  colors <- viridis::viridis(4)
+
+  if (
+    torgutil::tbl_is_column_value_unique(highlighted_lines, Year) &
+    torgutil::tbl_is_column_value_unique(highlighted_lines, Team)
+  ) {
+    highlighting <- tibble::tribble(
+      ~line_type, ~color, ~width,
+      "base",     colors[[1]], 1,
+      "season",   colors[[1]], 1,
+      "related",  colors[[3]], 3,
+      "identical",colors[[4]], 5
+    )
+  } else {
+    highlighting <- tibble::tribble(
+      ~line_type, ~color, ~width,
+      "base",     colors[[1]], 1,
+      "season",   colors[[2]], 3,
+      "related",  colors[[3]], 5,
+      "identical",colors[[4]], 5
+    )
+  }
+  min_intensity <- intensity_level_range[[1]]
+  max_intensity <- intensity_level_range[[2]]
+  plot_lines(
+    highlighted_lines,
+    min_intensity,
+    max_intensity,
+    max_rank,
+    highlighting,
+    reverse_x_axis = !hot
+  )
+
+}

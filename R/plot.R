@@ -9,7 +9,7 @@
 #' @param lines Lines to add
 #' @param ... Additional params for plotly::add_lines
 #'
-#' @return modified plot_l object
+#' @return modified plot_ly object
 plot_add_lines_maybe <- function(p, lines = NULL, ...) {
   if (!is.null(lines) && nrow(lines) > 0) {
     data <- plotly::highlight_key(lines, ~LineId, group = "line-highlight")
@@ -19,11 +19,25 @@ plot_add_lines_maybe <- function(p, lines = NULL, ...) {
   }
 }
 
-plot_lines <- function(lines, intensity_level_range, max_rank,
-                       reverse_x_axis = FALSE) {
-  x_range <- intensity_level_range
+#' plot_lines
+#'
+#' Build the plotly plot.  The lines should have already been
+#' passed through lines_highlight
+#'
+#' @param lines Lines to plot
+#' @param min_intensity
+#' @param max_intensity
+#' @param max_rank
+#' @param highlighting
+#' @param reverse_x_axis
+#'
+#' @return plotly::plot_ly object
+plot_lines <- function(lines, min_intensity, max_intensity, max_rank,
+                       highlighting, reverse_x_axis = FALSE) {
+  # Set up the x-axis
+  x_range <- c(min_intensity, max_intensity)
   x_axis_range <- if (reverse_x_axis) rev(x_range) else x_range
-  x_range_len <- x_range[2] - x_range[1]
+  x_range_len <- max_intensity - min_intensity
   x_axis_ticks <- c(
     x_range[1] + .05 * x_range_len,
     mean(x_range),
@@ -43,6 +57,8 @@ plot_lines <- function(lines, intensity_level_range, max_rank,
         "Pure winning\nstreak"
       )
     }
+
+  # Set up the y-axis
   y_axis_ticks <- c(
     1,
     mean(c(1, max_rank)),
@@ -54,44 +70,60 @@ plot_lines <- function(lines, intensity_level_range, max_rank,
     paste("# ", max_rank)
   )
 
-  colors <- c("base" = "black", "season" = "blue", "related"="purple",
-              "identical" = "red")
-  line_types <- c(
-    base = "dot", season = "dash", related = "solid",
-    identical = "solid"
-  )
+  # Get the colors and line widths from the highlighting table
+  colors <- torgutil::tbl_as_named_list(highlighting, color, line_type) %>%
+    unlist()
+  widths <- torgutil::tbl_as_named_list(highlighting, width, line_type)
+
+  # Split the lines by line_type (set in lines_highlight) and group by
+  # LineId within each
   split_lines <- lines %>%
     split(lines$line_type) %>%
     purrr::map(dplyr::group_by, LineId)
+
+  # Now build the plot
   plotly::plot_ly(
     source = "lines_plot",
     x = ~IntensityLevel, y = ~Rank, hoverinfo = "text"
   ) %>%
+    # Add the "base" lines
     plot_add_lines_maybe(
       lines = split_lines$base,
       alpha = 0.7,
-      line = list(shape = "spline", width = 1),
+      line = list(shape = "spline", width = widths$base),
       text = ~HoverText,
       color = ~ factor(line_type), colors = colors
     ) %>%
+    # Add the "season" lines
     plot_add_lines_maybe(
       lines = split_lines$season,
       alpha = 0.7,
-      line = list(shape = "spline", width = 3),
+      line = list(shape = "spline", width = widths$season),
       text = ~HoverText,
       color = ~ factor(line_type), colors = colors
     ) %>%
+    # Add the "related" lines
     plot_add_lines_maybe(
-      lines = rbind(split_lines$related, split_lines$identical),
+      lines = rbind(split_lines$related),
       alpha = 0.7,
-      line = list(shape = "spline", width = 5),
+      line = list(shape = "spline", width = widths$related),
       text = ~HoverText,
       color = ~ factor(line_type), colors = colors
     ) %>%
+    # Add the "identical" lines
+    plot_add_lines_maybe(
+      lines = rbind(split_lines$identical),
+      alpha = 0.7,
+      line = list(shape = "spline", width = widths$identical),
+      text = ~HoverText,
+      color = ~ factor(line_type), colors = colors
+    ) %>%
+    # Set hover action
     plotly::highlight(
       on = "plotly_hover", off = "plotly_doubleclick",
-      opacityDim = .6, color = "red"
+      opacityDim = .6, color = colors[["identical"]]
     ) %>%
+    # Add in the x-axis
     plotly::layout(xaxis = list(
       fixedrange = TRUE,
       range = x_axis_range,
@@ -100,7 +132,7 @@ plot_lines <- function(lines, intensity_level_range, max_rank,
       showticklabels = TRUE,
       tickangle = 0,
       tickfont = list(
-        color = "purple",
+        color = colors[["base"]],
         family = "Arial",
         size = 15
       ),
@@ -110,6 +142,7 @@ plot_lines <- function(lines, intensity_level_range, max_rank,
       title = list(text = ""),
       zeroline = FALSE
     )) %>%
+    # Add in the y-axis
     plotly::layout(yaxis = list(
       fixedrange = TRUE,
       range = c(max_rank + 1, 0),
@@ -118,7 +151,7 @@ plot_lines <- function(lines, intensity_level_range, max_rank,
       showticklabels = TRUE,
       tickangle = 0,
       tickfont = list(
-        color = "purple",
+        color = colors[["base"]],
         family = "Arial",
         size = 15
       ),
@@ -127,6 +160,7 @@ plot_lines <- function(lines, intensity_level_range, max_rank,
       title = list(text = ""),
       zeroline = FALSE
     )) %>%
+    # Finish up and return the plotly object
     plotly::layout(showlegend = FALSE) %>%
     plotly::config(displayModeBar = FALSE)
 }

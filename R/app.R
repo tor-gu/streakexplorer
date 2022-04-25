@@ -231,17 +231,17 @@ streakexplorerApp <- function(my_pool, ...) {
       server_get_streak_standings(franchises, selected_streak())
     })
 
-    highlight_data <- reactive({
+    highlighted_lines <- reactive({
       server_lines_highlight(lines(), selected_line_id(), hot())
     })
 
     # This is the main graph
     main_plot <- reactive(
-      plot_lines(
-        highlight_data(),
+      server_main_plot(
+        highlighted_lines(),
         intensity_level_range,
         max_rank(),
-        input$streak_type == "COLD"
+        hot()
       )
     )
 
