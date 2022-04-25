@@ -70,11 +70,12 @@ lines_remove_branch_descenders <- function(lines, max_rank, hot) {
     )
 }
 
-lines_build_lines <- function(lzy_lines, years, teams, franchises, max_rank, hot) {
-  team_ids <- franchises_franchise_ids_to_team_ids(
-    franchises, teams, years)
+lines_build_lines <- function(lzy_lines, years, teams, franchises, max_rank,
+                              hot) {
   min_year <- years[[1]]
   max_year <- years[[2]]
+  team_ids <- franchises_franchise_ids_to_team_ids(
+    franchises, teams, min_year, max_year)
   lzy_lines %>%
     # Initial filter by years, teams, and ranks
     dplyr::filter(between(Year, min_year, max_year),
