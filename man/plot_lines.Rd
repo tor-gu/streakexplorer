@@ -16,7 +16,15 @@ plot_lines(
 \arguments{
 \item{lines}{Lines to plot}
 
-\item{reverse_x_axis}{}
+\item{min_intensity}{Min intensity level}
+
+\item{max_intensity}{Max intensity level}
+
+\item{max_rank}{Max rank}
+
+\item{highlighting}{Highlighting info (line colors and widths)}
+
+\item{reverse_x_axis}{If TRUE, reverse the x-axis}
 }
 \value{
 plotly::plot_ly object

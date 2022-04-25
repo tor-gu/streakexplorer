@@ -25,11 +25,11 @@ plot_add_lines_maybe <- function(p, lines = NULL, ...) {
 #' passed through lines_highlight
 #'
 #' @param lines Lines to plot
-#' @param min_intensity
-#' @param max_intensity
-#' @param max_rank
-#' @param highlighting
-#' @param reverse_x_axis
+#' @param min_intensity Min intensity level
+#' @param max_intensity Max intensity level
+#' @param max_rank Max rank
+#' @param highlighting Highlighting info (line colors and widths)
+#' @param reverse_x_axis If TRUE, reverse the x-axis
 #'
 #' @return plotly::plot_ly object
 plot_lines <- function(lines, min_intensity, max_intensity, max_rank,
@@ -165,10 +165,27 @@ plot_lines <- function(lines, min_intensity, max_intensity, max_rank,
     plotly::config(displayModeBar = FALSE)
 }
 
+#' plot_standings_graph
+#'
+#' Plot the standings graph, and highlight the selected team and date
+#' range
+#'
+#' @param standings Standings to plot
+#' @param team TeamID to highlight
+#' @param start_date Start of highlight area
+#' @param end_date End of highlight area
+#'
+#' @return Standings plot
 plot_standings_graph <- function(standings, team, start_date, end_date) {
-  standings <- standings %>% dplyr::mutate(GamesAbove=Wins-Losses)
+  # Add GamesAbove to the standings, which will be our y-value
+  standings <- standings %>% dplyr::mutate(GamesAbove = Wins - Losses)
+
+  # Set the y-axis limits
   y_min <- min(standings$GamesAbove) - 1
   y_max <- max(standings$GamesAbove) + 1
+
+  # Find the coordinates of the box to highlight (this will be the
+  # "rect" annotation in the plot)
   date_before_start <- start_date - 1
   y_range <- standings %>%
     dplyr::filter(Date >= date_before_start, Date <= end_date, Team==team) %>%
@@ -176,6 +193,7 @@ plot_standings_graph <- function(standings, team, start_date, end_date) {
   rect_y_min <- y_range[1] - 1
   rect_y_max <- y_range[2] + 1
 
+  # Now plot the standings
   ggplot2::ggplot(mapping = ggplot2::aes(Date, Wins - Losses, group = Team)) +
     ggplot2::geom_line(data = dplyr::filter(standings, Team != team)) +
     ggplot2::geom_line(data = dplyr::filter(standings, Team == team),
@@ -183,34 +201,44 @@ plot_standings_graph <- function(standings, team, start_date, end_date) {
     ggplot2::annotate("rect", xmin=start_date - 1, xmax=end_date,
              ymin=rect_y_min, ymax=rect_y_max, alpha=0.2) +
     ggplot2::xlab(NULL) +
-    #ggplot2::ylab("Games over .500") +
     ggplot2::ylab(NULL) +
-    #ggplot2::labs(title="Standings graph") +
     ggplot2::scale_x_date(minor_breaks=NULL) +
-    #ggplot2::scale_x_date(breaks=NULL) +
     ggplot2::scale_y_continuous(breaks=0, limits=c(y_min,y_max))
 }
 
+#' build_standings_graph
+#'
+#' Given the streak info, build the standings table for the division
+#' and pass it to plot_standings_graph to generate a standings plot
+#'
+#' @param lzy_standings Lazy full standings table
+#' @param franchises Franchises table
+#' @param streak Streak info
+#'
+#' @return Standings plot
 build_standings_graph <- function(lzy_standings, franchises, streak) {
+  # Get division and teams
   division_teams <- franchises_get_division_by_team_year(
     franchises, streak$Team, streak$Year)
-  # TODO simplify this if/then
+
+  # Filter the standings to just the division (or league, if division is NULL)
   if (is.na(division_teams$division$Division)) {
-    standings <- lzy_standings %>%
+    lzy_standings <- lzy_standings %>%
       dplyr::filter(Year == local(streak$Year),
-                    League == local(division_teams$division$League)) %>%
-      dplyr::collect() %>%
-      dplyr::mutate(Date = lubridate::ymd(Date))
-  } else{
+                    League == local(division_teams$division$League))
+  } else {
     standings <- lzy_standings %>%
       dplyr::filter(
         Year == local(streak$Year),
         League == local(division_teams$division$League),
         Division == local(division_teams$division$Division)
-      ) %>%
-      dplyr::collect() %>%
-      dplyr::mutate(Date = lubridate::ymd(Date))
+      )
   }
+
+  # Collect the result and pass it to plot_standings_graph for plotting
+  standings <- lzy_standings %>%
+    dplyr::collect() %>%
+    dplyr::mutate(Date = lubridate::ymd(Date))
   plot_standings_graph(standings, streak$Team, streak$StartDate,
                        streak$EndDate)
 }
