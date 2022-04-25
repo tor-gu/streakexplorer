@@ -21,34 +21,58 @@ lines_get_related_lines <- function(line_id, lzy_lines_to_streaks,
 }
 
 
+#' lines_highlight
+#'
+#' Given a table of `lines` and a `line_id`, add a new column, `line_type`,
+#' with values:
+#' * `"identical"`: Matching line_id
+#' * `"related"`: Line represents a sub- or super-streak, but is not identical
+#' * `"season"`: Line is from same year and team, but not a sub- or super-streak
+#' * `"base"`: Unrelated line
+#'
+#' If `line_id` is `NULL` or omitted, all values will be `"base"`
+#'
+#' @param lines Table of lines
+#' @param lzy_concordances Lazy concordances table
+#' @param lzy_lines_to_streaks  Lazy lines_to_streaks table
+#' @param line_id LineID
+#'
+#' @return Lines with added `line_type` column.
 lines_highlight <- function(lines, lzy_concordances, lzy_lines_to_streaks,
-                            id = NULL) {
+                            line_id = NULL) {
+  # Initialize with line_type == "base"
   result <- lines %>% dplyr::mutate(line_type = "base")
 
-  if (!is.null(id)) {
+  # Check that we were passed a line_id
+  if (!is.null(line_id)) {
+    # Get the Team and Year from the first line matching the line_id
     row <- lines %>%
-      dplyr::filter(LineId == id) %>%
+      dplyr::filter(LineId == line_id) %>%
       head(1)
     if (nrow(row) > 0) {
-      team <- row %>% dplyr::pull(Team)
-      year <- row %>% dplyr::pull(Year)
+      team <- row$Team
+      year <- row$Year
+      # Get related line ids
       related_line_ids <- lines_get_related_lines(
-        id, lzy_lines_to_streaks,
+        line_id, lzy_lines_to_streaks,
         lzy_concordances
       )
       result <- result %>%
+        # Same Year and Team:  line_type = "season"
         dplyr::mutate(
           line_type = dplyr::if_else(Year == year & Team == team, "season",
             line_type
           ),
         ) %>%
+        # Substreak or superstreak: line_type = "related"
         dplyr::mutate(
           line_type = dplyr::if_else(LineId %in% related_line_ids, "related",
             line_type
           ),
         ) %>%
+        # Same streak: line_type = "identical"
         dplyr::mutate(
-          line_type = dplyr::if_else(LineId == id, "identical", line_type),
+          line_type = dplyr::if_else(LineId == line_id, "identical", line_type),
         )
     }
   }

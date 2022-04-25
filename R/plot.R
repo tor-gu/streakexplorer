@@ -43,7 +43,7 @@ plot_lines <- function(lines, intensity_level_range, max_rank,
     paste("# ", max_rank)
   )
 
-  colors <- c("base" = "black", "season" = "purple", "related"="purple",
+  colors <- c("base" = "black", "season" = "blue", "related"="purple",
               "identical" = "red")
   line_types <- c(
     base = "dot", season = "dash", related = "solid",
