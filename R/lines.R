@@ -79,22 +79,6 @@ lines_highlight <- function(lines, lzy_concordances, lzy_lines_to_streaks,
   result
 }
 
-lines_remove_branch_descenders <- function(lines, max_rank, hot) {
-  if (hot) {
-    lines <- lines %>%
-      dplyr::arrange(LineId, IntensityLevel)
-  } else {
-    lines <- lines %>%
-      dplyr::arrange(LineId, desc(IntensityLevel))
-  }
-  lines %>%
-    torgutil::filter_out(
-      dplyr::lead(LineId) == LineId,
-      dplyr::lead(StreakId) != StreakId,
-      dplyr::lead(Rank) > max_rank
-    )
-}
-
 lines_build_lines <- function(lzy_lines, years, teams, franchises, max_rank,
                               hot) {
   min_year <- years[[1]]
@@ -111,9 +95,7 @@ lines_build_lines <- function(lzy_lines, years, teams, franchises, max_rank,
     # Now add back in the whole lines for what remains
     dplyr::select(LineId) %>%
     dplyr::left_join(lzy_lines, by="LineId") %>%
-    dplyr::collect() %>%
-    # Remove any "descenders"
-    lines_remove_branch_descenders(max_rank, hot)
+    dplyr::collect()
 }
 
 
