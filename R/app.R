@@ -19,6 +19,8 @@
 #' }
 streakexplorerApp <- function(my_pool, ...) {
   se_pool <<- my_pool
+  franchises <- dplyr::tbl(se_pool, "franchises") %>% dplyr::collect()
+  intensity_level_range <- streaks_get_intensity_range(sql_load_hot_streaks(), 1948)
   initial_year_range <- c(1948, 1960)
   theme <- bslib::bs_theme(
     bootswatch = "lumen",
@@ -170,8 +172,6 @@ streakexplorerApp <- function(my_pool, ...) {
   # Server ----
   server <- function(input, output, session) {
     #bslib::bs_themer()
-    franchises <- sql_load_franchises() %>% dplyr::collect()
-    intensity_level_range <- streaks_get_intensity_range(sql_load_hot_streaks(), 1948)
 
     ## Reactives and reactive values ----
     hot <- reactive({
@@ -218,7 +218,7 @@ streakexplorerApp <- function(my_pool, ...) {
 
     lines <- reactive({
       req(input$teams, max_rank())
-      server_build_lines(years(), input$teams, franchises, max_rank())
+      server_build_lines(years(), input$teams, franchises, max_rank(), hot())
     })
 
     selected_streak <- reactive({

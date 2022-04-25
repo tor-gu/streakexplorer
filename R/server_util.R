@@ -38,7 +38,7 @@ server_streak_summary_data <- function(franchises, selected_streak) {
   streaks_summary_data(lzy_game_logs, franchises, selected_streak)
 }
 
-server_build_lines <- function(years, teams, franchises, max_rank) {
+server_build_lines <- function(years, teams, franchises, max_rank, hot) {
   start_time <- Sys.time()
   on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
   lines_build_lines(lzy_lines(hot), years[[1]], years[[2]], teams,
