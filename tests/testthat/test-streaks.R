@@ -148,7 +148,7 @@ test_that("streaks_get_max_rank_simple basic test", {
                                           teams)
     dbDisconnect(mock_conn)
   })
-  expect_equal(actual, 2022)
+  expect_equal(actual, 1985)
 })
 
 test_that("streaks_get_max_rank_by_sampling basic test", {
