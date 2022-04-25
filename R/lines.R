@@ -109,6 +109,17 @@ lines_build_lines <- function(lzy_lines, min_year, max_year, teams,
 }
 
 
+#' lines_get_selected_streak
+#'
+#' Given a line_id, get the related streak, as single-row table with
+#' columns `Year`, `Team`, `LoIndex`,` HiIndex`, `StartDate`, and `EndDate`.
+#'
+#' @param lzy_lines_to_streaks Lazy lines_to_streaks table
+#' @param lzy_streaks  Lazy streaks table
+#' @param lzy_game_logs Lazy game_logs table
+#' @param line_id LineID
+#'
+#' @return Streak
 lines_get_selected_streak <- function(lzy_lines_to_streaks, lzy_streaks,
                                       lzy_game_logs, line_id) {
   if (is.null(line_id)) {

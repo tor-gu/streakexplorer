@@ -1,0 +1,12 @@
+structure(list(Year = 1997L, Team = "ANA", LoIndex = 10L, HiIndex = 158L, 
+    Id.x = 0x1.5573p+17, SeasonGameId.x = 131L, League.x = "AL", 
+    Result.x = "W", Date.x = "1997-04-13", GameNumber.x = 10L, 
+    AtHome.x = 0L, RunsFor.x = 8L, RunsAgainst.x = 3L, GameRunsFor.x = 8L, 
+    GameRunsAgainst.x = 3L, OpponentTeam.x = "CLE", OpponentLeague.x = "AL", 
+    CompletedOn.x = NA_character_, CompletionOf.x = NA_character_, 
+    Id.y = 0x1.55bdp+17, SeasonGameId.y = 2210L, League.y = "AL", 
+    Result.y = "W", Date.y = "1997-09-24", GameNumber.y = 158L, 
+    AtHome.y = 0L, RunsFor.y = 9L, RunsAgainst.y = 3L, GameRunsFor.y = 9L, 
+    GameRunsAgainst.y = 3L, OpponentTeam.y = "SEA", OpponentLeague.y = "AL", 
+    CompletedOn.y = NA_character_, CompletionOf.y = NA_character_), row.names = c(NA, 
+-1L), class = "data.frame")
