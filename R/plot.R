@@ -43,7 +43,8 @@ plot_lines <- function(lines, intensity_level_range, max_rank,
     paste("# ", max_rank)
   )
 
-  colors <- c(`1` = "black", "2" = "purple", "3" = "red")
+  colors <- c("base" = "black", "season" = "purple", "related"="purple",
+              "identical" = "red")
   line_types <- c(
     base = "dot", season = "dash", related = "solid",
     identical = "solid"
@@ -60,21 +61,21 @@ plot_lines <- function(lines, intensity_level_range, max_rank,
       alpha = 0.7,
       line = list(shape = "spline", width = 1),
       text = ~HoverText,
-      color = ~ factor(line_colored), colors = colors
+      color = ~ factor(line_type), colors = colors
     ) %>%
     plot_add_lines_maybe(
       lines = split_lines$season,
       alpha = 0.7,
       line = list(shape = "spline", width = 3),
       text = ~HoverText,
-      color = ~ factor(line_colored), colors = colors
+      color = ~ factor(line_type), colors = colors
     ) %>%
     plot_add_lines_maybe(
       lines = rbind(split_lines$related, split_lines$identical),
       alpha = 0.7,
       line = list(shape = "spline", width = 5),
       text = ~HoverText,
-      color = ~ factor(line_colored), colors = colors
+      color = ~ factor(line_type), colors = colors
     ) %>%
     plotly::highlight(
       on = "plotly_hover", off = "plotly_doubleclick",

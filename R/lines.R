@@ -1,3 +1,12 @@
+#' lines_get_related_lines
+#'
+#' Given a line_id, find the line_ids associated to all related streaks.
+#'
+#' @param line_id LineID
+#' @param lzy_lines_to_streaks  Lazy lines_to_streaks table
+#' @param lzy_concordances Lazy concordances table
+#'
+#' @return
 lines_get_related_lines <- function(line_id, lzy_lines_to_streaks,
                                     lzy_concordances) {
   related_streak_ids <- lzy_lines_to_streaks %>%
@@ -14,11 +23,7 @@ lines_get_related_lines <- function(line_id, lzy_lines_to_streaks,
 
 lines_highlight <- function(lines, lzy_concordances, lzy_lines_to_streaks,
                             id = NULL) {
-  result <- lines %>%
-    dplyr::mutate(
-      line_colored = 1,
-      line_type = "base"
-    )
+  result <- lines %>% dplyr::mutate(line_type = "base")
 
   if (!is.null(id)) {
     row <- lines %>%
@@ -33,9 +38,6 @@ lines_highlight <- function(lines, lzy_concordances, lzy_lines_to_streaks,
       )
       result <- result %>%
         dplyr::mutate(
-          line_colored = dplyr::if_else(Year == year & Team == team, 2,
-            line_colored
-          ),
           line_type = dplyr::if_else(Year == year & Team == team, "season",
             line_type
           ),
@@ -46,7 +48,6 @@ lines_highlight <- function(lines, lzy_concordances, lzy_lines_to_streaks,
           ),
         ) %>%
         dplyr::mutate(
-          line_colored = dplyr::if_else(LineId == id, 3, line_colored),
           line_type = dplyr::if_else(LineId == id, "identical", line_type),
         )
     }
