@@ -1,4 +1,4 @@
-# TODO make arguments to server_ functions more consistent
+# Utility functions to load the lazy queries ----
 lzy_lines <- function(hot) {
   if (hot) {
     dplyr::tbl(se_pool, "hot_streaks_lines")
@@ -31,6 +31,8 @@ lzy_concordances <- function(hot) {
   }
 }
 
+# Main server functions ----
+
 server_streak_summary_data <- function(franchises, selected_streak) {
   start_time <- Sys.time()
   on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
@@ -38,7 +40,7 @@ server_streak_summary_data <- function(franchises, selected_streak) {
   streaks_summary_data(lzy_game_logs, franchises, selected_streak)
 }
 
-server_build_lines <- function(years, teams, franchises, max_rank, hot) {
+server_build_lines <- function(franchises, years, teams, max_rank, hot) {
   start_time <- Sys.time()
   on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
   lines_build_lines(lzy_lines(hot), years[[1]], years[[2]], teams,
@@ -108,6 +110,7 @@ server_main_plot <- function(highlighted_lines, intensity_level_range,
     torgutil::tbl_is_column_value_unique(highlighted_lines, Year) &
     torgutil::tbl_is_column_value_unique(highlighted_lines, Team)
   ) {
+    # For single-team plots, treat the "season" lines like the "base" lines
     highlighting <- tibble::tribble(
       ~line_type, ~color, ~width,
       "base",     colors[[1]], 1,
