@@ -1,6 +1,17 @@
-standings_update_from_game_logs <- function(lzy_standings, game_logs) {
+#' standings_update_from_game_logs
+#'
+#' Add the results of the game logs to a standings table.
+#'
+#' This is used for handling the case when we want to add a partial days
+#' games to a precalculated standings table, because of a double-header.
+#'
+#' @param lzy_standings  Lazy standings table
+#' @param lzy_games_to_add Game logs to add
+#'
+#' @return Updated standings
+standings_update_from_game_logs <- function(lzy_standings, lzy_games_to_add) {
   standings <- lzy_standings %>% dplyr::collect()
-  game_logs <- game_logs %>% dplyr::collect() %>%
+  game_logs <- lzy_games_to_add %>% dplyr::collect() %>%
     dplyr::filter(!is.na(Result))
   if (nrow(game_logs) > 0) {
     for (i in 1:nrow(game_logs)) {
@@ -11,6 +22,11 @@ standings_update_from_game_logs <- function(lzy_standings, game_logs) {
         Ties=ifelse(Team==game$Team, Ties+(game$Result=="T"), Ties)
       )
     }
+    # We added at least on game, so we need to recalculate the GB
+    standings <- standings %>%
+      dplyr::arrange(desc(Wins-Losses)) %>%
+      dplyr::mutate(
+        GB=(dplyr::first(Wins)-Wins + Losses-dplyr::first(Losses))/2)
   }
   standings
 }
