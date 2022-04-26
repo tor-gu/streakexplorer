@@ -32,7 +32,6 @@ lzy_concordances <- function(hot) {
 }
 
 # Main server functions ----
-
 server_streak_summary_data <- function(franchises, selected_streak) {
   start_time <- Sys.time()
   on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
@@ -70,11 +69,19 @@ server_lines_highlight <- function(lines, selected_line_id, hot) {
 server_get_streak_standings <- function(franchises, selected_streak) {
   start_time <- Sys.time()
   on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
-  lzy_standings <- dplyr::tbl(se_pool, "standings")
-  lzy_game_logs <- dplyr::tbl(se_pool, "game_logs")
 
-  streaks_get_standings(lzy_standings, lzy_game_logs, franchises,
-                        selected_streak)
+  # The lazy standings table will generate a bunch of warnings about the
+  # decimal column, which we don't care about
+  withCallingHandlers({
+    lzy_standings <- dplyr::tbl(se_pool, "standings")
+    lzy_game_logs <- dplyr::tbl(se_pool, "game_logs")
+    streaks_get_standings(lzy_standings, lzy_game_logs, franchises,
+                          selected_streak)
+  }, warning = function(wrn) {
+    if (stringr::str_starts(wrn$message, "Decimal MySQL")) {
+      rlang::cnd_muffle(wrn)
+    }
+  })
 }
 
 server_get_streak_game_logs <- function(selected_streak) {
@@ -87,8 +94,17 @@ server_get_streak_game_logs <- function(selected_streak) {
 server_build_streak_standings_graph <- function(franchises, selected_streak) {
   start_time <- Sys.time()
   on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
-  lzy_standings <- dplyr::tbl(se_pool, "standings")
-  build_standings_graph(lzy_standings, franchises, selected_streak)
+
+  # The standings table will generate a bunch of warnings about the
+  # decimal column, which we don't care about.
+  withCallingHandlers({
+    lzy_standings <- dplyr::tbl(se_pool, "standings")
+    build_standings_graph(lzy_standings, franchises, selected_streak)
+  }, warning = function(wrn) {
+    if (stringr::str_starts(wrn$message, "Decimal MySQL")) {
+      rlang::cnd_muffle(wrn)
+    }
+  })
 }
 
 server_get_max_rank <- function(franchises, years, teams, hot) {
