@@ -89,7 +89,8 @@ test_that("streaks_get_standings works with 'completions'", {
     lzy_standings <- dplyr::tbl(mock_conn, "standings")
     franchises <- dplyr::tbl(mock_conn, "franchises") %>% dplyr::collect()
     streak <- list(Year=2004, Team="CIN", LoIndex=100, HiIndex=105)
-    actual <- streaks_get_standings(lzy_standings, lzy_game_logs, franchises, streak)
+    actual <- streaks_get_standings(lzy_standings, lzy_game_logs, franchises,
+                                    streak)
     dbDisconnect(mock_conn)
   })
   expected_streak_info <- tibble::tibble(
