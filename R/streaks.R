@@ -224,7 +224,8 @@ streaks_get_standings <- function(lzy_standings, lzy_game_logs,
     dplyr::select(Team, Wins,Losses, Ties, GB, Location, Nickname) %>%
     dplyr::arrange(GB)
   # Look up the final standings
-  standings_final <- standings_get_final_standings(lzy_standings, division) %>%
+  standings_final <- standings_get_final_standings(lzy_standings,
+                                                   division$division) %>%
     dplyr::left_join(division$teams, by=c("Team"="TeamID")) %>%
     dplyr::select(Team, Wins,Losses, Ties, GB, Location, Nickname) %>%
     dplyr::arrange(GB)

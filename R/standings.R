@@ -31,21 +31,31 @@ standings_update_from_game_logs <- function(lzy_standings, lzy_games_to_add) {
   standings
 }
 
+#' standings_get_final_standings
+#'
+#' Get the final standings for a division.  `division` should be a single-row
+#' table with `Year`, `League` and `Division` (possibly `NA`).
+#'
+#' @param lzy_standings Lazy standings table
+#' @param division Division
+#'
+#' @return Standings table.
 standings_get_final_standings <- function(lzy_standings, division) {
-  if (is.na(division$division$Division)) {
+  if (is.na(division$Division)) {
     lzy_division_standings <- lzy_standings %>%
-      dplyr::filter(Year==local(division$division$Year),
-                    League==local(division$division$League))
+      dplyr::filter(Year==local(division$Year),
+                    League==local(division$League))
   } else {
     lzy_division_standings <- lzy_standings %>%
-      dplyr::filter(Year==local(division$division$Year),
-                    League==local(division$division$League),
-                    Division==local(division$division$Division))
+      dplyr::filter(Year==local(division$Year),
+                    League==local(division$League),
+                    Division==local(division$Division))
   }
   lzy_division_standings %>%
     dplyr::collect() %>%
     dplyr::filter(Date==max(Date, na.rm=TRUE))
 }
+
 standings_get_same_day_team_games <- function(lzy_game_logs, season_game_id,
                                               before=TRUE) {
   games <- lzy_game_logs %>%
