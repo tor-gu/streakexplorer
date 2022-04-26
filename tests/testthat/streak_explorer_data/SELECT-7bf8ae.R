@@ -1,0 +1,10 @@
+structure(list(Year = c(1990L, 1990L, 1990L, 1990L, 1990L, 1990L, 
+1990L), League = c("AL", "AL", "AL", "AL", "AL", "AL", "AL"), 
+    Division = c("East", "East", "East", "East", "East", "East", 
+    "East"), Date = c("1990-04-19", "1990-04-19", "1990-04-19", 
+    "1990-04-19", "1990-04-19", "1990-04-19", "1990-04-19"), 
+    Team = c("TOR", "BOS", "NYA", "MIL", "BAL", "CLE", "DET"), 
+    Wins = c(6L, 5L, 4L, 4L, 4L, 3L, 4L), Losses = c(4L, 4L, 
+    3L, 4L, 5L, 5L, 6L), Ties = c(0L, 0L, 0L, 0L, 0L, 0L, 0L), 
+    GB = c(0x0p+0, 0x1p-1, 0x1p-1, 0x1p+0, 0x1.8p+0, 0x1p+1, 
+    0x1p+1)), row.names = c(NA, -7L), class = "data.frame")

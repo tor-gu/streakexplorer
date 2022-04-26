@@ -148,3 +148,53 @@ test_that("standings_get_same_day_team_games_lzy handles games after", {
   expect_equal(games_before_1$SeasonGameId, c(2,2))
   expect_equal(nrow(games_before_2), 0)
 })
+
+test_that("standings_get_by_season_game_id handles games before", {
+  with_mock_db({
+    mock_conn <- suppressWarnings(
+      dbConnect(RMySQL::MySQL(), dbname="streak_explorer_data")
+    )
+    lzy_game_logs <- dplyr::tbl(mock_conn, "game_logs")
+    lzy_standings <- dplyr::tbl(mock_conn, "standings")
+    division <- list(Year=1990, League="AL", Division="East")
+    actual <- standings_get_by_season_game_id(lzy_standings, lzy_game_logs,
+                                              division, 123, TRUE)
+    dbDisconnect(mock_conn)
+  })
+  expected <- tibble::tribble(
+    ~Year, ~League, ~Division, ~Date,       ~Team, ~Wins, ~Losses, ~Ties, ~GB,
+    1990,  "AL",    "East",    "1990-04-19","TOR", 6,     4,       0,     0,
+    1990,  "AL",    "East",    "1990-04-19","BOS", 5,     4,       0,     0.5,
+    1990,  "AL",    "East",    "1990-04-19","NYA", 4,     3,       0,     0.5,
+    1990,  "AL",    "East",    "1990-04-19","MIL", 4,     4,       0,     1,
+    1990,  "AL",    "East",    "1990-04-19","BAL", 4,     5,       0,     1.5,
+    1990,  "AL",    "East",    "1990-04-19","CLE", 3,     5,       0,     2,
+    1990,  "AL",    "East",    "1990-04-19","DET", 4,     6,       0,     2
+  )
+  expect_equal(actual, expected)
+})
+
+test_that("standings_get_by_season_game_id handles games after", {
+  with_mock_db({
+    mock_conn <- suppressWarnings(
+      dbConnect(RMySQL::MySQL(), dbname="streak_explorer_data")
+    )
+    lzy_game_logs <- dplyr::tbl(mock_conn, "game_logs")
+    lzy_standings <- dplyr::tbl(mock_conn, "standings")
+    division <- list(Year=1990, League="AL", Division="East")
+    actual <- standings_get_by_season_game_id(lzy_standings, lzy_game_logs,
+                                              division, 123, FALSE)
+    dbDisconnect(mock_conn)
+  })
+  expected <- tibble::tribble(
+    ~Year, ~League, ~Division, ~Date,       ~Team, ~Wins, ~Losses, ~Ties, ~GB,
+    1990,  "AL",    "East",    "1990-04-20","TOR", 7,     4,       0,     0,
+    1990,  "AL",    "East",    "1990-04-20","MIL", 5,     4,       0,     1,
+    1990,  "AL",    "East",    "1990-04-20","BAL", 5,     5,       0,     1.5,
+    1990,  "AL",    "East",    "1990-04-20","BOS", 5,     5,       0,     1.5,
+    1990,  "AL",    "East",    "1990-04-20","NYA", 4,     4,       0,     1.5,
+    1990,  "AL",    "East",    "1990-04-20","CLE", 3,     5,       0,     2.5,
+    1990,  "AL",    "East",    "1990-04-20","DET", 4,     7,       0,     3
+  )
+  expect_equal(actual, expected)
+})

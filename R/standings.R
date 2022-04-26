@@ -94,24 +94,37 @@ standings_get_same_day_team_games_lzy <- function(lzy_game_logs, year,
   }
 }
 
+#' standings_get_by_season_game_id
+#'
+#' Given a division and a SeasonGameId, get the standings, either at
+#' the start of day (`before` is `TRUE`) or the end of day (`before` is
+#' `FALSE`).
+#'
+#' @param lzy_standings Lazy standings table
+#' @param lzy_game_logs Lazy game logs table
+#' @param division division table (`Year`, `League` and `Division`)
+#' @param season_game_id SeasonGameId
+#' @param before If `TRUE`, use start-of-day. Otherwise, end-of-day.
+#'
+#' @return Standings table
 standings_get_by_season_game_id <- function(lzy_standings,
-                                            division,
                                             lzy_game_logs,
+                                            division,
                                             season_game_id,
                                             before = TRUE) {
-  # TODO simplify this if/then
-  if (is.na(division$division$Division)) {
+  if (is.na(division$Division)) {
     lzy_division_standings <- lzy_standings %>%
-      dplyr::filter(Year==local(division$division$Year),
-                    League==local(division$division$League))
+      dplyr::filter(Year==local(division$Year),
+                    League==local(division$League))
   } else {
     lzy_division_standings <- lzy_standings %>%
-      dplyr::filter(Year==local(division$division$Year),
-                    League==local(division$division$League),
-                    Division==local(division$division$Division))
+      dplyr::filter(Year==local(division$Year),
+                    League==local(division$League),
+                    Division==local(division$Division))
   }
   games <- lzy_game_logs %>%
-    dplyr::filter(SeasonGameId == season_game_id) %>%
+    dplyr::filter(SeasonGameId == season_game_id,
+                  Year == local(division$Year)) %>%
     dplyr::collect()
   date <- games$Date[[1]]
   year <- games$Year[[1]]

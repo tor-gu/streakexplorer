@@ -206,8 +206,8 @@ streaks_get_standings <- function(lzy_standings, lzy_game_logs,
   # Calculate the standings before
   standings_before <-
     standings_get_by_season_game_id(lzy_standings,
-                                    division,
                                     lzy_division_season_games,
+                                    division$division,
                                     first_game$SeasonGameId,
                                     before=TRUE) %>%
     dplyr::left_join(division$teams, by=c("Team"="TeamID")) %>%
@@ -216,8 +216,8 @@ streaks_get_standings <- function(lzy_standings, lzy_game_logs,
   # Calculate the standings after
   standings_after <-
     standings_get_by_season_game_id(lzy_standings,
-                                    division,
                                     lzy_division_season_games,
+                                    division$division,
                                     last_game$SeasonGameId,
                                     before=FALSE) %>%
     dplyr::left_join(division$teams, by=c("Team"="TeamID")) %>%
