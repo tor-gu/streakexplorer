@@ -31,19 +31,20 @@ standings_update_from_game_logs <- function(lzy_standings, lzy_games_to_add) {
   standings
 }
 
-standings_from_game_logs <- function(game_logs) {
-  game_logs %>%
-    dplyr::group_by(Team) %>%
-    dplyr::summarise(
-      Wins=sum(Result=="W", na.rm = TRUE),
-      Losses=sum(Result=="L", na.rm = TRUE),
-      Ties=sum(Result=="T", na.rm = TRUE)) %>%
-    dplyr::collect() %>%
-    dplyr::arrange(desc(Wins-Losses)) %>%
-    dplyr::mutate(
-      GB=(dplyr::first(Wins)-Wins + Losses-dplyr::first(Losses))/2)
+standings_get_final_standings <- function(lzy_standings, division) {
+  if (is.na(division$division$Division)) {
+    lzy_division_standings <- lzy_standings %>%
+      dplyr::filter(Year==local(division$division$Year),
+                    League==local(division$division$League))
+  } else {
+    lzy_division_standings <- lzy_standings %>%
+      dplyr::filter(Year==local(division$division$Year),
+                    League==local(division$division$League),
+                    Division==local(division$division$Division))
+  }
+  lzy_division_standings %>% dplyr::filter(Date==max(Date)) %>%
+    dplyr::collect()
 }
-
 standings_get_same_day_team_games <- function(lzy_game_logs, season_game_id,
                                               before=TRUE) {
   games <- lzy_game_logs %>%
