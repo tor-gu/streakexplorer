@@ -227,7 +227,7 @@ build_standings_graph <- function(lzy_standings, franchises, streak) {
       dplyr::filter(Year == local(streak$Year),
                     League == local(division_teams$division$League))
   } else {
-    standings <- lzy_standings %>%
+    lzy_standings <- lzy_standings %>%
       dplyr::filter(
         Year == local(streak$Year),
         League == local(division_teams$division$League),

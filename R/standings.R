@@ -42,8 +42,9 @@ standings_get_final_standings <- function(lzy_standings, division) {
                     League==local(division$division$League),
                     Division==local(division$division$Division))
   }
-  lzy_division_standings %>% dplyr::filter(Date==max(Date, na.rm=TRUE)) %>%
-    dplyr::collect()
+  lzy_division_standings %>%
+    dplyr::collect() %>%
+    dplyr::filter(Date==max(Date, na.rm=TRUE))
 }
 standings_get_same_day_team_games <- function(lzy_game_logs, season_game_id,
                                               before=TRUE) {
