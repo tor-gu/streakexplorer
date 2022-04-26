@@ -99,7 +99,7 @@ server_build_streak_standings_graph <- function(franchises, selected_streak) {
   # decimal column, which we don't care about.
   withCallingHandlers({
     lzy_standings <- dplyr::tbl(se_pool, "standings")
-    build_standings_graph(lzy_standings, franchises, selected_streak)
+    plot_build_standings_graph(lzy_standings, franchises, selected_streak)
   }, warning = function(wrn) {
     if (stringr::str_starts(wrn$message, "Decimal MySQL")) {
       rlang::cnd_muffle(wrn)

@@ -206,7 +206,7 @@ plot_standings_graph <- function(standings, team, start_date, end_date) {
     ggplot2::scale_y_continuous(breaks=0, limits=c(y_min,y_max))
 }
 
-#' build_standings_graph
+#' plot_build_standings_graph
 #'
 #' Given the streak info, build the standings table for the division
 #' and pass it to plot_standings_graph to generate a standings plot
@@ -216,7 +216,7 @@ plot_standings_graph <- function(standings, team, start_date, end_date) {
 #' @param streak Streak info
 #'
 #' @return Standings plot
-build_standings_graph <- function(lzy_standings, franchises, streak) {
+plot_build_standings_graph <- function(lzy_standings, franchises, streak) {
   # Get division and teams
   division_teams <- franchises_get_division_by_team_year(
     franchises, streak$Team, streak$Year)
