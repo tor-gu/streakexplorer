@@ -56,12 +56,33 @@ standings_get_final_standings <- function(lzy_standings, division) {
     dplyr::filter(Date==max(Date, na.rm=TRUE))
 }
 
-standings_get_same_day_team_games <- function(lzy_game_logs, season_game_id,
-                                              before=TRUE) {
+#' standings_get_same_day_team_games_lzy
+#'
+#' Given the year and the SeasonGameId, find all games between the same two
+#' teams either earlier in the same day (when `before` is `TRUE`) or later
+#' in the same day (when `before` is `FALSE`).  The result is a lazy query
+#' to the game_logs table.
+#'
+#' The result is normally empty, and is only interesting when there is a
+#' double-header.
+#'
+#'
+#' @param lzy_game_logs Lazy game logs table
+#' @param year Year
+#' @param season_game_id SeasonGameId
+#' @param before If `TRUE`, game games earlier in the day. If `FALSE`, later
+#'
+#' @return Lazy query
+standings_get_same_day_team_games_lzy <- function(lzy_game_logs, year,
+                                              season_game_id, before=TRUE) {
+  # Get the game in question. There should be two rows here, one for each
+  # involved in the game.
   games <- lzy_game_logs %>%
-    dplyr::filter(SeasonGameId==season_game_id) %>%
+    dplyr::filter(SeasonGameId==season_game_id, Year==year) %>%
     dplyr::collect()
   date <- games$Date[[1]]
+
+  # Now filter the game_logs by team, date, and season game id
   if (before) {
     lzy_game_logs %>%
       dplyr::filter(Team %in% local(games$Team), Date == date,
@@ -99,14 +120,15 @@ standings_get_by_season_game_id <- function(lzy_standings,
     # has played earlier in the day
     date_before <- lubridate::ymd(date) - 1
     lzy_earlier_games <- lzy_game_logs %>%
-      standings_get_same_day_team_games(season_game_id, before = TRUE)
+      standings_get_same_day_team_games_lzy(year, season_game_id, before = TRUE)
     lzy_division_standings %>%
       dplyr::filter(Date == date_before) %>%
       standings_update_from_game_logs(lzy_earlier_games)
   } else {
     # Was this both teams' last game of the day or not?
     lzy_later_games <- lzy_game_logs %>%
-      standings_get_same_day_team_games(season_game_id, before = FALSE)
+      standings_get_same_day_team_games_lzy(year, season_game_id,
+                                            before = FALSE)
     if (lzy_later_games %>% dplyr::collect() %>% nrow() > 0) {
       # This is not the last game of the day -- only include
       # games played before this date, the current game, and
@@ -116,7 +138,8 @@ standings_get_by_season_game_id <- function(lzy_standings,
       # are no examples of this in the db.)
       date_before <- lubridate::ymd(date) - 1
       lzy_earlier_games <- lzy_game_logs %>%
-        standings_get_same_day_team_games(season_game_id, before = TRUE)
+        standings_get_same_day_team_games_lzy(year, season_game_id,
+                                              before = TRUE)
       lzy_division_standings %>%
         dplyr::filter(Date == date_before) %>%
         standings_update_from_game_logs(games) %>%

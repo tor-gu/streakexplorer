@@ -195,3 +195,4 @@ test_that("streaks_get_game_log basic test", {
   expected_ids <- 208768:208773
   expect_equal(actual_ids, expected_ids)
 })
+
