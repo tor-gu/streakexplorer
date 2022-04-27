@@ -9,6 +9,10 @@ streakexplorerApp(my_pool, initial_year_min, initial_year_max, ...)
 \arguments{
 \item{my_pool}{RMySQL DB pool}
 
+\item{initial_year_min}{Minimum year in the initial year range}
+
+\item{initial_year_max}{Maximum year in the initial year range}
+
 \item{...}{Additional arguments passed on to shiny::shinyApp}
 }
 \value{

@@ -1,6 +1,8 @@
 #' Streak explorer app
 #'
 #' @param my_pool RMySQL DB pool
+#' @param initial_year_min Minimum year in the initial year range
+#' @param initial_year_max Maximum year in the initial year range
 #' @param ... Additional arguments passed on to shiny::shinyApp
 #'
 #' @return A shiny::shinyApp
