@@ -310,3 +310,112 @@ test_that("ui_generate_team_selection basic test", {
   )
   expect_equal(actual, expected)
 })
+
+
+test_that("ui_build_divisions_choices basic test", {
+  franchises <- tibble::tribble(
+    ~FranchiseID, ~League, ~Division,  ~FirstSeason, ~FinalSeason,
+    "ALE1",       "AL",     "East",    1901,         1920,
+    "ALE2",       "AL",     "East",    1910,         1930,
+    "ALW1",       "AL",     "West",    1905,         1925,
+    "ALW2",       "AL",     "West",    1915,         1935,
+    "NLW1",       "NL",     "West",    1900,         1930,
+    "NLW2",       "NL",     "West",    1910,         1950
+  )
+  actual <- ui_build_divisions_choices(franchises, 1900:1950, c("AL","NL"))
+  expected <- list("AL Divisions"=
+                     list("AL East (1901-1930)"="AL_East",
+                          "AL West (1905-1935)"="AL_West"),
+                   "NL Divisions"=
+                     list("NL West"="NL_West")
+  )
+  expect_equal(actual, expected)
+})
+
+test_that("ui_build_teams_choices basic test", {
+  franchises <- tibble::tribble(
+    ~FranchiseID, ~League, ~Division,  ~Nickname,  ~FirstSeason, ~FinalSeason,
+    "TBA",        "AL",    "East",    "Devil Rays", 1998,        2007,
+    "TBA",        "AL",    "East",    "Rays",       2008,        NA,
+    "TEX",        "AL",     NA,       "Senators",   1961,        1968,
+    "TEX",        "AL",    "East",    "Senators",   1969,        1971,
+    "TEX",        "AL",    "West",    "Rangers",    1972,        NA,
+    "TOR",        "AL",    "East",    "Blue Jays",  1977,        NA
+  )
+  actual <- ui_build_teams_choices(franchises, 1972:2020,
+                                   list(list(league="AL", division="East")))
+  expected <- list("Rays/Devil Rays"="TBA", "Blue Jays"="TOR")
+  expect_equal(actual, expected)
+})
+
+test_that("ui_get_updated_division_selection preserves selection when possible", {
+  division_choices <- list(
+    "AL Divisions" =
+      list(
+        "AL East" = "AL_East",
+        "AL West" = "AL_West"
+      ),
+    "NL Divisions" =
+      list("NL West" = "NL_West")
+  )
+
+  input_divisions <- "AL_East"
+  actual <- ui_get_updated_division_selection(division_choices,
+                                              input_divisions, FALSE)
+  expected <- "AL_East"
+  expect_equal(actual, expected)
+})
+
+test_that("ui_get_updated_division_selection reverts to all when necessary", {
+  division_choices <- list(
+    "AL Divisions" =
+      list(
+        "AL East" = "AL_East",
+        "AL West" = "AL_West"
+      ),
+    "NL Divisions" =
+      list("NL West" = "NL_West")
+  )
+
+  input_divisions <- c("AL_East","NL_East")
+  actual <- ui_get_updated_division_selection(division_choices,
+                                              input_divisions, FALSE)
+  # We don't care about the names
+  names(actual) <- NULL
+  expected <- c("AL_East","AL_West","NL_West")
+  expect_equal(actual, expected)
+})
+
+test_that("ui_get_updated_teams_selection keeps slection when possible", {
+  teams_choices <- list("Rays/Devil Rays"="TBA", "Blue Jays"="TOR")
+  input_teams <- "TOR"
+  actual <- ui_get_updated_teams_selection(teams_choices, input_teams, FALSE)
+
+  # We don't care about the names
+  names(actual) <- NULL
+  expected <- "TOR"
+  expect_equal(actual, expected)
+})
+
+test_that("ui_get_updated_teams_selection reverts to all when necssary", {
+  teams_choices <- list("Rays/Devil Rays"="TBA", "Blue Jays"="TOR")
+  input_teams <- c("TOR","XXX")
+  actual <- ui_get_updated_teams_selection(teams_choices, input_teams, FALSE)
+
+  # We don't care about the names
+  names(actual) <- NULL
+  expected <- c("TBA","TOR")
+  expect_equal(actual, expected)
+})
+
+
+test_that("ui_get_updated_teams_selection reverts to all when 'All' is checked", {
+  teams_choices <- list("Rays/Devil Rays"="TBA", "Blue Jays"="TOR")
+  input_teams <- "TOR"
+  actual <- ui_get_updated_teams_selection(teams_choices, input_teams, TRUE)
+
+    # We don't care about the names
+  names(actual) <- NULL
+  expected <- c("TBA","TOR")
+  expect_equal(actual, expected)
+})

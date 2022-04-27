@@ -320,6 +320,20 @@ ui_generate_team_selection <- function(franchises) {
     torgutil::tbl_as_named_list(FranchiseID, Nicknames)
 }
 
+#' ui_build_divisions_choices
+#'
+#' Given a division table and a year and league filter,
+#' generate a choice list for the division selection
+#' UI.  If all the divisions are from the same league, there will be an
+#' element for each division. If both leagues are represented, then there will
+#' be two sublists, labeled "AL Divisions" and "NL Divisions".  (This will
+#' generate separators in the UI)
+
+#' @param franchises Franchise table (unfiltered)
+#' @param years  Vector of years to filter on
+#' @param leagues  League filter: "AL", "NL", or c("AL","NL")
+#'
+#' @return List of choices for the UI
 ui_build_divisions_choices <- function(franchises, years, leagues) {
   franchises %>%
     ui_filter_by_years(years) %>%
@@ -329,6 +343,18 @@ ui_build_divisions_choices <- function(franchises, years, leagues) {
     ui_generate_division_selection()
 }
 
+#' ui_build_teams_choices
+#'
+#' Given the franchises table, and a years and league/division filter,
+#' generate a named list of FranchiseIDs, where the names of the
+#' franchises is based on the teams Nicknames, like "Red Sox" or
+#' "Rays/Devil Rays".
+#'
+#' @param franchises  Franchises table
+#' @param years  Years filter
+#' @param league_divisions List of lists with `league` and `division`
+#'
+#' @return Named list for the UI
 ui_build_teams_choices <- function(franchises, years, league_divisions) {
   result <- franchises %>%
     ui_filter_by_years(years) %>%
@@ -338,22 +364,52 @@ ui_build_teams_choices <- function(franchises, years, league_divisions) {
   result
 }
 
+#' ui_get_updated_division_selection
+#'
+#' This function is for updating a the user-selected divisions after the
+#' a new filter has been applied to the available choices. The rule is:
+#' * If the 'All' checkbox is selected, the new selection should be all
+#' available divisions
+#' * If 'All' is not checked, but some previously selected choices have
+#' disappeared, the new new selection should be all available divisions
+#' * Otherwise, the already selected choices should be retained.
+#'
+#' @param division_choices Currently available choices (as named list)
+#' @param input_divisions Currently selected (vector of values)
+#' @param input_divisions_all The value of the 'All' checkbox
+#'
+#' @return Updated selection
 ui_get_updated_division_selection <- function(division_choices, input_divisions,
-                                           input_divisions_all) {
+                                              input_divisions_all) {
   # If it makes sense, keep previous division selections
   if (input_divisions_all) {
     unlist(division_choices)
   } else if (all(input_divisions %in% unlist(division_choices))) {
     input_divisions
   } else {
-    # Some previously selected divsions don't exist anymore --
+    # Some previously selected divisions don't exist anymore --
     # default back to all choices in this case.
     unlist(division_choices)
   }
 }
 
+#' ui_get_updated_teams_selection
+#'
+#' This function is for updating a the user-selected teams after the
+#' a new filter has been applied to the available choices. The rule is:
+#' * If the 'All' checkbox is selected, the new selection should be all
+#' available teams.
+#' * If 'All' is not checked, but some previously selected choices have
+#' disappeared, the new new selection should be all available teams.
+#' * Otherwise, the already selected choices should be retained.
+#'
+#' @param teams_choices Currently available choices (as named list)
+#' @param input_teams Currently selected (vector of values)
+#' @param input_teams_all The value of the 'All' checkbox
+#'
+#' @return Updated selection
 ui_get_updated_teams_selection <- function(teams_choices, input_teams,
-                                        input_teams_all) {
+                                           input_teams_all) {
   if (input_teams_all) {
     # We want all teams
     selected <- unlist(teams_choices)
