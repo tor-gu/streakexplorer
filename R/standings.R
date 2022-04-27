@@ -107,11 +107,13 @@ standings_get_same_day_team_games_lzy <- function(lzy_game_logs, year,
 #' @param before If `TRUE`, use start-of-day. Otherwise, end-of-day.
 #'
 #' @return Standings table
+# TODO finish reading through and documenting this function
 standings_get_by_season_game_id <- function(lzy_standings,
                                             lzy_game_logs,
                                             division,
                                             season_game_id,
                                             before = TRUE) {
+  # Filter the standings based on the division
   if (is.na(division$Division)) {
     lzy_division_standings <- lzy_standings %>%
       dplyr::filter(Year==local(division$Year),
@@ -122,12 +124,15 @@ standings_get_by_season_game_id <- function(lzy_standings,
                     League==local(division$League),
                     Division==local(division$Division))
   }
-  games <- lzy_game_logs %>%
+
+  # Get both instances of the game (home team and away team)
+  both_games <- lzy_game_logs %>%
     dplyr::filter(SeasonGameId == season_game_id,
                   Year == local(division$Year)) %>%
     dplyr::collect()
-  date <- games$Date[[1]]
-  year <- games$Year[[1]]
+  date <- both_games$Date[[1]]
+  year <- both_games$Year[[1]]
+
   if (before) {
     # include all games before the date, plus any games this team
     # has played earlier in the day
@@ -155,7 +160,7 @@ standings_get_by_season_game_id <- function(lzy_standings,
                                               before = TRUE)
       lzy_division_standings %>%
         dplyr::filter(Date == date_before) %>%
-        standings_update_from_game_logs(games) %>%
+        standings_update_from_game_logs(both_games) %>%
         standings_update_from_game_logs(lzy_earlier_games)
     } else {
       # This is the last game of the day -- include the whole day

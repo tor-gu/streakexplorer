@@ -22,13 +22,15 @@ Imports:
     plotly,
     pool,
     purrr,
+    rlang,
     RMySQL,
     shiny,
     shinycssloaders,
     shinyjs,
     stringr,
     tibble,
-    torgutil
+    torgutil,
+    viridis
 Suggests: 
     dittodb,
     RMariaDB,

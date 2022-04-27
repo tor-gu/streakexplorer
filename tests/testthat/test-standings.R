@@ -198,3 +198,93 @@ test_that("standings_get_by_season_game_id handles games after", {
   )
   expect_equal(actual, expected)
 })
+
+test_that("standings_get_by_season_game_id game 1 of double header", {
+  with_mock_db({
+    mock_conn <- suppressWarnings(
+      dbConnect(RMySQL::MySQL(), dbname="streak_explorer_data")
+    )
+    lzy_game_logs <- dplyr::tbl(mock_conn, "game_logs")
+    lzy_standings <- dplyr::tbl(mock_conn, "standings")
+    division <- list(Year=1948, League="AL", Division=NA)
+    standings_before <- standings_get_by_season_game_id(lzy_standings,
+                                                        lzy_game_logs,
+                                                        division, 1, TRUE) %>%
+      dplyr::select(Date:GB)
+    standings_after <- standings_get_by_season_game_id(lzy_standings,
+                                                       lzy_game_logs,
+                                                       division, 1, FALSE) %>%
+      dplyr::select(Date:GB)
+    dbDisconnect(mock_conn)
+  })
+  # In 1948, games 1 and 2 were a doubleheader between BOS and PHA
+  expected_standings_before <- tibble::tribble(
+    ~Date,        ~Team, ~Wins, ~Losses, ~Ties, ~GB,
+    "1948-04-18", "SLA", 0,     0,       0,     0,
+    "1948-04-18", "BOS", 0,     0,       0,     0,
+    "1948-04-18", "CHA", 0,     0,       0,     0,
+    "1948-04-18", "CLE", 0,     0,       0,     0,
+    "1948-04-18", "DET", 0,     0,       0,     0,
+    "1948-04-18", "WS1", 0,     0,       0,     0,
+    "1948-04-18", "NYA", 0,     0,       0,     0,
+    "1948-04-18", "PHA", 0,     0,       0,     0,
+  )
+  expected_standings_after <- tibble::tribble(
+    ~Date,        ~Team, ~Wins, ~Losses, ~Ties, ~GB,
+    "1948-04-18", "PHA", 1,     0,       0,     0,
+    "1948-04-18", "SLA", 0,     0,       0,     0.5,
+    "1948-04-18", "CHA", 0,     0,       0,     0.5,
+    "1948-04-18", "CLE", 0,     0,       0,     0.5,
+    "1948-04-18", "DET", 0,     0,       0,     0.5,
+    "1948-04-18", "WS1", 0,     0,       0,     0.5,
+    "1948-04-18", "NYA", 0,     0,       0,     0.5,
+    "1948-04-18", "BOS", 0,     1,       0,     1,
+  )
+  expect_equal(standings_before, expected_standings_before)
+  expect_equal(standings_after, expected_standings_after)
+})
+
+test_that("standings_get_by_season_game_id game 2 of double header", {
+  with_mock_db({
+    mock_conn <- suppressWarnings(
+      dbConnect(RMySQL::MySQL(), dbname="streak_explorer_data")
+    )
+    lzy_game_logs <- dplyr::tbl(mock_conn, "game_logs")
+    lzy_standings <- dplyr::tbl(mock_conn, "standings")
+    division <- list(Year=1948, League="AL", Division=NA)
+    standings_before <- standings_get_by_season_game_id(lzy_standings,
+                                                        lzy_game_logs,
+                                                        division, 2, TRUE) %>%
+      dplyr::select(Date:GB)
+    standings_after <- standings_get_by_season_game_id(lzy_standings,
+                                                       lzy_game_logs,
+                                                       division, 2, FALSE) %>%
+      dplyr::select(Date:GB)
+    dbDisconnect(mock_conn)
+  })
+  # In 1948, games 1 and 2 were a doubleheader between BOS and PHA
+  expected_standings_before <- tibble::tribble(
+    ~Date,        ~Team, ~Wins, ~Losses, ~Ties, ~GB,
+    "1948-04-18", "PHA", 1,     0,       0,     0,
+    "1948-04-18", "SLA", 0,     0,       0,     0.5,
+    "1948-04-18", "CHA", 0,     0,       0,     0.5,
+    "1948-04-18", "CLE", 0,     0,       0,     0.5,
+    "1948-04-18", "DET", 0,     0,       0,     0.5,
+    "1948-04-18", "WS1", 0,     0,       0,     0.5,
+    "1948-04-18", "NYA", 0,     0,       0,     0.5,
+    "1948-04-18", "BOS", 0,     1,       0,     1,
+  )
+  expected_standings_after <- tibble::tribble(
+    ~Date,        ~Team, ~Wins, ~Losses, ~Ties, ~GB,
+    "1948-04-19", "PHA", 2,     0,       0,     0,
+    "1948-04-19", "NYA", 1,     0,       0,     0.5,
+    "1948-04-19", "SLA", 0,     0,       0,     1,
+    "1948-04-19", "CHA", 0,     0,       0,     1,
+    "1948-04-19", "CLE", 0,     0,       0,     1,
+    "1948-04-19", "DET", 0,     0,       0,     1,
+    "1948-04-19", "WS1", 0,     1,       0,     1.5,
+    "1948-04-19", "BOS", 0,     2,       0,     2,
+  )
+  expect_equal(standings_before, expected_standings_before)
+  expect_equal(standings_after, expected_standings_after)
+})
