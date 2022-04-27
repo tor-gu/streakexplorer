@@ -108,6 +108,58 @@ test_that("ui_filter_by_league_divisions handles not-found values", {
   expect_equal(actual, 0)
 })
 
+test_that("ui_truncate_years handles basic scenarios", {
+  franchises <- tibble::tribble(
+    ~FranchiseID, ~FirstSeason, ~FinalSeason,
+    "AA1",        1,            10,
+    "AA2",        11,           20,
+    "AA3",        21,           NA
+  )
+
+  actual <- ui_truncate_years(franchises, 5:25)
+  expected <- tibble::tribble(
+    ~FranchiseID, ~FirstSeason, ~FinalSeason,
+    "AA1",        5,            10,
+    "AA2",        11,           20,
+    "AA3",        21,           25
+  )
+  expect_equal(actual, expected)
+})
+
+test_that("ui_get_divisions handles divisions", {
+  franchises <- tibble::tribble(
+    ~FranchiseID, ~League, ~Division,  ~FirstSeason, ~FinalSeason,
+    "ALE1",       "AL",     "East",    1,            20,
+    "ALE2",       "AL",     "East",    10,           30,
+    "ALW1",       "AL",     "West",    5,            25,
+    "ALW2",       "AL",     "West",    15,           35,
+  )
+  actual <- ui_get_divisions(franchises)
+  expected <- tibble::tribble(
+    ~League, ~Division, ~FirstSeason, ~FinalSeason,
+    "AL",    "East",    1,            30,
+    "AL",    "West",    5,            35
+  )
+  expect_equal(actual, expected)
+})
+
+test_that("ui_get_divisions handles non-divisions", {
+  franchises <- tibble::tribble(
+    ~FranchiseID, ~League, ~Division,  ~FirstSeason, ~FinalSeason,
+    "AL1",        "AL",     NA,        1,            20,
+    "AL2",        "AL",     NA,        10,           30,
+    "NL1",        "NL",     NA,        5,            25,
+    "NL2",        "NL",     NA,        15,           35,
+  )
+  actual <- ui_get_divisions(franchises)
+  expected <- tibble::tribble(
+    ~League, ~Division, ~FirstSeason, ~FinalSeason,
+    "AL",    NA,        1,            30,
+    "NL",    NA,        5,            35
+  )
+  expect_equal(actual, expected)
+})
+
 test_that("ui_division_choice_values_as_league_and_division_list handles basic scenario", {
   choice_values <- list("AL_None", "NL_West")
   expected <- list(
@@ -119,22 +171,12 @@ test_that("ui_division_choice_values_as_league_and_division_list handles basic s
 })
 
 test_that("ui_division_as_choice_label handles case without years specified", {
-  division_table <- tibble::tribble(
-    ~League, ~Division, ~FirstSeason, ~FinalSeason,
-    "AL",    "East",    1969,         2021,
-  )
-
   actual <- ui_division_as_choice_label("AL", "East")
   expected <- "AL East"
   expect_equal(actual, expected)
 })
 
 test_that("ui_division_as_choice_label handles case with years specified", {
-  division_table <- tibble::tribble(
-    ~League, ~Division, ~FirstSeason, ~FinalSeason,
-    "AL",    "East",    1969,         2021,
-  )
-
   actual <- ui_division_as_choice_label("AL", "East",
                                      1980, 1990, # First and final season
                                      1970, 2000)  # min and max )
@@ -144,11 +186,6 @@ test_that("ui_division_as_choice_label handles case with years specified", {
 })
 
 test_that("ui_division_as_choice_label handles case with years at max range", {
-  division_table <- tibble::tribble(
-    ~League, ~Division, ~FirstSeason, ~FinalSeason,
-    "AL",    "East",    1969,         2021,
-  )
-
   actual <- ui_division_as_choice_label("AL", "East",
                                      1980, 1990, # First and final season
                                      1980, 1990)  # min and max )
@@ -158,11 +195,6 @@ test_that("ui_division_as_choice_label handles case with years at max range", {
 })
 
 test_that("ui_division_as_choice_label handles case with almost full range", {
-  division_table <- tibble::tribble(
-    ~League, ~Division, ~FirstSeason, ~FinalSeason,
-    "AL",    "East",    1969,         2021,
-  )
-
   # Match the max but not the min
   actual <- ui_division_as_choice_label("AL", "East",
                                      1980, 1990, # First and final season
@@ -175,5 +207,106 @@ test_that("ui_division_as_choice_label handles case with almost full range", {
                                      1980, 1990, # First and final season
                                      1980, 1991)  # min and max )
   expected <- "AL East (1980-1990)"
+  expect_equal(actual, expected)
+})
+
+test_that("ui_division_as_choice_label handles NA division", {
+  actual <- ui_division_as_choice_label("AL", NA)
+  expected <- "AL No Division"
+  expect_equal(actual, expected)
+})
+
+
+test_that("ui_generate_league_division_selection handles identical year ranges", {
+  division_table <- tibble::tribble(
+    ~League, ~Division, ~FirstSeason, ~FinalSeason,
+    "AL",    "East",    1969,         2021,
+    "AL",    "West",    1969,         2021
+  )
+  actual <- ui_generate_league_division_selection(division_table, "AL")
+  expected <- list("AL East"="AL_East", "AL West"="AL_West")
+  expect_equal(actual, expected)
+})
+
+test_that("ui_generate_league_division_selection handles varying year ranges", {
+  division_table <- tibble::tribble(
+    ~League, ~Division, ~FirstSeason, ~FinalSeason,
+    "AL",    "East",    1969,         1985,
+    "AL",    "West",    1980,         2021,
+    "AL",    "Central", 1969,         2021
+  )
+  actual <- ui_generate_league_division_selection(division_table, "AL")
+  expected <- list("AL East (1969-1985)"="AL_East",
+                   "AL West (1980-2021)"="AL_West",
+                   "AL Central"="AL_Central")
+  expect_equal(actual, expected)
+})
+
+test_that("ui_generate_league_division_selection handles NA division", {
+  division_table <- tibble::tribble(
+    ~League, ~Division, ~FirstSeason, ~FinalSeason,
+    "AL",    "East",    1969,         1985,
+    "AL",    NA,        1969,         2021,
+  )
+  actual <- ui_generate_league_division_selection(division_table, "AL")
+  expected <- list("AL East (1969-1985)"="AL_East",
+                   "AL No Division"="AL_None")
+  expect_equal(actual, expected)
+})
+
+
+test_that("ui_generate_league_division_selection filters out irrelevant leagues", {
+  division_table <- tibble::tribble(
+    ~League, ~Division, ~FirstSeason, ~FinalSeason,
+    "AL",    "East",    1969,         1985,
+    "AL",    "West",    1980,         2021,
+    "NL",    "East",    1960,         1990
+  )
+  actual <- ui_generate_league_division_selection(division_table, "AL")
+  expected <- list("AL East (1969-1985)"="AL_East",
+                   "AL West (1980-2021)"="AL_West")
+  expect_equal(actual, expected)
+})
+
+test_that("ui_generate_division_selection single league", {
+  division_table <- tibble::tribble(
+    ~League, ~Division, ~FirstSeason, ~FinalSeason,
+    "AL",    "East",    1969,         1985,
+    "AL",    NA,        1969,         2021,
+  )
+  actual <- ui_generate_division_selection(division_table)
+  expected <- list("AL East (1969-1985)"="AL_East",
+                   "AL No Division"="AL_None")
+  expect_equal(actual, expected)
+})
+
+test_that("ui_generate_division_selection both leagues", {
+  division_table <- tibble::tribble(
+    ~League, ~Division, ~FirstSeason, ~FinalSeason,
+    "AL",    "East",    1969,         1985,
+    "AL",    "West",    1980,         2021,
+    "NL",    "East",    1960,         1990
+  )
+  actual <- ui_generate_division_selection(division_table)
+  expected <- list("AL Divisions"=
+                     list("AL East (1969-1985)"="AL_East",
+                          "AL West (1980-2021)"="AL_West"),
+                   "NL Divisions"=
+                     list("NL East"="NL_East")
+  )
+  expect_equal(actual, expected)
+})
+
+test_that("ui_generate_team_selection basic test", {
+  franchises <- tibble::tribble(
+    ~FranchiseID, ~Nickname,  ~FirstSeason,
+    "AAA",        "AAA 1",    1,
+    "AAA",        "AAA 2",    2,
+    "BBB",        "BBB only", 2
+  )
+  actual <- ui_generate_team_selection(franchises)
+  expected <- list(
+    "AAA 2/AAA 1"="AAA", "BBB only"="BBB"
+  )
   expect_equal(actual, expected)
 })
