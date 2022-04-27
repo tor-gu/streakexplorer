@@ -4,7 +4,7 @@
 \alias{streakexplorerApp}
 \title{Streak explorer app}
 \usage{
-streakexplorerApp(my_pool, ...)
+streakexplorerApp(my_pool, initial_year_min, initial_year_max, ...)
 }
 \arguments{
 \item{my_pool}{RMySQL DB pool}
@@ -27,6 +27,6 @@ my_pool <- pool::dbPool(
   password = Sys.getenv("streak_explorer_db_password"),
   dbname = Sys.getenv("streak_explorer_db_name")
 )
-streakexplorerApp(my_pool)
+streakexplorerApp(my_pool, 1948, 1960)
 }
 }
