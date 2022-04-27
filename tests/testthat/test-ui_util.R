@@ -386,6 +386,26 @@ test_that("ui_get_updated_division_selection reverts to all when necessary", {
   expect_equal(actual, expected)
 })
 
+test_that("ui_get_updated_division_selection reverts to all when 'All' is selected", {
+  division_choices <- list(
+    "AL Divisions" =
+      list(
+        "AL East" = "AL_East",
+        "AL West" = "AL_West"
+      ),
+    "NL Divisions" =
+      list("NL West" = "NL_West")
+  )
+
+  input_divisions <- "AL_East"
+  actual <- ui_get_updated_division_selection(division_choices,
+                                              input_divisions, TRUE)
+  # We don't care about the names
+  names(actual) <- NULL
+  expected <- c("AL_East","AL_West","NL_West")
+  expect_equal(actual, expected)
+})
+
 test_that("ui_get_updated_teams_selection keeps slection when possible", {
   teams_choices <- list("Rays/Devil Rays"="TBA", "Blue Jays"="TOR")
   input_teams <- "TOR"
