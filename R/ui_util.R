@@ -1,21 +1,54 @@
+#' ui_filter_by_year
+#'
+#' Filter the franchises table by year.
+#'
+#' @param franchises  Franchises table
+#' @param year Year
+#'
+#' @return Filtered franchises table
 ui_filter_by_year <- function(franchises, year) {
   franchises %>% dplyr::filter(
     FirstSeason <= year & (FinalSeason >= year | is.na(FinalSeason))
   )
 }
 
+#' ui_filter_by_years
+#'
+#' Filter the franchises table by a set of years. Return franchises matching
+#' any year in this list.
+#'
+#' @param franchises  Franchises table
+#' @param years vector of years.
+#'
+#' @return Filtered franchises table
 ui_filter_by_years <- function(franchises, years) {
   purrr::map(years, function(year) ui_filter_by_year(franchises, year)) %>%
-    purrr::map(tibble::as_tibble) %>%
     data.table::rbindlist() %>%
     unique()
 }
 
+#' ui_filter_by_league
+#'
+#' Filter the franchises table by leagues
+#'
+#' @param franchises Franchises table
+#' @param leagues vector of leagues
+#'
+#' @return Filtered franchises table
 ui_filter_by_league <- function(franchises, leagues) {
   franchises %>% dplyr::filter(League %in% leagues)
 }
 
 
+#' ui_filter_by_league_division
+#'
+#' Filter franchises table by league and division.  `league_division` should
+#' be a list with `league` and `division`.
+#'
+#' @param franchises Franchises table
+#' @param league_division League and division
+#'
+#' @return Filtered franchises table
 ui_filter_by_league_division <- function(franchises, league_division) {
   if (is.na(league_division$division)) {
     franchises %>% dplyr::filter(

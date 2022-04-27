@@ -1,3 +1,8 @@
+# This file contains utility functions for DT objects, which we always deal
+# with through proxies.
+# Each DT has a DT_xxx_init function and a DT_xxx_update function.
+
+# DT init functions ----
 DT_standings_init <- function() {
   dummy_data <- tibble::tibble(
     Team=character(0),
@@ -76,6 +81,7 @@ DT_game_log_init <- function() {
   )
 }
 
+# DT update functions ----
 DT_standings_update <- function(proxy, streak_info, standings) {
   nickname <- streak_info %>%
     dplyr::pull(Nickname)
