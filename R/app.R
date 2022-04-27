@@ -15,15 +15,14 @@
 #'   password = Sys.getenv("streak_explorer_db_password"),
 #'   dbname = Sys.getenv("streak_explorer_db_name")
 #' )
-#' streakexplorerApp(my_pool)
+#' streakexplorerApp(my_pool, 1948, 1960)
 #' }
-streakexplorerApp <- function(my_pool, ...) {
+streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) {
   se_pool <<- my_pool
   franchises <- dplyr::tbl(se_pool, "franchises") %>% dplyr::collect()
-  # TODO make 1948 & 1960 parameters
   intensity_level_range <- dplyr::tbl(se_pool, "hot_streaks") %>%
-    streaks_get_intensity_range(1948)
-  initial_year_range <- c(1948, 1960)
+    streaks_get_intensity_range(initial_year_min)
+  initial_year_range <- c(initial_year_min, initial_year_max)
   theme <- bslib::bs_theme(
     bootswatch = "lumen",
     heading_font = "1.2",

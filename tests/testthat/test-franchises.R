@@ -66,7 +66,7 @@ test_that("franchises_get_division_by_team_year handles NA division", {
   expect_equal(actual, expected)
 })
 
-test_that("franchises_franchise_ids_to_team_ids TODO", {
+test_that("franchises_franchise_ids_to_team_ids basic test", {
   franchises <- tibble::tribble(
     ~FranchiseID, ~TeamID, ~FirstSeason, ~FinalSeason,
     "AAA",        "AA1",   1,            10,

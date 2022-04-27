@@ -107,7 +107,6 @@ standings_get_same_day_team_games_lzy <- function(lzy_game_logs, year,
 #' @param before If `TRUE`, use start-of-day. Otherwise, end-of-day.
 #'
 #' @return Standings table
-# TODO finish reading through and documenting this function
 standings_get_by_season_game_id <- function(lzy_standings,
                                             lzy_game_logs,
                                             division,
