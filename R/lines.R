@@ -81,7 +81,9 @@ lines_highlight <- function(lines, lzy_concordances, lzy_lines_to_streaks,
 
 #' lines_build_lines
 #'
-#' Generate the table of lines for the given filter (years, teams and rank)
+#' Generate the table of lines for the given filter (years, teams and rank).
+#' The left intensity is requires so that the full-season lines are always
+#' included.
 #'
 #' @param lzy_lines Lazy lines table
 #' @param min_year Min Year
@@ -89,12 +91,26 @@ lines_highlight <- function(lines, lzy_concordances, lzy_lines_to_streaks,
 #' @param teams Vector of teamIDs
 #' @param franchises Franchises table
 #' @param max_rank Max Rank
+#' @param left_intensity Left-most intensity level (min for hot, max for cold)
 #'
 #' @return
 lines_build_lines <- function(lzy_lines, min_year, max_year, teams,
-                              franchises, max_rank) {
+                              franchises, max_rank, left_intensity) {
+  # Get the team-ids
   team_ids <- franchises_franchise_ids_to_team_ids(
     franchises, teams, min_year, max_year)
+
+  # Get the left-most line elements, to add in at the end
+  # The reason this is a special case is that sometimes the
+  # left-most line contains a single node, and we don't want to
+  # strip it out with all the other single-node lines.
+  left_lines <- lzy_lines %>%
+    dplyr::filter(between(Year, min_year, max_year),
+                  Team %in% teams, Rank <= max_rank,
+                  IntensityLevel == left_intensity) %>%
+    dplyr::collect()
+
+  # Get the lines
   lzy_lines %>%
     # Initial filter by years, teams, and ranks
     dplyr::filter(between(Year, min_year, max_year),
@@ -102,10 +118,15 @@ lines_build_lines <- function(lzy_lines, min_year, max_year, teams,
     # Now filter out lines that have only a single node above the cutoff
     dplyr::count(LineId) %>%
     dplyr::filter(n>1) %>%
+
     # Now add back in the whole lines for what remains
     dplyr::select(LineId) %>%
     dplyr::left_join(lzy_lines, by="LineId") %>%
-    dplyr::collect()
+    dplyr::filter(IntensityLevel != left_intensity) %>%
+    dplyr::collect() %>%
+
+    # Finally, add the left-most line elements
+    rbind(left_lines)
 }
 
 

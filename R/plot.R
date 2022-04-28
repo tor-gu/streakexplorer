@@ -104,7 +104,7 @@ plot_lines <- function(lines, min_intensity, max_intensity, max_rank,
     ) %>%
     # Add the "related" lines
     plot_add_lines_maybe(
-      lines = rbind(split_lines$related),
+      lines = split_lines$related,
       alpha = 0.7,
       line = list(shape = "spline", width = widths$related),
       text = ~HoverText,
@@ -112,7 +112,7 @@ plot_lines <- function(lines, min_intensity, max_intensity, max_rank,
     ) %>%
     # Add the "identical" lines
     plot_add_lines_maybe(
-      lines = rbind(split_lines$identical),
+      lines = split_lines$identical,
       alpha = 0.7,
       line = list(shape = "spline", width = widths$identical),
       text = ~HoverText,

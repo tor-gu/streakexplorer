@@ -4,7 +4,15 @@
 \alias{lines_build_lines}
 \title{lines_build_lines}
 \usage{
-lines_build_lines(lzy_lines, min_year, max_year, teams, franchises, max_rank)
+lines_build_lines(
+  lzy_lines,
+  min_year,
+  max_year,
+  teams,
+  franchises,
+  max_rank,
+  left_intensity
+)
 }
 \arguments{
 \item{lzy_lines}{Lazy lines table}
@@ -18,10 +26,14 @@ lines_build_lines(lzy_lines, min_year, max_year, teams, franchises, max_rank)
 \item{franchises}{Franchises table}
 
 \item{max_rank}{Max Rank}
+
+\item{left_intensity}{Left-most intensity level (min for hot, max for cold)}
 }
 \value{
 
 }
 \description{
-Generate the table of lines for the given filter (years, teams and rank)
+Generate the table of lines for the given filter (years, teams and rank).
+The left intensity is requires so that the full-season lines are always
+included.
 }

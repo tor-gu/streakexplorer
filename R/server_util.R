@@ -39,15 +39,22 @@ server_streak_summary_data <- function(franchises, selected_streak) {
   streaks_summary_data(lzy_game_logs, franchises, selected_streak)
 }
 
-server_build_lines <- function(franchises, years, teams, max_rank, hot) {
+server_build_lines <- function(franchises, intensity_level_range, years, teams,
+                               max_rank, hot) {
   start_time <- Sys.time()
   on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
   min_year <- years[[1]]
   max_year <- years[[2]]
+  if (hot) {
+    left_intensity <- intensity_level_range[[1]]
+  } else {
+    left_intensity <- intensity_level_range[[2]]
+  }
   team_ids <- franchises_franchise_ids_to_team_ids(franchises, teams, min_year,
                                                    max_year)
+
   lines_build_lines(lzy_lines(hot), min_year, max_year, team_ids,
-                    franchises, max_rank)
+                    franchises, max_rank, left_intensity)
 }
 
 server_get_selected_streak <- function(selected_line_id, hot) {

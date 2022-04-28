@@ -83,13 +83,47 @@ test_that("lines_highlight basic test", {
     lzy_lines <- dplyr::tbl(mock_conn, "hot_streaks_lines")
     franchises <- dplyr::tbl(mock_conn, "franchises") %>% dplyr::collect()
     lines <- lines_build_lines(lzy_lines, 1948, 1948, c("BOS","CIN"),
-                               franchises, 80)
+                               franchises, 80, 1)
     dbDisconnect(mock_conn)
   })
   expect_equal(nrow(lines), 107)
   expect_equal(unique(lines$LineId),
                c(6298, 6311, 6312, 6317, 6320, 6324, 6325, 6327))
 })
+
+test_that("lines_highlight detects left-most line with hot streaks", {
+  with_mock_db({
+    mock_conn <- suppressWarnings(
+      dbConnect(RMySQL::MySQL(), dbname="streak_explorer_data")
+    )
+    lzy_lines <- dplyr::tbl(mock_conn, "hot_streaks_lines")
+    franchises <- dplyr::tbl(mock_conn, "franchises") %>% dplyr::collect()
+    lines <- lines_build_lines(lzy_lines, 1954, 1954, "NYA",
+                               franchises, 80, 1)
+    dbDisconnect(mock_conn)
+  })
+  expect_equal(nrow(lines), 109)
+  expect_equal(unique(lines$LineId),
+               c(39806, 39822, 39825, 39826, 39834, 39838, 39840, 39842, 39843))
+})
+
+test_that("lines_highlight detects left-most line with cold streaks", {
+  with_mock_db({
+    mock_conn <- suppressWarnings(
+      dbConnect(RMySQL::MySQL(), dbname="streak_explorer_data")
+    )
+    lzy_lines <- dplyr::tbl(mock_conn, "cold_streaks_lines")
+    franchises <- dplyr::tbl(mock_conn, "franchises") %>% dplyr::collect()
+    lines <- lines_build_lines(lzy_lines, 1949, 1949, "WS1",
+                               franchises, 80, 101)
+    dbDisconnect(mock_conn)
+  })
+  expect_equal(nrow(lines), 114)
+  expect_equal(unique(lines$LineId),
+               c(66267, 66268, 66277, 66285, 66296, 66298, 66305, 66307, 66309,
+                 66310))
+})
+
 
 test_that("lines_get_selected_streak basic test", {
   with_mock_db({
