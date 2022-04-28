@@ -308,6 +308,7 @@ streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) 
 
     observeEvent(years(), {
       update_divisions_selection()
+      update_teams_selection()
     })
 
     observeEvent(input$divisions, {
