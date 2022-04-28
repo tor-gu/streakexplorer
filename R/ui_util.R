@@ -1,30 +1,17 @@
-#' ui_filter_by_year
-#'
-#' Filter the franchises table by year.
-#'
-#' @param franchises  Franchises table
-#' @param year Year
-#'
-#' @return Filtered franchises table
-ui_filter_by_year <- function(franchises, year) {
-  franchises %>% dplyr::filter(
-    FirstSeason <= year & (FinalSeason >= year | is.na(FinalSeason))
-  )
-}
-
 #' ui_filter_by_years
 #'
 #' Filter the franchises table by a set of years. Return franchises matching
-#' any year in this list.
+#' any year in this list (but the list must consist of consecutive integers).
 #'
 #' @param franchises  Franchises table
 #' @param years vector of years.
 #'
 #' @return Filtered franchises table
 ui_filter_by_years <- function(franchises, years) {
-  purrr::map(years, function(year) ui_filter_by_year(franchises, year)) %>%
-    data.table::rbindlist() %>%
-    unique()
+  min_year <- years[[1]]
+  max_year <- years[[length(years)]]
+  franchises %>% dplyr::filter(FirstSeason <= max_year,
+                               (is.na(FinalSeason) | FinalSeason >= min_year))
 }
 
 #' ui_filter_by_league

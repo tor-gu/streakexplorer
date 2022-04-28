@@ -16,5 +16,5 @@ Filtered franchises table
 }
 \description{
 Filter the franchises table by a set of years. Return franchises matching
-any year in this list.
+any year in this list (but the list must consist of consecutive integers).
 }

@@ -1,22 +1,3 @@
-test_that("ui_filter_by_year handles basic scenarios", {
-  franchises <- tibble::tribble(
-    ~FranchiseID, ~FirstSeason, ~FinalSeason,
-    "AA1",        1,            10,
-    "AA2",        11,           20,
-    "AA3",        21,           NA,
-    "BB1",        15,           25,
-    "BB2",        26,           35,
-    "BB3",        36,           NA
-  )
-
-  year_10 <- ui_filter_by_year(franchises, 10) %>% dplyr::pull(FranchiseID)
-  year_11 <- ui_filter_by_year(franchises, 11) %>% dplyr::pull(FranchiseID)
-  year_21 <- ui_filter_by_year(franchises, 21) %>% dplyr::pull(FranchiseID)
-  expect_equal(year_10, "AA1")
-  expect_equal(year_11, "AA2")
-  expect_equal(year_21, c("AA3", "BB1"))
-})
-
 test_that("ui_filter_by_years handles basic scenarios", {
   franchises <- tibble::tribble(
     ~FranchiseID, ~FirstSeason, ~FinalSeason,
