@@ -71,7 +71,7 @@ streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) 
           9,
           shiny::selectInput(
             "leagues",
-            "League",
+            "Leagues",
             choices = c(
               "All Leagues" = "BOTH",
               "AL" = "AL",
