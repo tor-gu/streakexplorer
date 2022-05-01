@@ -161,7 +161,9 @@ plot_lines <- function(lines, min_intensity, max_intensity, max_rank,
       zeroline = FALSE
     )) %>%
     # Finish up and return the plotly object
-    plotly::layout(showlegend = FALSE) %>%
+    plotly::layout(showlegend = FALSE,
+                   paper_bgcolor = highlight_colors$background,
+                   plot_bgcolor  = highlight_colors$background) %>%
     plotly::config(displayModeBar = FALSE)
 }
 
@@ -195,11 +197,13 @@ plot_standings_graph <- function(standings, team, start_date, end_date) {
 
   # Now plot the standings
   ggplot2::ggplot(mapping = ggplot2::aes(Date, Wins - Losses, group = Team)) +
-    ggplot2::geom_line(data = dplyr::filter(standings, Team != team)) +
+    ggplot2::geom_line(data = dplyr::filter(standings, Team != team),
+              color = highlight_colors$base) +
     ggplot2::geom_line(data = dplyr::filter(standings, Team == team),
-              color = "red") +
+              color = highlight_colors$high) +
     ggplot2::annotate("rect", xmin=start_date - 1, xmax=end_date,
-             ymin=rect_y_min, ymax=rect_y_max, alpha=0.2) +
+             ymin=rect_y_min, ymax=rect_y_max, alpha=0.1,
+             fill = highlight_colors$medium) +
     ggplot2::xlab(NULL) +
     ggplot2::ylab(NULL) +
     ggplot2::scale_x_date(minor_breaks=NULL) +

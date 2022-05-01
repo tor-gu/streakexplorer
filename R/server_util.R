@@ -131,8 +131,6 @@ server_get_max_rank <- function(franchises, years, teams, hot) {
 
 server_main_plot <- function(highlighted_lines, intensity_level_range,
                              max_rank, hot) {
-  colors <- viridis::viridis(4)
-
   if (
     torgutil::tbl_is_column_value_unique(highlighted_lines, Year) &
     torgutil::tbl_is_column_value_unique(highlighted_lines, Team)
@@ -140,18 +138,18 @@ server_main_plot <- function(highlighted_lines, intensity_level_range,
     # For single-team plots, treat the "season" lines like the "base" lines
     highlighting <- tibble::tribble(
       ~line_type, ~color, ~width,
-      "base",     colors[[1]], 1,
-      "season",   colors[[1]], 1,
-      "related",  colors[[3]], 3,
-      "identical",colors[[4]], 5
+      "base",     highlight_colors$base, 1,
+      "season",   highlight_colors$base, 1,
+      "related",  highlight_colors$medium, 3,
+      "identical",highlight_colors$high, 5
     )
   } else {
     highlighting <- tibble::tribble(
       ~line_type, ~color, ~width,
-      "base",     colors[[1]], 1,
-      "season",   colors[[2]], 3,
-      "related",  colors[[3]], 5,
-      "identical",colors[[4]], 5
+      "base",     highlight_colors$base, 1,
+      "season",   highlight_colors$low, 3,
+      "related",  highlight_colors$medium, 3,
+      "identical",highlight_colors$high, 5
     )
   }
   min_intensity <- intensity_level_range[[1]]

@@ -30,7 +30,8 @@ DT_standings_init <- function() {
   ) %>%
     DT::formatStyle("Highlight",
                     target="row",
-                    backgroundColor=DT::styleEqual(TRUE, "red")
+                    backgroundColor=DT::styleEqual(TRUE,
+                                                   highlight_colors$high)
     )
 }
 
