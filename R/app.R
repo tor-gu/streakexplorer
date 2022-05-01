@@ -25,11 +25,6 @@ streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) 
   intensity_level_range <- dplyr::tbl(se_pool, "hot_streaks") %>%
     streaks_get_intensity_range(initial_year_min)
   initial_year_range <- c(initial_year_min, initial_year_max)
-  theme <- bslib::bs_theme(
-    bootswatch = "lumen",
-    heading_font = "1.2",
-    font_scale = 0.8
-  )
 
   # UI ----
   ui <- shiny::fluidPage(

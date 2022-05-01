@@ -5,3 +5,8 @@ highlight_colors <- list(
   medium = "#A5004A",
   high =   "#FF0000"
 )
+theme <- bslib::bs_theme(
+  bootswatch = "lumen",
+  heading_font = "1.2",
+  font_scale = 0.8
+)
