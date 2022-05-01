@@ -62,11 +62,11 @@ DT_game_log_init <- function() {
   dummy_table <- tibble::tibble(
     `Gm#` = integer(0),
     Date = character(0),
-    Opp = "X",
+    Opp = character(0),
     `W/L` = character(0),
     RS = integer(0),
     RA = integer(0),
-    Completion = logical(0)
+    Completion = character(0)
   )
   DT::datatable(
     dummy_table,
@@ -74,7 +74,6 @@ DT_game_log_init <- function() {
     rownames = FALSE,
     options(
       ordering = FALSE, searching = FALSE, pageLength = 15,
-      #paging = nrow(game_log$data) > 15,
       pagingType = "simple",
       lengthChange = FALSE
     ),
