@@ -27,145 +27,152 @@ streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) 
   initial_year_range <- c(initial_year_min, initial_year_max)
 
   # UI ----
-  ui <- shiny::fluidPage(
-    ## Styling and header ----
-    shinyjs::useShinyjs(),
-    shiny::tags$style("#game_log td, th {padding: 0; text-align: right}"),
-    shiny::tags$style("#streak_summary td, th {padding: 0; text-align: right}"),
-    shiny::tags$style("#standings_before td, th {padding: 0; text-align: right}"),
-    shiny::tags$style("#standings_after td, th {padding: 0; text-align: right}"),
-    shiny::tags$style("#standings_final td, th {padding: 0; text-align: right}"),
-    theme = theme,
-    #theme=bslib::bs_theme(),
+  ui <-
+    shiny::navbarPage(
+      "Baseball Streak Explorer",
+      collapsible = FALSE,
+      inverse = TRUE,
+      shiny::tabPanel(
+        "Explorer",
+        shiny::fluidPage(
+          ## Styling and header ----
+          shinyjs::useShinyjs(),
+          shiny::tags$style("#game_log td, th {padding: 0; text-align: right}"),
+          shiny::tags$style("#streak_summary td, th {padding: 0; text-align: right}"),
+          shiny::tags$style("#standings_before td, th {padding: 0; text-align: right}"),
+          shiny::tags$style("#standings_after td, th {padding: 0; text-align: right}"),
+          shiny::tags$style("#standings_final td, th {padding: 0; text-align: right}"),
 
-    ## Title ----
-    shiny::titlePanel("Baseball Streak Explorer"),
+          ## Sidebar layout ----
+          shiny::sidebarLayout(
+            ### Sidebar ----
+            shiny::sidebarPanel(
+              width = 5,
 
-    ## Sidebar layout ----
-    shiny::sidebarLayout(
-      ### Sidebar ----
-      shiny::sidebarPanel(
-        width = 5,
+              #### Years slider ----
+              shiny::fluidRow(shiny::column(
+                12,
+                shiny::sliderInput(
+                  "years",
+                  "Years",
+                  min = 1948,
+                  max = 2021,
+                  step = 1,
+                  value = initial_year_range,
+                  sep = ""
+                )
+              )),
 
-        #### Years slider ----
-        shiny::fluidRow(shiny::column(
-          12,
-          shiny::sliderInput(
-            "years",
-            "Years",
-            min = 1948,
-            max = 2021,
-            step = 1,
-            value = initial_year_range,
-            sep = ""
-          )
-        )),
+              #### League selection ----
+              shiny::fluidRow(shiny::column(
+                9,
+                shiny::selectInput(
+                  "leagues",
+                  "Leagues",
+                  choices = c(
+                    "All Leagues" = "BOTH",
+                    "AL" = "AL",
+                    "NL" = "NL"
+                  )
+                )
+              ),
+              # This empty column is a placeholder, where the 'all' box would go
+              shiny::column(3,)),
 
-        #### League selection ----
-        shiny::fluidRow(shiny::column(
-          9,
-          shiny::selectInput(
-            "leagues",
-            "Leagues",
-            choices = c(
-              "All Leagues" = "BOTH",
-              "AL" = "AL",
-              "NL" = "NL"
+              #### Division selection ----
+              shiny::fluidRow(
+                shiny::column(
+                  9,
+                  shiny::selectInput(
+                    "divisions",
+                    "Divisions",
+                    choices = list(),
+                    multiple = TRUE
+                  ),
+                ),
+                shiny::column(3,
+                              shiny::checkboxInput("divisions_all", "All",
+                                                   value = TRUE))
+              ),
+
+              #### Team selection ----
+              shiny::fluidRow(
+                shiny::column(
+                  9,
+                  shiny::selectInput("teams", "Teams", choices = list(),
+                                     multiple = TRUE),
+                ),
+                shiny::column(3,
+                              shiny::checkboxInput("teams_all", "All", value = TRUE))
+              ),
+              shiny::radioButtons(
+                "streak_type",
+                "Streak Type",
+                choices = c("HOT", "COLD"),
+                selected = "HOT"
+              )
+            ),
+
+            ### Main Panel ----
+            shiny::mainPanel(
+              width = 7,
+
+              #### Streaks graph ----
+              shiny::fluidRow(shiny::column(
+                12, plotly::plotlyOutput(outputId = "streaks")
+              )),
+
+              #### Selected streak summary ----
+              shiny::fluidRow(
+                id = "summary_row",
+                shiny::column(
+                  12,
+                  #shiny::h5("Streak summary"),
+                  shiny::h5(shiny::textOutput("streak_summary_caption")),
+                  shinycssloaders::withSpinner(DT::DTOutput("streak_summary"))
+                )
+              ),
+              #### Selected streak standings row ----
+              shiny::fluidRow(
+                id = "standings_row",
+                shiny::column(
+                  4,
+                  shiny::h5("Standings before"),
+                  DT::DTOutput("standings_before")
+                ),
+                shiny::column(
+                  4,
+                  shiny::h5("Standings after"),
+                  DT::DTOutput("standings_after")
+                ),
+                shiny::column(
+                  4,
+                  shiny::h5("Final standings"),
+                  DT::DTOutput("standings_final")
+                )
+              ),
+              #### Selected streaks graphs and game_log row
+              shiny::fluidRow(
+                id = "graph_log_row",
+                shiny::column(
+                  6,
+                  shiny::h5("Standings graph"),
+                  shinycssloaders::withSpinner(shiny::plotOutput("standings_graph"))
+                ),
+                shiny::column(
+                  6,
+                  shiny::h5("Game log"),
+                  shinycssloaders::withSpinner(DT::DTOutput("game_log"))
+                )
+              )
             )
           )
-        ),
-        # This empty column is a placeholder, where the 'all' box would go
-        shiny::column(3, )),
-
-        #### Division selection ----
-        shiny::fluidRow(
-          shiny::column(
-            9,
-            shiny::selectInput(
-              "divisions",
-              "Divisions",
-              choices = list(),
-              multiple = TRUE
-            ),
-          ),
-          shiny::column(3,
-                        shiny::checkboxInput("divisions_all", "All",
-                                             value = TRUE))
-        ),
-
-        #### Team selection ----
-        shiny::fluidRow(
-          shiny::column(
-            9,
-            shiny::selectInput("teams", "Teams", choices = list(),
-                               multiple = TRUE),
-          ),
-          shiny::column(3,
-                        shiny::checkboxInput("teams_all", "All", value = TRUE))
-        ),
-        shiny::radioButtons(
-          "streak_type",
-          "Streak Type",
-          choices = c("HOT", "COLD"),
-          selected = "HOT"
         )
       ),
-
-      ### Main Panel ----
-      shiny::mainPanel(
-        width = 7,
-
-        #### Streaks graph ----
-        shiny::fluidRow(shiny::column(
-          12, plotly::plotlyOutput(outputId = "streaks")
-        )),
-
-        #### Selected streak summary ----
-        shiny::fluidRow(
-          id = "summary_row",
-          shiny::column(
-            12,
-            #shiny::h5("Streak summary"),
-            shiny::h5(shiny::textOutput("streak_summary_caption")),
-            shinycssloaders::withSpinner(DT::DTOutput("streak_summary"))
-          )
-        ),
-        #### Selected streak standings row ----
-        shiny::fluidRow(
-          id = "standings_row",
-          shiny::column(
-            4,
-            shiny::h5("Standings before"),
-            DT::DTOutput("standings_before")
-          ),
-          shiny::column(
-            4,
-            shiny::h5("Standings after"),
-            DT::DTOutput("standings_after")
-          ),
-          shiny::column(
-            4,
-            shiny::h5("Final standings"),
-            DT::DTOutput("standings_final")
-          )
-        ),
-        #### Selected streaks graphs and game_log row
-        shiny::fluidRow(
-          id = "graph_log_row",
-          shiny::column(
-            6,
-            shiny::h5("Standings graph"),
-            shinycssloaders::withSpinner(shiny::plotOutput("standings_graph"))
-          ),
-          shiny::column(
-            6,
-            shiny::h5("Game log"),
-            shinycssloaders::withSpinner(DT::DTOutput("game_log"))
-          )
-        )
-      )
+      shiny::tabPanel("About", shiny::includeMarkdown("")),
+      theme = theme
     )
-  )
+
 
   # Server ----
   server <- function(input, output, session) {
