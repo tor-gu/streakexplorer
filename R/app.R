@@ -48,69 +48,69 @@ streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) 
             ### Sidebar ----
             shiny::sidebarPanel(
               width = 5,
-
-              #### Years slider ----
-              shiny::fluidRow(shiny::column(
-                12,
-                shiny::sliderInput(
-                  "years",
-                  "Years",
-                  min = 1948,
-                  max = 2021,
-                  step = 1,
-                  value = initial_year_range,
-                  sep = ""
-                )
-              )),
-
-              #### League selection ----
-              shiny::fluidRow(shiny::column(
-                9,
-                shiny::selectInput(
-                  "leagues",
-                  "Leagues",
-                  choices = c(
-                    "All Leagues" = "BOTH",
-                    "AL" = "AL",
-                    "NL" = "NL"
-                  )
-                )
-              ),
-              # This empty column is a placeholder, where the 'all' box would go
-              shiny::column(3,)),
-
-              #### Division selection ----
-              shiny::fluidRow(
-                shiny::column(
-                  9,
-                  shiny::selectInput(
-                    "divisions",
-                    "Divisions",
-                    choices = list(),
-                    multiple = TRUE
-                  ),
-                ),
-                shiny::column(3,
-                              shiny::checkboxInput("divisions_all", "All",
-                                                   value = TRUE))
-              ),
-
-              #### Team selection ----
-              shiny::fluidRow(
-                shiny::column(
-                  9,
-                  shiny::selectInput("teams", "Teams", choices = list(),
-                                     multiple = TRUE),
-                ),
-                shiny::column(3,
-                              shiny::checkboxInput("teams_all", "All", value = TRUE))
-              ),
-              shiny::radioButtons(
-                "streak_type",
-                "Streak Type",
-                choices = c("HOT", "COLD"),
-                selected = "HOT"
-              )
+              filterUI("filter", initial_year_range)
+              # #### Years slider ----
+              # shiny::fluidRow(shiny::column(
+              #   12,
+              #   shiny::sliderInput(
+              #     "years",
+              #     "Years",
+              #     min = 1948,
+              #     max = 2021,
+              #     step = 1,
+              #     value = initial_year_range,
+              #     sep = ""
+              #   )
+              # )),
+              #
+              # #### League selection ----
+              # shiny::fluidRow(shiny::column(
+              #   9,
+              #   shiny::selectInput(
+              #     "leagues",
+              #     "Leagues",
+              #     choices = c(
+              #       "All Leagues" = "BOTH",
+              #       "AL" = "AL",
+              #       "NL" = "NL"
+              #     )
+              #   )
+              # ),
+              # # This empty column is a placeholder, where the 'all' box would go
+              # shiny::column(3,)),
+              #
+              # #### Division selection ----
+              # shiny::fluidRow(
+              #   shiny::column(
+              #     9,
+              #     shiny::selectInput(
+              #       "divisions",
+              #       "Divisions",
+              #       choices = list(),
+              #       multiple = TRUE
+              #     ),
+              #   ),
+              #   shiny::column(3,
+              #                 shiny::checkboxInput("divisions_all", "All",
+              #                                      value = TRUE))
+              # ),
+              #
+              # #### Team selection ----
+              # shiny::fluidRow(
+              #   shiny::column(
+              #     9,
+              #     shiny::selectInput("teams", "Teams", choices = list(),
+              #                        multiple = TRUE),
+              #   ),
+              #   shiny::column(3,
+              #                 shiny::checkboxInput("teams_all", "All", value = TRUE))
+              # ),
+              # shiny::radioButtons(
+              #   "streak_type",
+              #   "Streak Type",
+              #   choices = c("HOT", "COLD"),
+              #   selected = "HOT"
+              # )
             ),
 
             ### Main Panel ----
@@ -178,57 +178,75 @@ streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) 
   server <- function(input, output, session) {
     #bslib::bs_themer()
 
-    ## Reactives and reactive values ----
-    hot <- reactive({
-      input$streak_type == "HOT"
-    })
-
-    years <- reactive({
-      input$years
-    }) %>% debounce(333)
-    max_rank <- reactive({
-      req(input$teams)
-      server_get_max_rank(franchises, years(), input$teams, hot())
-    })
+    # ## Reactives and reactive values ----
+    # hot <- reactive({
+    #   input$streak_type == "HOT"
+    # })
+    #
+    # years <- reactive({
+    #   input$years
+    # }) %>% debounce(333)
+    # max_rank <- reactive({
+    #   req(input$teams)
+    #   server_get_max_rank(franchises, years(), input$teams, hot())
+    # })
+    #
+    # selected_line_id <- reactiveVal(NULL)
+    # selected_years <- reactive({
+    #   years()[[1]]:years()[[2]]
+    # })
+    # selected_leagues <- reactiveVal(c("AL", "NL"))
+    # selected_league_divisions <- reactiveVal(
+    #   list("AL_None", "NL_None") %>%
+    #     ui_division_choice_values_as_league_and_division_list()
+    # )
+    # selected_streaks_summary_data <- reactive({
+    #   req(selected_streak())
+    #   server_streak_summary_data(franchises, selected_streak())
+    # })
+    #
+    # divisions_choices <- reactive({
+    #   ui_build_divisions_choices(franchises,
+    #                              selected_years(),
+    #                              selected_leagues())
+    # })
+    #
+    # teams_choices <- reactive({
+    #   ui_build_teams_choices(franchises,
+    #                          selected_years(),
+    #                          selected_league_divisions())
+    # })
+    #
+    # no_divisions_choices <- reactive({
+    #   all(unname(unlist(divisions_choices())) %in% c("AL_None", "NL_None"))
+    # })
+    filter <- filterServer("filter", franchises)
 
     selected_line_id <- reactiveVal(NULL)
-    selected_years <- reactive({
-      years()[[1]]:years()[[2]]
+    max_rank <- reactive({
+      # req(input$teams)
+      # server_get_max_rank(franchises, years(), input$teams, hot())
+      req(filter$teams())
+      server_get_max_rank(franchises, filter$years(), filter$teams(),
+                          filter$hot())
     })
-    selected_leagues <- reactiveVal(c("AL", "NL"))
-    selected_league_divisions <- reactiveVal(
-      list("AL_None", "NL_None") %>%
-        ui_division_choice_values_as_league_and_division_list()
-    )
     selected_streaks_summary_data <- reactive({
       req(selected_streak())
       server_streak_summary_data(franchises, selected_streak())
     })
 
-    divisions_choices <- reactive({
-      ui_build_divisions_choices(franchises,
-                                 selected_years(),
-                                 selected_leagues())
-    })
-
-    teams_choices <- reactive({
-      ui_build_teams_choices(franchises,
-                             selected_years(),
-                             selected_league_divisions())
-    })
-
-    no_divisions_choices <- reactive({
-      all(unname(unlist(divisions_choices())) %in% c("AL_None", "NL_None"))
-    })
-
     lines <- reactive({
-      req(input$teams, max_rank())
-      server_build_lines(franchises, intensity_level_range, years(),
-                         input$teams, max_rank(), hot())
+      # req(input$teams, max_rank())
+      # server_build_lines(franchises, intensity_level_range, years(),
+      #                    input$teams, max_rank(), hot())
+      req(filter$teams(), max_rank())
+      server_build_lines(franchises, intensity_level_range, filter$years(),
+                         filter$teams(), max_rank(), filter$hot())
     })
 
     selected_streak <- reactive({
-      server_get_selected_streak(selected_line_id(), hot())
+      #server_get_selected_streak(selected_line_id(), hot())
+      server_get_selected_streak(selected_line_id(), filter$hot())
     })
 
     selected_streak_standings <- reactive({
@@ -236,7 +254,8 @@ streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) 
     })
 
     highlighted_lines <- reactive({
-      server_lines_highlight(lines(), selected_line_id(), hot())
+      #server_lines_highlight(lines(), selected_line_id(), hot())
+      server_lines_highlight(lines(), selected_line_id(), filter$hot())
     })
 
     # This is the main graph
@@ -245,80 +264,80 @@ streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) 
         highlighted_lines(),
         intensity_level_range,
         max_rank(),
-        hot()
+        filter$hot()
       )
     )
 
     ## UI functions ----
-    update_divisions_selection <- function() {
-      if (no_divisions_choices()) {
-        updateCheckboxInput(session, "divisions_all", value = TRUE)
-        shinyjs::disable("divisions")
-        shinyjs::disable("divisions_all")
-      } else {
-        if (input$divisions_all) {
-          shinyjs::enable("divisions_all")
-          shinyjs::disable("divisions")
-        } else {
-          shinyjs::enable("divisions")
-          shinyjs::enable("divisions_all")
-        }
-      }
-      selected <-
-        ui_get_updated_division_selection(divisions_choices(),
-                                          input$divisions,
-                                          input$divisions_all)
-      updateSelectInput(
-        session,
-        "divisions",
-        choices = divisions_choices(),
-        selected = selected
-      )
-    }
-
-    update_teams_selection <- function() {
-      if (input$teams_all) {
-        shinyjs::disable("teams")
-      } else {
-        shinyjs::enable("teams")
-      }
-      selected <- ui_get_updated_teams_selection(teams_choices(),
-                                                 input$teams,
-                                                 input$teams_all)
-      updateSelectInput(session,
-                        "teams",
-                        choices = teams_choices(),
-                        selected = selected)
-    }
-
-    ## Observers ----
-    observeEvent(input$teams_all, {
-      update_teams_selection()
-    })
-
-    observeEvent(input$divisions_all, {
-      update_divisions_selection()
-    })
-
-    observeEvent(input$leagues, {
-      selected_leagues(if (input$leagues == "BOTH")
-        c("AL", "NL")
-        else
-          input$leagues)
-      update_divisions_selection()
-    })
-
-    observeEvent(years(), {
-      update_divisions_selection()
-      update_teams_selection()
-    })
-
-    observeEvent(input$divisions, {
-      selected_league_divisions(
-        input$divisions %>%
-          ui_division_choice_values_as_league_and_division_list())
-      update_teams_selection()
-    })
+    # update_divisions_selection <- function() {
+    #   if (no_divisions_choices()) {
+    #     updateCheckboxInput(session, "divisions_all", value = TRUE)
+    #     shinyjs::disable("divisions")
+    #     shinyjs::disable("divisions_all")
+    #   } else {
+    #     if (input$divisions_all) {
+    #       shinyjs::enable("divisions_all")
+    #       shinyjs::disable("divisions")
+    #     } else {
+    #       shinyjs::enable("divisions")
+    #       shinyjs::enable("divisions_all")
+    #     }
+    #   }
+    #   selected <-
+    #     ui_get_updated_division_selection(divisions_choices(),
+    #                                       input$divisions,
+    #                                       input$divisions_all)
+    #   updateSelectInput(
+    #     session,
+    #     "divisions",
+    #     choices = divisions_choices(),
+    #     selected = selected
+    #   )
+    # }
+    #
+    # update_teams_selection <- function() {
+    #   if (input$teams_all) {
+    #     shinyjs::disable("teams")
+    #   } else {
+    #     shinyjs::enable("teams")
+    #   }
+    #   selected <- ui_get_updated_teams_selection(teams_choices(),
+    #                                              input$teams,
+    #                                              input$teams_all)
+    #   updateSelectInput(session,
+    #                     "teams",
+    #                     choices = teams_choices(),
+    #                     selected = selected)
+    # }
+    #
+    # ## Observers ----
+    # observeEvent(input$teams_all, {
+    #   update_teams_selection()
+    # })
+    #
+    # observeEvent(input$divisions_all, {
+    #   update_divisions_selection()
+    # })
+    #
+    # observeEvent(input$leagues, {
+    #   selected_leagues(if (input$leagues == "BOTH")
+    #     c("AL", "NL")
+    #     else
+    #       input$leagues)
+    #   update_divisions_selection()
+    # })
+    #
+    # observeEvent(years(), {
+    #   update_divisions_selection()
+    #   update_teams_selection()
+    # })
+    #
+    # observeEvent(input$divisions, {
+    #   selected_league_divisions(
+    #     input$divisions %>%
+    #       ui_division_choice_values_as_league_and_division_list())
+    #   update_teams_selection()
+    # })
 
     # Set up an observer for the plot click, but wait until the plot
     # is created before creating the observer.
@@ -336,7 +355,7 @@ streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) 
       once = TRUE
     )
 
-    observeEvent(hot(), ignoreInit = TRUE, {
+    observeEvent(filter$hot(), ignoreInit = TRUE, {
       selected_line_id(NULL)
     })
 
