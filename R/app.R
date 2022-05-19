@@ -119,7 +119,9 @@ streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) 
 
               #### Streaks graph ----
               shiny::fluidRow(shiny::column(
-                12, plotly::plotlyOutput(outputId = "streaks")
+                12,
+                #plotly::plotlyOutput(outputId = "streaks")
+                plotUI("plot")
               )),
 
               #### Selected streak summary ----
@@ -221,52 +223,56 @@ streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) 
     #   all(unname(unlist(divisions_choices())) %in% c("AL_None", "NL_None"))
     # })
     filter <- filterServer("filter", franchises)
+    selected_streak <- plotServer("plot", franchises, intensity_level_range,
+                                  filter)
 
-    selected_line_id <- reactiveVal(NULL)
-    max_rank <- reactive({
-      # req(input$teams)
-      # server_get_max_rank(franchises, years(), input$teams, hot())
-      req(filter$teams())
-      server_get_max_rank(franchises, filter$years(), filter$teams(),
-                          filter$hot())
-    })
+    # selected_line_id <- reactiveVal(NULL)
+    # max_rank <- reactive({
+    #   # req(input$teams)
+    #   # server_get_max_rank(franchises, years(), input$teams, hot())
+    #   req(filter$teams())
+    #   server_get_max_rank(franchises, filter$years(), filter$teams(),
+    #                       filter$hot())
+    # })
     selected_streaks_summary_data <- reactive({
+      # req(selected_streak())
+      # server_streak_summary_data(franchises, selected_streak())
       req(selected_streak())
       server_streak_summary_data(franchises, selected_streak())
     })
 
-    lines <- reactive({
-      # req(input$teams, max_rank())
-      # server_build_lines(franchises, intensity_level_range, years(),
-      #                    input$teams, max_rank(), hot())
-      req(filter$teams(), max_rank())
-      server_build_lines(franchises, intensity_level_range, filter$years(),
-                         filter$teams(), max_rank(), filter$hot())
-    })
-
-    selected_streak <- reactive({
-      #server_get_selected_streak(selected_line_id(), hot())
-      server_get_selected_streak(selected_line_id(), filter$hot())
-    })
+    # lines <- reactive({
+    #   # req(input$teams, max_rank())
+    #   # server_build_lines(franchises, intensity_level_range, years(),
+    #   #                    input$teams, max_rank(), hot())
+    #   req(filter$teams(), max_rank())
+    #   server_build_lines(franchises, intensity_level_range, filter$years(),
+    #                      filter$teams(), max_rank(), filter$hot())
+    # })
+    #
+    # selected_streak <- reactive({
+    #   #server_get_selected_streak(selected_line_id(), hot())
+    #   server_get_selected_streak(selected_line_id(), filter$hot())
+    # })
 
     selected_streak_standings <- reactive({
       server_get_streak_standings(franchises, selected_streak())
     })
 
-    highlighted_lines <- reactive({
-      #server_lines_highlight(lines(), selected_line_id(), hot())
-      server_lines_highlight(lines(), selected_line_id(), filter$hot())
-    })
+    # highlighted_lines <- reactive({
+    #   #server_lines_highlight(lines(), selected_line_id(), hot())
+    #   server_lines_highlight(lines(), selected_line_id(), filter$hot())
+    # })
 
-    # This is the main graph
-    main_plot <- reactive(
-      server_main_plot(
-        highlighted_lines(),
-        intensity_level_range,
-        max_rank(),
-        filter$hot()
-      )
-    )
+    # # This is the main graph
+    # main_plot <- reactive(
+    #   server_main_plot(
+    #     highlighted_lines(),
+    #     intensity_level_range,
+    #     max_rank(),
+    #     filter$hot()
+    #   )
+    # )
 
     ## UI functions ----
     # update_divisions_selection <- function() {
@@ -339,27 +345,28 @@ streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) 
     #   update_teams_selection()
     # })
 
-    # Set up an observer for the plot click, but wait until the plot
-    # is created before creating the observer.
-    observeEvent(
-      main_plot(),
-      observeEvent(
-        plotly::event_data("plotly_click", source = "lines_plot"), {
-          click_data <- plotly::event_data("plotly_click", source = "lines_plot")
-          if (is.null(click_data)) {
-            selected_line_id(NULL)
-          } else {
-            selected_line_id(click_data %>% dplyr::pull("key"))
-          }
-        }),
-      once = TRUE
-    )
+    # # Set up an observer for the plot click, but wait until the plot
+    # # is created before creating the observer.
+    # observeEvent(
+    #   main_plot(),
+    #   observeEvent(
+    #     plotly::event_data("plotly_click", source = "lines_plot"), {
+    #       click_data <- plotly::event_data("plotly_click", source = "lines_plot")
+    #       if (is.null(click_data)) {
+    #         selected_line_id(NULL)
+    #       } else {
+    #         selected_line_id(click_data %>% dplyr::pull("key"))
+    #       }
+    #     }),
+    #   once = TRUE
+    # )
 
-    observeEvent(filter$hot(), ignoreInit = TRUE, {
-      selected_line_id(NULL)
-    })
+    # observeEvent(filter$hot(), ignoreInit = TRUE, {
+    #   selected_line_id(NULL)
+    # })
 
     observe({
+      # if (is.null(selected_streak())) {
       if (is.null(selected_streak())) {
         shinyjs::hide("summary_row")
         shinyjs::hide("standings_row")
@@ -413,8 +420,8 @@ streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) 
 
     ## Renderers ----
 
-    # Main plot
-    output$streaks <- plotly::renderPlotly(main_plot())
+    # # Main plot
+    # output$streaks <- plotly::renderPlotly(main_plot())
 
     # Data tables.
     # For each of these, we do an initial render with a dummy table, and then
