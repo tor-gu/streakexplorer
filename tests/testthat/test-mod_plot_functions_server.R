@@ -133,4 +133,26 @@ test_that("ps_build_lines detects left-most line with cold streaks", {
                  66310))
 })
 
+test_that("ps_lines_to_related_streak basic test", {
+  with_mock_db({
+    mock_conn <- suppressWarnings(
+      dbConnect(RMySQL::MySQL(), dbname="streak_explorer_data")
+    )
+    lzy_lines_to_streaks <- dplyr::tbl(mock_conn, "hot_streaks_lines_to_streaks")
+    lzy_streaks <- dplyr::tbl(mock_conn, "hot_streaks")
+    lzy_game_logs <- dplyr::tbl(mock_conn, "game_logs")
+    line_id <- 37
+    actual <- ps_lines_to_related_streak(lzy_lines_to_streaks, lzy_streaks,
+                                         lzy_game_logs, line_id)
+    dbDisconnect(mock_conn)
+  })
+  expected <- tibble::tibble(
+    Year=1997, Team="ANA", LoIndex=10, HiIndex=158,
+    StartDate=lubridate::ymd("1997-04-13"),
+    EndDate=lubridate::ymd("1997-09-24")
+  )
+  expect_equal(actual, expected)
+})
+
+
 

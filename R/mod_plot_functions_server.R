@@ -32,17 +32,17 @@ plot_server_build_lines <- function(franchises, intensity_level_range, years, te
     left_intensity <- intensity_level_range[[2]]
   }
   team_ids <- ps_franchise_ids_to_team_ids(franchises, teams, min_year,
-                                                   max_year)
+                                           max_year)
 
   ps_build_lines(lzy_lines(hot), min_year, max_year, team_ids,
-                    franchises, max_rank, left_intensity)
+                 franchises, max_rank, left_intensity)
 }
 
 plot_server_get_selected_streak <- function(selected_line_id, hot) {
   start_time <- Sys.time()
   on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
   lzy_game_logs <- dplyr::tbl(se_pool, "game_logs")
-  lines_get_selected_streak(
+  ps_lines_to_related_streak(
     lzy_lines_to_streaks(hot),
     lzy_streaks(hot),
     lzy_game_logs,
@@ -83,6 +83,8 @@ plot_server_main_plot <- function(highlighted_lines, intensity_level_range,
     reverse_x_axis = !hot
   )
 }
+
+# Utility functions for mod_plot server ----
 
 #' ps_build_lines
 #'
@@ -319,5 +321,37 @@ ps_lines_highlight <- function(lines, lzy_concordances, lzy_lines_to_streaks,
     }
   }
   result
+}
+
+#' ps_lines_to_related_streak
+#'
+#' Given a line_id, get the related streak, as single-row table with
+#' columns `Year`, `Team`, `LoIndex`,` HiIndex`, `StartDate`, and `EndDate`.
+#'
+#' @param lzy_lines_to_streaks Lazy lines_to_streaks table
+#' @param lzy_streaks  Lazy streaks table
+#' @param lzy_game_logs Lazy game_logs table
+#' @param line_id LineID
+#'
+#' @return Streak
+ps_lines_to_related_streak <- function(lzy_lines_to_streaks, lzy_streaks,
+                                      lzy_game_logs, line_id) {
+  if (is.null(line_id)) {
+    NULL
+  } else {
+    lzy_lines_to_streaks %>%
+      dplyr::filter(LineId==line_id) %>%
+      dplyr::left_join(lzy_streaks, by="StreakId") %>%
+      head(1) %>%
+      dplyr::select(Year, Team, LoIndex, HiIndex) %>%
+      dplyr::left_join(lzy_game_logs,
+                       by=c("Year","Team","LoIndex"="GameIndex")) %>%
+      dplyr::left_join(lzy_game_logs,
+                       by=c("Year","Team","HiIndex"="GameIndex")) %>%
+      dplyr::collect() %>%
+      dplyr::mutate(StartDate = lubridate::as_date(Date.x)) %>%
+      dplyr::mutate(EndDate = lubridate::as_date(Date.y)) %>%
+      dplyr::select(Year, Team, LoIndex, HiIndex, StartDate, EndDate)
+  }
 }
 
