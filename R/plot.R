@@ -167,46 +167,4 @@ plot_lines <- function(lines, min_intensity, max_intensity, max_rank,
     plotly::config(displayModeBar = FALSE)
 }
 
-#' plot_standings_graph
-#'
-#' Plot the standings graph, and highlight the selected team and date
-#' range
-#'
-#' @param standings Standings to plot
-#' @param team TeamID to highlight
-#' @param start_date Start of highlight area
-#' @param end_date End of highlight area
-#'
-#' @return Standings plot
-plot_standings_graph <- function(standings, team, start_date, end_date) {
-  # Add GamesAbove to the standings, which will be our y-value
-  standings <- standings %>% dplyr::mutate(GamesAbove = Wins - Losses)
-
-  # Set the y-axis limits
-  y_min <- min(standings$GamesAbove) - 1
-  y_max <- max(standings$GamesAbove) + 1
-
-  # Find the coordinates of the box to highlight (this will be the
-  # "rect" annotation in the plot)
-  date_before_start <- start_date - 1
-  y_range <- standings %>%
-    dplyr::filter(Date >= date_before_start, Date <= end_date, Team==team) %>%
-    dplyr::pull(GamesAbove) %>% range()
-  rect_y_min <- y_range[1] - 1
-  rect_y_max <- y_range[2] + 1
-
-  # Now plot the standings
-  ggplot2::ggplot(mapping = ggplot2::aes(Date, Wins - Losses, group = Team)) +
-    ggplot2::geom_line(data = dplyr::filter(standings, Team != team),
-              color = highlight_colors$base) +
-    ggplot2::geom_line(data = dplyr::filter(standings, Team == team),
-              color = highlight_colors$high) +
-    ggplot2::annotate("rect", xmin=start_date - 1, xmax=end_date,
-             ymin=rect_y_min, ymax=rect_y_max, alpha=0.1,
-             fill = highlight_colors$medium) +
-    ggplot2::xlab(NULL) +
-    ggplot2::ylab(NULL) +
-    ggplot2::scale_x_date(minor_breaks=NULL) +
-    ggplot2::scale_y_continuous(breaks=0, limits=c(y_min,y_max))
-}
 
