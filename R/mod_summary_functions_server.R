@@ -362,7 +362,7 @@ ss_get_standings_for_streak <- function(lzy_standings, lzy_game_logs,
     dplyr::select(Team, Wins,Losses, Ties, GB, Location, Nickname) %>%
     dplyr::arrange(GB)
   # Look up the final standings
-  standings_final <- standings_get_final_standings(lzy_standings,
+  standings_final <- ss_get_final_standings(lzy_standings,
                                                    division$division) %>%
     dplyr::left_join(division$teams, by=c("Team"="TeamID")) %>%
     dplyr::select(Team, Wins,Losses, Ties, GB, Location, Nickname) %>%
@@ -494,3 +494,27 @@ ss_update_standings_from_game_logs <- function(lzy_standings, lzy_games_to_add) 
   standings
 }
 
+#' ss_get_final_standings
+#'
+#' Get the final standings for a division.  `division` should be a single-row
+#' table with `Year`, `League` and `Division` (possibly `NA`).
+#'
+#' @param lzy_standings Lazy standings table
+#' @param division Division
+#'
+#' @return Standings table.
+ss_get_final_standings <- function(lzy_standings, division) {
+  if (is.na(division$Division)) {
+    lzy_division_standings <- lzy_standings %>%
+      dplyr::filter(Year==local(division$Year),
+                    League==local(division$League))
+  } else {
+    lzy_division_standings <- lzy_standings %>%
+      dplyr::filter(Year==local(division$Year),
+                    League==local(division$League),
+                    Division==local(division$Division))
+  }
+  lzy_division_standings %>%
+    dplyr::collect() %>%
+    dplyr::filter(Date==max(Date, na.rm=TRUE))
+}
