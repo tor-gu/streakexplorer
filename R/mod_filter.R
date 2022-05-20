@@ -122,9 +122,9 @@ filterServer <- function(id, franchises) {
         }
       }
       selected <-
-        ui_get_updated_division_selection(divisions_choices(),
-                                          input$divisions,
-                                          input$divisions_all)
+        filter_ui_get_updated_division_selection(divisions_choices(),
+                                                 input$divisions,
+                                                 input$divisions_all)
       updateSelectInput(
         session,
         "divisions",

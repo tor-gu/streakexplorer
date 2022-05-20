@@ -318,7 +318,8 @@ test_that("filter_ui_filter_by_league_divisions handles not-found values", {
     list(league="AL", division="Central"),
     list(league="ZZ", division="East")
   )
-  actual <- filter_ui_filter_by_league_divisions(franchises, league_divisions) %>%
+  actual <-
+    filter_ui_filter_by_league_divisions(franchises, league_divisions) %>%
     nrow()
   expect_equal(actual, 0)
 })
@@ -337,6 +338,69 @@ test_that("filter_ui_generate_team_selection basic test", {
   expect_equal(actual, expected)
 })
 
+test_that("filter_ui_get_updated_division_selection preserves selection when
+          possible", {
+  division_choices <- list(
+    "AL Divisions" =
+      list(
+        "AL East" = "AL_East",
+        "AL West" = "AL_West"
+      ),
+    "NL Divisions" =
+      list("NL West" = "NL_West")
+  )
+
+  input_divisions <- "AL_East"
+  actual <-
+    filter_ui_get_updated_division_selection(division_choices,
+                                             input_divisions, FALSE)
+  expected <- "AL_East"
+  expect_equal(actual, expected)
+})
+
+test_that("filter_ui_get_updated_division_selection reverts to all when
+          necessary", {
+  division_choices <- list(
+    "AL Divisions" =
+      list(
+        "AL East" = "AL_East",
+        "AL West" = "AL_West"
+      ),
+    "NL Divisions" =
+      list("NL West" = "NL_West")
+  )
+
+  input_divisions <- c("AL_East","NL_East")
+  actual <-
+    filter_ui_get_updated_division_selection(division_choices,
+                                             input_divisions, FALSE)
+  # We don't care about the names
+  names(actual) <- NULL
+  expected <- c("AL_East","AL_West","NL_West")
+  expect_equal(actual, expected)
+})
+
+test_that("filter_ui_get_updated_division_selection reverts to all when 'All'
+          is selected", {
+  division_choices <- list(
+    "AL Divisions" =
+      list(
+        "AL East" = "AL_East",
+        "AL West" = "AL_West"
+      ),
+    "NL Divisions" =
+      list("NL West" = "NL_West")
+  )
+
+  input_divisions <- "AL_East"
+  actual <-
+    filter_ui_get_updated_division_selection(division_choices,
+                                             input_divisions, TRUE)
+  # We don't care about the names
+  names(actual) <- NULL
+  expected <- c("AL_East","AL_West","NL_West")
+  expect_equal(actual, expected)
+})
 
 
 
