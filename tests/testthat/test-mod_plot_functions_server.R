@@ -200,6 +200,37 @@ test_that("ps_get_related_lines handles multiple lines per streak", {
   expect_equal(actual, expected)
 })
 
+test_that("ps_get_related_streak_ids works with an inner-most streak", {
+  with_mock_db({
+    conn <- dbConnect(RMariaDB::MariaDB(), dbname="streak_explorer_data")
+    lzy_concordances <- dplyr::tbl(conn, "hot_streaks_concordances")
+    actual <- ps_get_related_streak_ids(37, lzy_concordances)
+    dbDisconnect(conn)
+  })
+  expected <- c(1,2,3,5,11,14,18,22,25,30,37)
+  expect_equal(actual, expected)
+})
+
+test_that("ps_get_related_streak_ids works with an outer-most streak", {
+  with_mock_db({
+    conn <- dbConnect(RMariaDB::MariaDB(), dbname="streak_explorer_data")
+    lzy_concordances <- dplyr::tbl(conn, "hot_streaks_concordances")
+    actual <- ps_get_related_streak_ids(115, lzy_concordances)
+    dbDisconnect(conn)
+  })
+  expected <- 115:147
+  expect_equal(actual, expected)
+})
+test_that("ps_get_related_streak_ids works with an internal streak", {
+  with_mock_db({
+    conn <- dbConnect(RMariaDB::MariaDB(), dbname="streak_explorer_data")
+    lzy_concordances <- dplyr::tbl(conn, "hot_streaks_concordances")
+    actual <- ps_get_related_streak_ids(73, lzy_concordances)
+    dbDisconnect(conn)
+  })
+  expected <- c(38,39,40,42,48,53,65,68,73,74,75)
+  expect_equal(actual, expected)
+})
 
 
 

@@ -517,7 +517,7 @@ ps_get_related_lines <- function(line_id, lzy_lines_to_streaks,
   related_streak_ids <- lzy_lines_to_streaks %>%
     dplyr::filter(LineId == line_id) %>%
     dplyr::pull(StreakId) %>%
-    purrr::map(streaks_get_related_streak_ids, lzy_concordances) %>%
+    purrr::map(ps_get_related_streak_ids, lzy_concordances) %>%
     unlist(recursive = FALSE) %>%
     unique()
   lzy_lines_to_streaks %>%
@@ -544,6 +544,25 @@ ps_plot_add_lines_maybe <- function(p, lines = NULL, ...) {
   } else {
     p
   }
+}
+
+#' ps_get_related_streak_ids
+#'
+#' Given a streak ID, returns all related streaks in the concordance table --
+#' both super-streaks and sub-streaks -- including the streak itself.
+#'
+#' @param streak_id  Streak ID
+#' @param lzy_concordances Lazy conconcrdance table
+#'
+#' @return vector of related streak IDs.
+ps_get_related_streak_ids <- function(streak_id, lzy_concordances) {
+  inner <- lzy_concordances %>%
+    dplyr::filter(Inner == streak_id) %>%
+    dplyr::pull(Outer)
+  outer <- lzy_concordances %>%
+    dplyr::filter(Outer == streak_id) %>%
+    dplyr::pull(Inner)
+  c(inner, outer) %>% unique()
 }
 
 
