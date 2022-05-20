@@ -139,9 +139,10 @@ filterServer <- function(id, franchises) {
       } else {
         shinyjs::enable("teams")
       }
-      selected <- ui_get_updated_teams_selection(teams_choices(),
-                                                 input$teams,
-                                                 input$teams_all)
+      selected <-
+        filter_ui_get_updated_teams_selection(teams_choices(),
+                                              input$teams,
+                                              input$teams_all)
       updateSelectInput(session,
                         "teams",
                         choices = teams_choices(),
