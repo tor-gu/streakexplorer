@@ -423,7 +423,7 @@ ps_plot_lines <- function(lines, min_intensity, max_intensity, max_rank,
     x = ~IntensityLevel, y = ~Rank, hoverinfo = "text"
   ) %>%
     # Add the "base" lines
-    plot_add_lines_maybe(
+    ps_plot_add_lines_maybe(
       lines = split_lines$base,
       alpha = 0.7,
       line = list(shape = "spline", width = widths$base),
@@ -431,7 +431,7 @@ ps_plot_lines <- function(lines, min_intensity, max_intensity, max_rank,
       color = ~ factor(line_type), colors = colors
     ) %>%
     # Add the "season" lines
-    plot_add_lines_maybe(
+    ps_plot_add_lines_maybe(
       lines = split_lines$season,
       alpha = 0.7,
       line = list(shape = "spline", width = widths$season),
@@ -439,7 +439,7 @@ ps_plot_lines <- function(lines, min_intensity, max_intensity, max_rank,
       color = ~ factor(line_type), colors = colors
     ) %>%
     # Add the "related" lines
-    plot_add_lines_maybe(
+    ps_plot_add_lines_maybe(
       lines = split_lines$related,
       alpha = 0.7,
       line = list(shape = "spline", width = widths$related),
@@ -447,7 +447,7 @@ ps_plot_lines <- function(lines, min_intensity, max_intensity, max_rank,
       color = ~ factor(line_type), colors = colors
     ) %>%
     # Add the "identical" lines
-    plot_add_lines_maybe(
+    ps_plot_add_lines_maybe(
       lines = split_lines$identical,
       alpha = 0.7,
       line = list(shape = "spline", width = widths$identical),
@@ -524,6 +524,29 @@ ps_get_related_lines <- function(line_id, lzy_lines_to_streaks,
     dplyr::filter(StreakId %in% related_streak_ids) %>%
     dplyr::pull(LineId)
 }
+
+
+#' ps_plot_add_lines_maybe
+#'
+#' Given plot_ly object and a set of table of lines, add the lines to
+#' the object. Act as a passthrough if the lines table is omitted or
+#' empty.
+#'
+#' @param p plot_ly object
+#' @param lines Lines to add
+#' @param ... Additional params for plotly::add_lines
+#'
+#' @return modified plot_ly object
+ps_plot_add_lines_maybe <- function(p, lines = NULL, ...) {
+  if (!is.null(lines) && nrow(lines) > 0) {
+    data <- plotly::highlight_key(lines, ~LineId, group = "line-highlight")
+    plotly::add_lines(p, data = data, ...)
+  } else {
+    p
+  }
+}
+
+
 
 
 
