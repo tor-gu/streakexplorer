@@ -1,57 +1,54 @@
 summaryUI <- function(id) {
-  ns <- NS(id)
-  tagList(
+  ns <- shiny::NS(id)
+  shiny::tagList(
     #### Selected streak summary ----
     shiny::fluidRow(
-      id = "summary_row",
+      id = ns("summary_row"),
       shiny::column(
         12,
-        #shiny::h5("Streak summary"),
-        shiny::h5(shiny::textOutput("streak_summary_caption")),
-        shinycssloaders::withSpinner(DT::DTOutput("streak_summary"))
+        shiny::h5(shiny::textOutput(ns("streak_summary_caption"))),
+        shinycssloaders::withSpinner(DT::DTOutput(ns("streak_summary")))
       )
     ),
     #### Selected streak standings row ----
     shiny::fluidRow(
-      id = "standings_row",
+      id = ns("standings_row"),
       shiny::column(
         4,
         shiny::h5("Standings before"),
-        DT::DTOutput("standings_before")
+        DT::DTOutput(ns("standings_before"))
       ),
       shiny::column(
         4,
         shiny::h5("Standings after"),
-        DT::DTOutput("standings_after")
+        DT::DTOutput(ns("standings_after"))
       ),
       shiny::column(
         4,
         shiny::h5("Final standings"),
-        DT::DTOutput("standings_final")
+        DT::DTOutput(ns("standings_final"))
       )
     ),
     #### Selected streaks graphs and game_log row
     shiny::fluidRow(
-      id = "graph_log_row",
+      id = ns("graph_log_row"),
       shiny::column(
         6,
         shiny::h5("Standings graph"),
-        shinycssloaders::withSpinner(shiny::plotOutput("standings_graph"))
+        shinycssloaders::withSpinner(shiny::plotOutput(ns("standings_graph")))
       ),
       shiny::column(
         6,
         shiny::h5("Game log"),
-        shinycssloaders::withSpinner(DT::DTOutput("game_log"))
+        shinycssloaders::withSpinner(DT::DTOutput(ns("game_log")))
       )
     )
   )
 }
 
-summaryServer <- function(id, selected_streak) {
+summaryServer <- function(id, franchises, selected_streak) {
   moduleServer(id, function(input, output, session) {
     selected_streaks_summary_data <- reactive({
-      # req(selected_streak())
-      # server_streak_summary_data(franchises, selected_streak())
       req(selected_streak())
       server_streak_summary_data(franchises, selected_streak())
     })
@@ -60,9 +57,7 @@ summaryServer <- function(id, selected_streak) {
       server_get_streak_standings(franchises, selected_streak())
     })
 
-    # TODO Maybe move this to app.R?
     observe({
-      # if (is.null(selected_streak())) {
       if (is.null(selected_streak())) {
         shinyjs::hide("summary_row")
         shinyjs::hide("standings_row")

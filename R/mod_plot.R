@@ -1,6 +1,6 @@
 plotUI <- function(id) {
-  ns <- NS(id)
-  tagList(
+  ns <- shiny::NS(id)
+  shiny::tagList(
     plotly::plotlyOutput(ns("streaks"))
   )
 }
@@ -10,29 +10,22 @@ plotServer <- function(id, franchises, intensity_level_range, filter) {
 
     selected_line_id <- reactiveVal(NULL)
     max_rank <- reactive({
-      # req(input$teams)
-      # server_get_max_rank(franchises, years(), input$teams, hot())
       req(filter$teams())
       server_get_max_rank(franchises, filter$years(), filter$teams(),
                           filter$hot())
     })
 
     lines <- reactive({
-      # req(input$teams, max_rank())
-      # server_build_lines(franchises, intensity_level_range, years(),
-      #                    input$teams, max_rank(), hot())
       req(filter$teams(), max_rank())
       server_build_lines(franchises, intensity_level_range, filter$years(),
                          filter$teams(), max_rank(), filter$hot())
     })
 
     selected_streak <- reactive({
-      #server_get_selected_streak(selected_line_id(), hot())
       server_get_selected_streak(selected_line_id(), filter$hot())
     })
 
     highlighted_lines <- reactive({
-      #server_lines_highlight(lines(), selected_line_id(), hot())
       server_lines_highlight(lines(), selected_line_id(), filter$hot())
     })
 

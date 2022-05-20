@@ -1,6 +1,6 @@
 filterUI <- function(id, initial_year_range) {
-  ns <- NS(id)
-  tagList(
+  ns <- shiny::NS(id)
+  shiny::tagList(
     #### Years slider ----
     shiny::fluidRow(shiny::column(
       12,
