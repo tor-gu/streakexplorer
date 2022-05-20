@@ -34,22 +34,3 @@ franchises_get_division_by_team_year <- function(franchises, team, year) {
   list(division=division, teams=teams)
 }
 
-#' franchises_franchise_ids_to_team_ids
-#'
-#' Find all TeamIDs for the given FranchiseIDs and the year range.
-#'
-#' @param franchises Franchise table
-#' @param franchise_ids vector of FranchiseIDs
-#' @param min_year First year
-#' @param max_year Final year
-#'
-#' @return List of TeamIDs
-franchises_franchise_ids_to_team_ids <- function(franchises, franchise_ids,
-                                                 min_year, max_year) {
-  franchises %>%
-    dplyr::filter(FranchiseID %in% franchise_ids,
-                  min_year <= FinalSeason | is.na(FinalSeason),
-                  max_year >= FirstSeason) %>%
-    dplyr::pull(TeamID)
-}
-

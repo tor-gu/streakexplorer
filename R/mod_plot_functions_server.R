@@ -6,7 +6,7 @@ plot_server_get_max_rank <- function(franchises, years, teams, hot) {
   on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
   min_year <- years[[1]]
   max_year <- years[[2]]
-  team_ids <- franchises_franchise_ids_to_team_ids(franchises, teams, min_year,
+  team_ids <- ps_franchise_ids_to_team_ids(franchises, teams, min_year,
                                                    max_year)
   streaks_get_max_rank(10, min_year, max_year, team_ids, hot)
 }
@@ -31,7 +31,7 @@ plot_server_build_lines <- function(franchises, intensity_level_range, years, te
   } else {
     left_intensity <- intensity_level_range[[2]]
   }
-  team_ids <- franchises_franchise_ids_to_team_ids(franchises, teams, min_year,
+  team_ids <- ps_franchise_ids_to_team_ids(franchises, teams, min_year,
                                                    max_year)
 
   ps_build_lines(lzy_lines(hot), min_year, max_year, team_ids,
@@ -102,7 +102,7 @@ plot_server_main_plot <- function(highlighted_lines, intensity_level_range,
 ps_build_lines <- function(lzy_lines, min_year, max_year, teams,
                               franchises, max_rank, left_intensity) {
   # Get the team-ids
-  team_ids <- franchises_franchise_ids_to_team_ids(
+  team_ids <- ps_franchise_ids_to_team_ids(
     franchises, teams, min_year, max_year)
 
   # Get the left-most line elements, to add in at the end
@@ -133,4 +133,24 @@ ps_build_lines <- function(lzy_lines, min_year, max_year, teams,
     # Finally, add the left-most line elements
     rbind(left_lines)
 }
+
+#' ps_franchise_ids_to_team_ids
+#'
+#' Find all TeamIDs for the given FranchiseIDs and the year range.
+#'
+#' @param franchises Franchise table
+#' @param franchise_ids vector of FranchiseIDs
+#' @param min_year First year
+#' @param max_year Final year
+#'
+#' @return List of TeamIDs
+ps_franchise_ids_to_team_ids <- function(franchises, franchise_ids,
+                                                 min_year, max_year) {
+  franchises %>%
+    dplyr::filter(FranchiseID %in% franchise_ids,
+                  min_year <= FinalSeason | is.na(FinalSeason),
+                  max_year >= FirstSeason) %>%
+    dplyr::pull(TeamID)
+}
+
 
