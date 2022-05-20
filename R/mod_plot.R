@@ -11,8 +11,8 @@ plotServer <- function(id, franchises, intensity_level_range, filter) {
     selected_line_id <- reactiveVal(NULL)
     max_rank <- reactive({
       req(filter$teams())
-      server_get_max_rank(franchises, filter$years(), filter$teams(),
-                          filter$hot())
+      plot_server_get_max_rank(franchises, filter$years(), filter$teams(),
+                               filter$hot())
     })
 
     lines <- reactive({
