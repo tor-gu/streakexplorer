@@ -272,3 +272,85 @@ filter_ui_division_as_choice_label <- function(league, division,
   glue::glue("{league} {division_part}{year_part}")
 }
 
+#' filter_ui_build_teams_choices
+#'
+#' Given the franchises table, and a years and league/division filter,
+#' generate a named list of FranchiseIDs, where the names of the
+#' franchises is based on the teams Nicknames, like "Red Sox" or
+#' "Rays/Devil Rays".
+#'
+#' @param franchises  Franchises table
+#' @param years  Years filter
+#' @param league_divisions List of lists with `league` and `division`
+#'
+#' @return Named list for the UI
+filter_ui_build_teams_choices <- function(franchises, years, league_divisions) {
+  result <- franchises %>%
+    filter_ui_filter_by_years(years) %>%
+    filter_ui_filter_by_league_divisions(league_divisions) %>%
+    filter_ui_truncate_years(years) %>%
+    filter_ui_generate_team_selection()
+  result
+}
+
+#' filter_ui_filter_by_league_divisions
+#'
+#' Filter franchises table by a list of leagues and divisions.
+#' `league_divisions` should be a list of lists, each with `league` and
+#' `division`.
+#'
+#' @param franchises Franchises table
+#' @param league_divisions List of lists
+#'
+#' @return Filtered franchises table
+filter_ui_filter_by_league_divisions <- function(franchises, league_divisions) {
+  purrr::map(
+    league_divisions, ~ filter_ui_filter_by_league_division(franchises, .)
+  ) %>%
+    data.table::rbindlist() %>%
+    unique()
+}
+
+#' filter_ui_generate_team_selection
+#'
+#' Given a (filtered) franchises table, generate a named list of teams, with
+#' the distinct FranchiseIDs as values.  The name of each value will be a
+#' combination of all nicknames associated to the FranchiseID -- e.g.
+#' "Orioles/Browns"="BAL".  For each franchise, arrange it so the the nicknames
+#' are arranged from most recent to least recent.
+#'
+#' @param franchises Franchises table
+#'
+#' @return Named list of franchise IDs.
+filter_ui_generate_team_selection <- function(franchises) {
+  franchises %>%
+    dplyr::arrange(desc(FirstSeason)) %>%
+    dplyr::select(FranchiseID, Nickname) %>%
+    unique() %>%
+    dplyr::group_by(FranchiseID) %>%
+    dplyr::summarise(Nicknames = stringr::str_c(Nickname, collapse = "/")) %>%
+    torgutil::tbl_as_named_list(FranchiseID, Nicknames)
+}
+
+#' filter_ui_filter_by_league_division
+#'
+#' Filter franchises table by league and division.  `league_division` should
+#' be a list with `league` and `division`.
+#'
+#' @param franchises Franchises table
+#' @param league_division League and division
+#'
+#' @return Filtered franchises table
+filter_ui_filter_by_league_division <- function(franchises, league_division) {
+  if (is.na(league_division$division)) {
+    franchises %>% dplyr::filter(
+      League == league_division$league,
+      is.na(Division))
+  } else {
+    franchises %>% dplyr::filter(
+      League == league_division$league,
+      Division == league_division$division
+    )
+  }
+}
+
