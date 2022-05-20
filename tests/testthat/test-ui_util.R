@@ -141,16 +141,6 @@ test_that("ui_get_divisions handles non-divisions", {
   expect_equal(actual, expected)
 })
 
-test_that("ui_division_choice_values_as_league_and_division_list handles basic scenario", {
-  choice_values <- list("AL_None", "NL_West")
-  expected <- list(
-    list(league="AL", division=NA),
-    list(league="NL", division="West")
-  )
-  actual <- ui_division_choice_values_as_league_and_division_list(choice_values)
-  expect_equal(actual, expected)
-})
-
 test_that("ui_division_as_choice_label handles case without years specified", {
   actual <- ui_division_as_choice_label("AL", "East")
   expected <- "AL East"

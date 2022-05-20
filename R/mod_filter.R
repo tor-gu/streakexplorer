@@ -87,7 +87,7 @@ filterServer <- function(id, franchises) {
     selected_leagues <- reactiveVal(c("AL", "NL"))
     selected_league_divisions <- reactiveVal(
       list("AL_None", "NL_None") %>%
-        ui_division_choice_values_as_league_and_division_list()
+        filter_ui_division_choice_values_as_league_and_division_list()
     )
 
     divisions_choices <- reactive({
@@ -173,7 +173,7 @@ filterServer <- function(id, franchises) {
     observeEvent(input$divisions, {
       selected_league_divisions(
         input$divisions %>%
-          ui_division_choice_values_as_league_and_division_list())
+          filter_ui_division_choice_values_as_league_and_division_list())
       update_teams_selection()
     })
 
