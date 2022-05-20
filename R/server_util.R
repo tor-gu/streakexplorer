@@ -32,13 +32,6 @@ lzy_concordances <- function(hot) {
 }
 
 # Main server functions ----
-server_streak_summary_data <- function(franchises, selected_streak) {
-  start_time <- Sys.time()
-  on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
-  lzy_game_logs <- dplyr::tbl(se_pool, "game_logs")
-  streaks_summary_data(lzy_game_logs, franchises, selected_streak)
-}
-
 server_build_lines <- function(franchises, intensity_level_range, years, teams,
                                max_rank, hot) {
   start_time <- Sys.time()
@@ -77,46 +70,7 @@ server_lines_highlight <- function(lines, selected_line_id, hot) {
                   selected_line_id)
 }
 
-server_get_streak_standings <- function(franchises, selected_streak) {
-  start_time <- Sys.time()
-  on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
 
-  # The lazy standings table will generate a bunch of warnings about the
-  # decimal column, which we don't care about
-  withCallingHandlers({
-    lzy_standings <- dplyr::tbl(se_pool, "standings")
-    lzy_game_logs <- dplyr::tbl(se_pool, "game_logs")
-    streaks_get_standings(lzy_standings, lzy_game_logs, franchises,
-                          selected_streak)
-  }, warning = function(wrn) {
-    if (stringr::str_starts(wrn$message, "Decimal MySQL")) {
-      rlang::cnd_muffle(wrn)
-    }
-  })
-}
-
-server_get_streak_game_logs <- function(selected_streak) {
-  start_time <- Sys.time()
-  on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
-  lzy_game_logs <- dplyr::tbl(se_pool, "game_logs")
-  streaks_game_log_data(lzy_game_logs, selected_streak)
-}
-
-server_build_streak_standings_graph <- function(franchises, selected_streak) {
-  start_time <- Sys.time()
-  on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
-
-  # The standings table will generate a bunch of warnings about the
-  # decimal column, which we don't care about.
-  withCallingHandlers({
-    lzy_standings <- dplyr::tbl(se_pool, "standings")
-    plot_build_standings_graph(lzy_standings, franchises, selected_streak)
-  }, warning = function(wrn) {
-    if (stringr::str_starts(wrn$message, "Decimal MySQL")) {
-      rlang::cnd_muffle(wrn)
-    }
-  })
-}
 
 
 server_main_plot <- function(highlighted_lines, intensity_level_range,

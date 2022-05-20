@@ -50,11 +50,11 @@ summaryServer <- function(id, franchises, selected_streak) {
   moduleServer(id, function(input, output, session) {
     selected_streaks_summary_data <- reactive({
       req(selected_streak())
-      server_streak_summary_data(franchises, selected_streak())
+      summary_server_streak_summary_data(franchises, selected_streak())
     })
 
     selected_streak_standings <- reactive({
-      server_get_streak_standings(franchises, selected_streak())
+      summary_server_get_streak_standings(franchises, selected_streak())
     })
 
     observe({
@@ -70,25 +70,25 @@ summaryServer <- function(id, franchises, selected_streak) {
     })
 
     observeEvent(selected_streak(), {
-      DT_standings_update(
+      summary_ui_DT_standings_update(
         standings_before_proxy,
         selected_streak_standings()$streak_info,
         selected_streak_standings()$standings_before
       )
-      DT_standings_update(
+      summary_ui_DT_standings_update(
         standings_after_proxy,
         selected_streak_standings()$streak_info,
         selected_streak_standings()$standings_after
       )
-      DT_standings_update(
+      summary_ui_DT_standings_update(
         standings_final_proxy,
         selected_streak_standings()$streak_info,
         selected_streak_standings()$standings_final
       )
 
-      game_log <- server_get_streak_game_logs(selected_streak())
-      DT_game_log_update(game_log_proxy, game_log$data)
-      DT_streak_summary_update(
+      game_log <- summary_server_get_streak_game_logs(selected_streak())
+      summary_ui_DT_game_log_update(game_log_proxy, game_log$data)
+      summary_ui_DT_streak_summary_update(
         streak_summary_proxy,
         selected_streaks_summary_data()$data
       )
@@ -112,25 +112,25 @@ summaryServer <- function(id, franchises, selected_streak) {
     # For each of these, we do an initial render with a dummy table, and then
     # handle the updates through proxies
     output$streak_summary <- DT::renderDT({
-      DT_streak_summary_init()
+      summary_ui_DT_streak_summary_init()
     })
     output$standings_before <- DT::renderDT({
-      DT_standings_init()
+      summary_ui_DT_standings_init()
     })
     output$standings_after <- DT::renderDT({
-      DT_standings_init()
+      summary_ui_DT_standings_init()
     })
     output$standings_final <- DT::renderDT({
-      DT_standings_init()
+      summary_ui_DT_standings_init()
     })
     output$game_log <- DT::renderDT({
-      DT_game_log_init()
+      summary_ui_DT_game_log_init()
     })
 
     # Standings graph
     output$standings_graph <- renderPlot({
       req(selected_streak())
-      server_build_streak_standings_graph(franchises, selected_streak())
+      summary_server_build_streak_standings_graph(franchises, selected_streak())
     })
 
   })
