@@ -1,19 +1,3 @@
-#' pct_formatter
-#'
-#' Formats winning percentages as a string with three digits after the
-#' the decimal point and no leading zero, e.g. ".542".
-#' Will return "1.000" for a perfect record.
-#'
-#' @param pct Number to format
-#'
-#' @return Formatted winning percentage.
-pct_formatter <- function(pct) {
-  ifelse(pct < 1,
-         paste0(".", sprintf("%03d", round(1000 * pct))),
-         "1.000"
-  )
-}
-
 #' streaks_get_related_streak_ids
 #'
 #' Given a streak ID, returns all related streaks in the concordance table --

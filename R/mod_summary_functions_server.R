@@ -1,12 +1,58 @@
+# Top level mod_summary server functions ----
 summary_server_streak_summary_data <- function(franchises, selected_streak) {
   start_time <- Sys.time()
   on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
   lzy_game_logs <- dplyr::tbl(se_pool, "game_logs")
-  summary_server_streaks_summary_data(lzy_game_logs, franchises,
+  ss_streaks_summary_data(lzy_game_logs, franchises,
                                       selected_streak)
 }
 
-#' summary_server_streaks_summary_data
+summary_server_get_streak_game_logs <- function(selected_streak) {
+  start_time <- Sys.time()
+  on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
+  lzy_game_logs <- dplyr::tbl(se_pool, "game_logs")
+  ss_streaks_game_log_data(lzy_game_logs, selected_streak)
+}
+
+summary_server_get_streak_standings <- function(franchises, selected_streak) {
+  start_time <- Sys.time()
+  on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
+
+  # The lazy standings table will generate a bunch of warnings about the
+  # decimal column, which we don't care about
+  withCallingHandlers({
+    lzy_standings <- dplyr::tbl(se_pool, "standings")
+    lzy_game_logs <- dplyr::tbl(se_pool, "game_logs")
+    streaks_get_standings(lzy_standings, lzy_game_logs, fraFnchises,
+                          selected_streak)
+  }, warning = function(wrn) {
+    if (stringr::str_starts(wrn$message, "Decimal MySQL")) {
+      rlang::cnd_muffle(wrn)
+    }
+  })
+}
+
+summary_server_build_streak_standings_graph <- function(franchises,
+                                                        selected_streak) {
+  start_time <- Sys.time()
+  on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
+
+  # The standings table will generate a bunch of warnings about the
+  # decimal column, which we don't care about.
+  withCallingHandlers({
+    lzy_standings <- dplyr::tbl(se_pool, "standings")
+    ss_plot_build_standings_graph(lzy_standings, franchises,
+                                             selected_streak)
+  }, warning = function(wrn) {
+    if (stringr::str_starts(wrn$message, "Decimal MySQL")) {
+      rlang::cnd_muffle(wrn)
+    }
+  })
+}
+
+# Internal mod_summary server functions ----
+
+#' ss_streaks_summary_data
 #'
 #' Build streak summary data from a streak.  The will be two data elements
 #' to the return values:  `data` will be a single-row summary table suitable
@@ -18,12 +64,11 @@ summary_server_streak_summary_data <- function(franchises, selected_streak) {
 #' @param streak streak
 #'
 #' @return list with `data` and `caption`
-summary_server_streaks_summary_data <- function(lzy_game_logs, franchises,
-                                                streak) {
+ss_streaks_summary_data <- function(lzy_game_logs, franchises, streak) {
   # Get the game logs and compute some summary data.  This is not yet
   # the result we want to return.
   summary_data <-
-    summary_server_streaks_get_game_log(lzy_game_logs, streak) %>%
+    ss_streaks_get_game_log(lzy_game_logs, streak) %>%
     dplyr::summarise(
       Team            = unique(Team),
       Year            = unique(Year),
@@ -61,8 +106,10 @@ summary_server_streaks_summary_data <- function(lzy_game_logs, franchises,
                       glue::glue("{Wins}-{Losses}"),
                       glue::glue("{Wins}-{Losses}-{Ties}")
       ),
-      `W-L%` = pct_formatter(WinningPct),
-      RS = RunsScored, RA = RunsAllowed, `Pyth%` = pct_formatter(PythagPct)
+      `W-L%` = ss_pct_formatter(WinningPct),
+      RS = RunsScored,
+      RA = RunsAllowed,
+      `Pyth%` = ss_pct_formatter(PythagPct)
     ) %>%
     dplyr::select(Dates:`Pyth%`)
 
@@ -78,7 +125,7 @@ summary_server_streaks_summary_data <- function(lzy_game_logs, franchises,
   list(data = data, caption = caption)
 }
 
-#' summary_server_streaks_get_game_log
+#' ss_streaks_get_game_log
 #'
 #' Filter a game log using a streak (using year, team, and the game index).
 #' The input is lazy, and the output is in memory.
@@ -87,7 +134,7 @@ summary_server_streaks_summary_data <- function(lzy_game_logs, franchises,
 #' @param streak Streak
 #'
 #' @return filtered game log
-summary_server_streaks_get_game_log <- function(lzy_game_logs, streak) {
+ss_streaks_get_game_log <- function(lzy_game_logs, streak) {
   lzy_game_logs %>%
     dplyr::filter(Year==local(streak$Year),
                   Team==local(streak$Team),
@@ -97,7 +144,7 @@ summary_server_streaks_get_game_log <- function(lzy_game_logs, streak) {
     dplyr::collect()
 }
 
-#' summary_server_streaks_game_log_data
+#' ss_streaks_game_log_data
 #'
 #' Given a streak -- a list with fields Year, Team, LoIndex and HiIndex --
 #' return a list with two elements: `caption`
@@ -107,7 +154,7 @@ summary_server_streaks_get_game_log <- function(lzy_game_logs, streak) {
 #' @param streak streak
 #'
 #' @return list with `data` and `caption`
-summary_server_streaks_game_log_data <- function(lzy_game_logs, streak) {
+ss_streaks_game_log_data <- function(lzy_game_logs, streak) {
   # Templates to use when computing the summary data
   date_template <- "{lubridate::month(Date)}/{lubridate::mday(Date)}"
   completed_on_template <-
@@ -123,7 +170,7 @@ summary_server_streaks_game_log_data <- function(lzy_game_logs, streak) {
     )
 
   # Get the game logs and compute summary data
-  game_log_data <- summary_server_streaks_get_game_log(lzy_game_logs,
+  game_log_data <- ss_streaks_get_game_log(lzy_game_logs,
                                                        streak) %>%
     dplyr::mutate(
       GameResult = dplyr::case_when(
@@ -160,50 +207,8 @@ summary_server_streaks_game_log_data <- function(lzy_game_logs, streak) {
   )
 }
 
-summary_server_get_streak_game_logs <- function(selected_streak) {
-  start_time <- Sys.time()
-  on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
-  lzy_game_logs <- dplyr::tbl(se_pool, "game_logs")
-  summary_server_streaks_game_log_data(lzy_game_logs, selected_streak)
-}
 
-summary_server_get_streak_standings <- function(franchises, selected_streak) {
-  start_time <- Sys.time()
-  on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
-
-  # The lazy standings table will generate a bunch of warnings about the
-  # decimal column, which we don't care about
-  withCallingHandlers({
-    lzy_standings <- dplyr::tbl(se_pool, "standings")
-    lzy_game_logs <- dplyr::tbl(se_pool, "game_logs")
-    streaks_get_standings(lzy_standings, lzy_game_logs, fraFnchises,
-                          selected_streak)
-  }, warning = function(wrn) {
-    if (stringr::str_starts(wrn$message, "Decimal MySQL")) {
-      rlang::cnd_muffle(wrn)
-    }
-  })
-}
-
-summary_server_build_streak_standings_graph <- function(franchises,
-                                                        selected_streak) {
-  start_time <- Sys.time()
-  on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
-
-  # The standings table will generate a bunch of warnings about the
-  # decimal column, which we don't care about.
-  withCallingHandlers({
-    lzy_standings <- dplyr::tbl(se_pool, "standings")
-    summary_sever_plot_build_standings_graph(lzy_standings, franchises,
-                                             selected_streak)
-  }, warning = function(wrn) {
-    if (stringr::str_starts(wrn$message, "Decimal MySQL")) {
-      rlang::cnd_muffle(wrn)
-    }
-  })
-}
-
-#' summary_sever_plot_build_standings_graph
+#' ss_plot_build_standings_graph
 #'
 #' Given the streak info, build the standings table for the division
 #' and pass it to plot_standings_graph to generate a standings plot
@@ -213,8 +218,7 @@ summary_server_build_streak_standings_graph <- function(franchises,
 #' @param streak Streak info
 #'
 #' @return Standings plot
-summary_sever_plot_build_standings_graph <- function(lzy_standings, franchises,
-                                                     streak) {
+ss_plot_build_standings_graph <- function(lzy_standings, franchises, streak) {
   # Get division and teams
   division_teams <- franchises_get_division_by_team_year(
     franchises, streak$Team, streak$Year)
@@ -240,4 +244,21 @@ summary_sever_plot_build_standings_graph <- function(lzy_standings, franchises,
   plot_standings_graph(standings, streak$Team, streak$StartDate,
                        streak$EndDate)
 }
+
+#' ss_pct_formatter
+#'
+#' Formats winning percentages as a string with three digits after the
+#' the decimal point and no leading zero, e.g. ".542".
+#' Will return "1.000" for a perfect record.
+#'
+#' @param pct Number to format
+#'
+#' @return Formatted winning percentage.
+ss_pct_formatter <- function(pct) {
+  ifelse(pct < 1,
+         paste0(".", sprintf("%03d", round(1000 * pct))),
+         "1.000"
+  )
+}
+
 

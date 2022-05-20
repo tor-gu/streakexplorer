@@ -1,4 +1,4 @@
-test_that("summary_server_streaks_summary_data works with 'completions'", {
+test_that("ss_streaks_summary_data works with 'completions'", {
   with_mock_db({
     mock_conn <- suppressWarnings(
       dbConnect(RMySQL::MySQL(), dbname="streak_explorer_data")
@@ -6,7 +6,7 @@ test_that("summary_server_streaks_summary_data works with 'completions'", {
     lzy_game_logs <- dplyr::tbl(mock_conn, "game_logs")
     franchises <- dplyr::tbl(mock_conn, "franchises") %>% dplyr::collect()
     streak <- list(Year=2004, Team="CIN", LoIndex=100, HiIndex=105)
-    actual <- summary_server_streaks_summary_data(lzy_game_logs, franchises,
+    actual <- ss_streaks_summary_data(lzy_game_logs, franchises,
                                                   streak)
     dbDisconnect(mock_conn)
   })
@@ -23,14 +23,14 @@ test_that("summary_server_streaks_summary_data works with 'completions'", {
   expect_equal(actual$data, expected_data)
 })
 
-test_that("summary_server_streaks_get_game_log basic test", {
+test_that("ss_streaks_get_game_log basic test", {
   with_mock_db({
     mock_conn <- suppressWarnings(
       dbConnect(RMySQL::MySQL(), dbname="streak_explorer_data")
     )
     lzy_game_logs <- dplyr::tbl(mock_conn, "game_logs")
     streak <- list(Year=2004, Team="CIN", LoIndex=100, HiIndex=105)
-    streak_game_log <- summary_server_streaks_get_game_log(lzy_game_logs,
+    streak_game_log <- ss_streaks_get_game_log(lzy_game_logs,
                                                            streak)
     dbDisconnect(mock_conn)
   })
@@ -39,14 +39,14 @@ test_that("summary_server_streaks_get_game_log basic test", {
   expect_equal(actual_ids, expected_ids)
 })
 
-test_that("summary_server_streaks_game_log_data works with 'completions'", {
+test_that("ss_streaks_game_log_data works with 'completions'", {
   with_mock_db({
     mock_conn <- suppressWarnings(
       dbConnect(RMySQL::MySQL(), dbname="streak_explorer_data")
     )
     lzy_game_logs <- dplyr::tbl(mock_conn, "game_logs")
     streak <- list(Year=2004, Team="CIN", LoIndex=100, HiIndex=105)
-    actual <- summary_server_streaks_game_log_data(lzy_game_logs, streak)
+    actual <- ss_streaks_game_log_data(lzy_game_logs, streak)
     dbDisconnect(mock_conn)
   })
   expected_caption <- "Game Log"
