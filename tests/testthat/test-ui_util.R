@@ -283,26 +283,6 @@ test_that("ui_generate_team_selection basic test", {
 })
 
 
-test_that("ui_build_divisions_choices basic test", {
-  franchises <- tibble::tribble(
-    ~FranchiseID, ~League, ~Division,  ~FirstSeason, ~FinalSeason,
-    "ALE1",       "AL",     "East",    1901,         1920,
-    "ALE2",       "AL",     "East",    1910,         1930,
-    "ALW1",       "AL",     "West",    1905,         1925,
-    "ALW2",       "AL",     "West",    1915,         1935,
-    "NLW1",       "NL",     "West",    1900,         1930,
-    "NLW2",       "NL",     "West",    1910,         1950
-  )
-  actual <- ui_build_divisions_choices(franchises, 1900:1950, c("AL","NL"))
-  expected <- list("AL Divisions"=
-                     list("AL East (1901-1930)"="AL_East",
-                          "AL West (1905-1935)"="AL_West"),
-                   "NL Divisions"=
-                     list("NL West"="NL_West")
-  )
-  expect_equal(actual, expected)
-})
-
 test_that("ui_build_teams_choices basic test", {
   franchises <- tibble::tribble(
     ~FranchiseID, ~League, ~Division,  ~Nickname,  ~FirstSeason, ~FinalSeason,

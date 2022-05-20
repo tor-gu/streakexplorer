@@ -91,7 +91,7 @@ filterServer <- function(id, franchises) {
     )
 
     divisions_choices <- reactive({
-      ui_build_divisions_choices(franchises,
+      filter_ui_build_divisions_choices(franchises,
                                  selected_years(),
                                  selected_leagues())
     })

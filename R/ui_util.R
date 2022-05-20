@@ -276,29 +276,6 @@ ui_generate_team_selection <- function(franchises) {
     torgutil::tbl_as_named_list(FranchiseID, Nicknames)
 }
 
-#' ui_build_divisions_choices
-#'
-#' Given a division table and a year and league filter,
-#' generate a choice list for the division selection
-#' UI.  If all the divisions are from the same league, there will be an
-#' element for each division. If both leagues are represented, then there will
-#' be two sublists, labeled "AL Divisions" and "NL Divisions".  (This will
-#' generate separators in the UI)
-
-#' @param franchises Franchise table (unfiltered)
-#' @param years  Vector of years to filter on
-#' @param leagues  League filter: "AL", "NL", or c("AL","NL")
-#'
-#' @return List of choices for the UI
-ui_build_divisions_choices <- function(franchises, years, leagues) {
-  franchises %>%
-    ui_filter_by_years(years) %>%
-    ui_filter_by_league(leagues) %>%
-    ui_truncate_years(years) %>%
-    ui_get_divisions() %>%
-    ui_generate_division_selection()
-}
-
 #' ui_build_teams_choices
 #'
 #' Given the franchises table, and a years and league/division filter,
