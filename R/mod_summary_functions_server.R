@@ -23,7 +23,7 @@ summary_server_get_streak_standings <- function(franchises, selected_streak) {
   withCallingHandlers({
     lzy_standings <- dplyr::tbl(se_pool, "standings")
     lzy_game_logs <- dplyr::tbl(se_pool, "game_logs")
-    streaks_get_standings(lzy_standings, lzy_game_logs, fraFnchises,
+    streaks_get_standings(lzy_standings, lzy_game_logs, franchises,
                           selected_streak)
   }, warning = function(wrn) {
     if (stringr::str_starts(wrn$message, "Decimal MySQL")) {

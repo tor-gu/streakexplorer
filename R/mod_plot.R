@@ -17,21 +17,21 @@ plotServer <- function(id, franchises, intensity_level_range, filter) {
 
     lines <- reactive({
       req(filter$teams(), max_rank())
-      server_build_lines(franchises, intensity_level_range, filter$years(),
+      plot_server_build_lines(franchises, intensity_level_range, filter$years(),
                          filter$teams(), max_rank(), filter$hot())
     })
 
     selected_streak <- reactive({
-      server_get_selected_streak(selected_line_id(), filter$hot())
+      plot_server_get_selected_streak(selected_line_id(), filter$hot())
     })
 
     highlighted_lines <- reactive({
-      server_lines_highlight(lines(), selected_line_id(), filter$hot())
+      plot_server_lines_highlight(lines(), selected_line_id(), filter$hot())
     })
 
     # This is the main graph
     main_plot <- reactive(
-      server_main_plot(
+      plot_server_main_plot(
         highlighted_lines(),
         intensity_level_range,
         max_rank(),
