@@ -14,10 +14,10 @@ plot_server_get_max_rank <- function(franchises, years, teams, hot) {
 plot_server_lines_highlight <- function(lines, selected_line_id, hot) {
   start_time <- Sys.time()
   on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
-  lines_highlight(lines,
-                  lzy_concordances(hot),
-                  lzy_lines_to_streaks(hot),
-                  selected_line_id)
+  ps_lines_highlight(lines,
+                     lzy_concordances(hot),
+                     lzy_lines_to_streaks(hot),
+                     selected_line_id)
 }
 
 plot_server_build_lines <- function(franchises, intensity_level_range, years, teams,
@@ -263,4 +263,61 @@ ps_streaks_get_max_rank_by_sampling <- function(lzy_streaks, n, min_year,
     ps_streaks_get_max_rank_simple(n, min_year, max_year, teams)
 }
 
+#' ps_lines_highlight
+#'
+#' Given a table of `lines` and a `line_id`, add a new column, `line_type`,
+#' with values:
+#' * `"identical"`: Matching line_id
+#' * `"related"`: Line represents a sub- or super-streak, but is not identical
+#' * `"season"`: Line is from same year and team, but not a sub- or super-streak
+#' * `"base"`: Unrelated line
+#'
+#' If `line_id` is `NULL` or omitted, all values will be `"base"`
+#'
+#' @param lines Table of lines
+#' @param lzy_concordances Lazy concordances table
+#' @param lzy_lines_to_streaks  Lazy lines_to_streaks table
+#' @param line_id LineID
+#'
+#' @return Lines with added `line_type` column.
+ps_lines_highlight <- function(lines, lzy_concordances, lzy_lines_to_streaks,
+                               line_id = NULL) {
+  # Initialize with line_type == "base"
+  result <- lines %>% dplyr::mutate(line_type = "base")
+
+  # Check that we were passed a line_id
+  if (!is.null(line_id)) {
+    # Get the Team and Year from the first line matching the line_id
+    row <- lines %>%
+      dplyr::filter(LineId == line_id) %>%
+      head(1)
+    if (nrow(row) > 0) {
+      team <- row$Team
+      year <- row$Year
+      # Get related line ids
+      related_line_ids <- lines_get_related_lines(
+        line_id, lzy_lines_to_streaks,
+        lzy_concordances
+      )
+      result <- result %>%
+        # Same Year and Team:  line_type = "season"
+        dplyr::mutate(
+          line_type = dplyr::if_else(Year == year & Team == team, "season",
+                                     line_type
+          ),
+        ) %>%
+        # Substreak or superstreak: line_type = "related"
+        dplyr::mutate(
+          line_type = dplyr::if_else(LineId %in% related_line_ids, "related",
+                                     line_type
+          ),
+        ) %>%
+        # Same streak: line_type = "identical"
+        dplyr::mutate(
+          line_type = dplyr::if_else(LineId == line_id, "identical", line_type),
+        )
+    }
+  }
+  result
+}
 
