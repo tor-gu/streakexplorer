@@ -82,7 +82,7 @@ test_that("lines_highlight basic test", {
     )
     lzy_lines <- dplyr::tbl(mock_conn, "hot_streaks_lines")
     franchises <- dplyr::tbl(mock_conn, "franchises") %>% dplyr::collect()
-    lines <- lines_build_lines(lzy_lines, 1948, 1948, c("BOS","CIN"),
+    lines <- ps_build_lines(lzy_lines, 1948, 1948, c("BOS","CIN"),
                                franchises, 80, 1)
     dbDisconnect(mock_conn)
   })
@@ -98,7 +98,7 @@ test_that("lines_highlight detects left-most line with hot streaks", {
     )
     lzy_lines <- dplyr::tbl(mock_conn, "hot_streaks_lines")
     franchises <- dplyr::tbl(mock_conn, "franchises") %>% dplyr::collect()
-    lines <- lines_build_lines(lzy_lines, 1954, 1954, "NYA",
+    lines <- ps_build_lines(lzy_lines, 1954, 1954, "NYA",
                                franchises, 80, 1)
     dbDisconnect(mock_conn)
   })
@@ -114,7 +114,7 @@ test_that("lines_highlight detects left-most line with cold streaks", {
     )
     lzy_lines <- dplyr::tbl(mock_conn, "cold_streaks_lines")
     franchises <- dplyr::tbl(mock_conn, "franchises") %>% dplyr::collect()
-    lines <- lines_build_lines(lzy_lines, 1949, 1949, "WS1",
+    lines <- ps_build_lines(lzy_lines, 1949, 1949, "WS1",
                                franchises, 80, 101)
     dbDisconnect(mock_conn)
   })
