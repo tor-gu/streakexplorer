@@ -92,7 +92,7 @@ ss_streak_summary_data <- function(lzy_game_logs, franchises, streak) {
 
   # Look up this team's season in the franchises table.
   franchise_season <- franchises %>%
-    franchises_by_season(summary_data$Year) %>%
+    ss_franchises_by_season(summary_data$Year) %>%
     dplyr::filter(TeamID == local(summary_data$Team))
 
   # Now compute the displayable summary
@@ -220,7 +220,7 @@ ss_streak_game_log_data <- function(lzy_game_logs, streak) {
 #' @return Standings plot
 ss_build_standings_graph <- function(lzy_standings, franchises, streak) {
   # Get division and teams
-  division_teams <- franchises_get_division_by_team_year(
+  division_teams <- ss_get_division_by_team_year(
     franchises, streak$Team, streak$Year)
 
   # Filter the standings to just the division (or league, if division is NULL)
@@ -322,7 +322,7 @@ ss_get_standings_for_streak <- function(lzy_standings, lzy_game_logs,
                                   franchises, streak) {
   # Get the division
   division <- franchises %>%
-    franchises_get_division_by_team_year(streak$Team, streak$Year)
+    ss_get_division_by_team_year(streak$Team, streak$Year)
   division_teams <- division$teams$TeamID
 
   # Set up a query for all games for all teams in the division for the year.
@@ -555,6 +555,42 @@ ss_get_same_day_team_games_lzy <- function(lzy_game_logs, year,
       dplyr::filter(Team %in% local(games$Team), Date == date,
                     SeasonGameId > season_game_id)
   }
+}
+
+#' ss_franchises_by_season
+#'
+#' Given the franchises table, find all the entries matching a specific year.
+#'
+#' @param franchises  Franchises table
+#' @param year Year
+#'
+#' @return Matching rows in the franchises table
+ss_franchises_by_season <- function(franchises, year) {
+  franchises %>% dplyr::filter(FirstSeason <= year &
+                                 (FinalSeason >= year | is.na(FinalSeason)))
+}
+
+#' ss_get_division_by_team_year
+#'
+#' Give a TeamID and year, find the division (`League`, `Division` and `Year`)
+#' and a table of teams in the division (`TeamID`, `Location`, `Nickname`).
+#'
+#' @param franchises Franchises table
+#' @param team teamID
+#' @param year year
+#'
+#' @return list with `division` and `teams`
+ss_get_division_by_team_year <- function(franchises, team, year) {
+  season_franchises <- ss_franchises_by_season(franchises, year)
+  division <- season_franchises %>%
+    dplyr::filter(TeamID==team) %>%
+    dplyr::select(League, Division) %>%
+    dplyr::mutate(Year=year)
+  teams <- season_franchises %>%
+    dplyr::right_join(division, by=c("League","Division"),
+                      na_matches="na") %>%
+    dplyr::select(TeamID, Location, Nickname)
+  list(division=division, teams=teams)
 }
 
 
