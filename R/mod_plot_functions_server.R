@@ -96,26 +96,21 @@ plot_server_main_plot <- function(highlighted_lines, intensity_level_range,
 #' @param lzy_lines Lazy lines table
 #' @param min_year Min Year
 #' @param max_year Max Year
-#' @param teams Vector of teamIDs
+#' @param team_ids Vector of teamIDs
 #' @param franchises Franchises table
 #' @param max_rank Max Rank
 #' @param left_intensity Left-most intensity level (min for hot, max for cold)
 #'
 #' @return
-ps_build_lines <- function(lzy_lines, min_year, max_year, teams,
+ps_build_lines <- function(lzy_lines, min_year, max_year, team_ids,
                               franchises, max_rank, left_intensity) {
-  # TODO Looks like we are doing this twice!  Revisit.
-  # Get the team-ids
-  team_ids <- ps_franchise_ids_to_team_ids(
-    franchises, teams, min_year, max_year)
-
   # Get the left-most line elements, to add in at the end
   # The reason this is a special case is that sometimes the
   # left-most line contains a single node, and we don't want to
   # strip it out with all the other single-node lines.
   left_lines <- lzy_lines %>%
     dplyr::filter(between(Year, min_year, max_year),
-                  Team %in% teams, Rank <= max_rank,
+                  Team %in% team_ids, Rank <= max_rank,
                   IntensityLevel == left_intensity) %>%
     dplyr::collect()
 
@@ -123,7 +118,7 @@ ps_build_lines <- function(lzy_lines, min_year, max_year, teams,
   lzy_lines %>%
     # Initial filter by years, teams, and ranks
     dplyr::filter(between(Year, min_year, max_year),
-                  Team %in% teams, Rank <= max_rank) %>%
+                  Team %in% team_ids, Rank <= max_rank) %>%
     # Now filter out lines that have only a single node above the cutoff
     dplyr::count(LineId) %>%
     dplyr::filter(n>1) %>%

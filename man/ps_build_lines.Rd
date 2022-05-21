@@ -8,7 +8,7 @@ ps_build_lines(
   lzy_lines,
   min_year,
   max_year,
-  teams,
+  team_ids,
   franchises,
   max_rank,
   left_intensity
@@ -21,7 +21,7 @@ ps_build_lines(
 
 \item{max_year}{Max Year}
 
-\item{teams}{Vector of teamIDs}
+\item{team_ids}{Vector of teamIDs}
 
 \item{franchises}{Franchises table}
 
