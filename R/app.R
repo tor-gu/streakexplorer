@@ -22,7 +22,7 @@
 streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) {
   franchises <- dplyr::tbl(my_pool, "franchises") %>% dplyr::collect()
   intensity_level_range <- dplyr::tbl(my_pool, "hot_streaks") %>%
-    streaks_get_intensity_range(initial_year_min)
+    app_get_intensity_range(initial_year_min)
   initial_year_range <- c(initial_year_min, initial_year_max)
 
   # UI ----
