@@ -11,11 +11,11 @@ plotServer <- function(id, db_pool, franchises, intensity_level_range, filter) {
     selected_line_id <- reactiveVal(NULL)
     max_rank <- reactive({
       req(filter$teams())
-      plot_server_get_max_rank(franchises, filter$years(), filter$teams(),
-                               filter$hot())
+      plot_server_get_max_rank(db_pool, franchises, filter$years(),
+                               filter$teams(), filter$hot())
     })
 
-    lines <- reactive({r
+    lines <- reactive({
       req(filter$teams(), max_rank())
       plot_server_build_lines(db_pool, franchises, intensity_level_range,
                               filter$years(), filter$teams(), max_rank(),

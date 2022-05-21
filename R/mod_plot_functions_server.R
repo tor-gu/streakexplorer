@@ -1,6 +1,6 @@
 # Top level mod_plot server functions ----
 
-plot_server_get_max_rank <- function(franchises, years, teams, hot) {
+plot_server_get_max_rank <- function(db_pool, franchises, years, teams, hot) {
   # Get the max rank using n=10
   start_time <- Sys.time()
   on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
