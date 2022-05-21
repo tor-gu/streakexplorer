@@ -34,7 +34,9 @@ summary_server_get_streak_standings <- function(db_pool, franchises,
   })
 }
 
-summary_server_build_streak_standings_graph <- function(db_pool, franchises,
+summary_server_build_streak_standings_graph <- function(db_pool,
+                                                        highlight_colors,
+                                                        franchises,
                                                         selected_streak) {
   start_time <- Sys.time()
   on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
@@ -43,8 +45,8 @@ summary_server_build_streak_standings_graph <- function(db_pool, franchises,
   # decimal column, which we don't care about.
   withCallingHandlers({
     lzy_standings <- dplyr::tbl(db_pool, "standings")
-    ss_build_standings_graph(lzy_standings, franchises,
-                                             selected_streak)
+    ss_build_standings_graph(highlight_colors, lzy_standings, franchises,
+                             selected_streak)
   }, warning = function(wrn) {
     if (stringr::str_starts(wrn$message, "Decimal MySQL")) {
       rlang::cnd_muffle(wrn)
@@ -215,12 +217,14 @@ ss_streak_game_log_data <- function(lzy_game_logs, streak) {
 #' Given the streak info, build the standings table for the division
 #' and pass it to ss_plot_standings_graph to generate a standings plot
 #'
+#' @param highlight_colors Colors for highlighting
 #' @param lzy_standings Lazy full standings table
 #' @param franchises Franchises table
 #' @param streak Streak info
 #'
 #' @return Standings plot
-ss_build_standings_graph <- function(lzy_standings, franchises, streak) {
+ss_build_standings_graph <- function(highlight_colors, lzy_standings,
+                                     franchises, streak) {
   # Get division and teams
   division_teams <- ss_get_division_by_team_year(
     franchises, streak$Team, streak$Year)
@@ -243,8 +247,8 @@ ss_build_standings_graph <- function(lzy_standings, franchises, streak) {
   standings <- lzy_standings %>%
     dplyr::collect() %>%
     dplyr::mutate(Date = lubridate::ymd(Date))
-  ss_plot_standings_graph(standings, streak$Team, streak$StartDate,
-                       streak$EndDate)
+  ss_plot_standings_graph(highlight_colors, standings, streak$Team,
+                          streak$StartDate, streak$EndDate)
 }
 
 #' ss_pct_formatter
@@ -268,13 +272,15 @@ ss_pct_formatter <- function(pct) {
 #' Plot the standings graph, and highlight the selected team and date
 #' range
 #'
+#' @param highlight_colors Colors for highlighting
 #' @param standings Standings to plot
 #' @param team TeamID to highlight
 #' @param start_date Start of highlight area
 #' @param end_date End of highlight area
 #'
 #' @return Standings plot
-ss_plot_standings_graph <- function(standings, team, start_date, end_date) {
+ss_plot_standings_graph <- function(highlight_colors, standings, team,
+                                    start_date, end_date) {
   # Add GamesAbove to the standings, which will be our y-value
   standings <- standings %>% dplyr::mutate(GamesAbove = Wins - Losses)
 

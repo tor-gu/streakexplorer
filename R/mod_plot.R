@@ -5,7 +5,8 @@ plotUI <- function(id) {
   )
 }
 
-plotServer <- function(id, db_pool, franchises, intensity_level_range, filter) {
+plotServer <- function(id, db_pool, highlight_colors, franchises,
+                       intensity_level_range, filter) {
   moduleServer(id, function(input, output, session) {
 
     selected_line_id <- reactiveVal(NULL)
@@ -34,6 +35,7 @@ plotServer <- function(id, db_pool, franchises, intensity_level_range, filter) {
     # This is the main graph
     main_plot <- reactive(
       plot_server_main_plot(
+        highlight_colors,
         highlighted_lines(),
         intensity_level_range,
         max_rank(),

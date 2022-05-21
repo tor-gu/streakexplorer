@@ -3,6 +3,7 @@
 #' Build the plotly plot.  The lines should have already been
 #' passed through lines_highlight
 #'
+#' @param highlight_colors Colors for highlighting
 #' @param lines Lines to plot
 #' @param min_intensity Min intensity level
 #' @param max_intensity Max intensity level
@@ -11,8 +12,8 @@
 #' @param reverse_x_axis If TRUE, reverse the x-axis
 #'
 #' @return plotly::plot_ly object
-ps_plot_lines <- function(lines, min_intensity, max_intensity, max_rank,
-                          highlighting, reverse_x_axis = FALSE) {
+ps_plot_lines <- function(highlight_colors, lines, min_intensity, max_intensity,
+                          max_rank, highlighting, reverse_x_axis = FALSE) {
   # Set up the x-axis
   x_range <- c(min_intensity, max_intensity)
   x_axis_range <- if (reverse_x_axis) rev(x_range) else x_range

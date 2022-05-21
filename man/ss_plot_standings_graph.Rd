@@ -4,9 +4,17 @@
 \alias{ss_plot_standings_graph}
 \title{ss_plot_standings_graph}
 \usage{
-ss_plot_standings_graph(standings, team, start_date, end_date)
+ss_plot_standings_graph(
+  highlight_colors,
+  standings,
+  team,
+  start_date,
+  end_date
+)
 }
 \arguments{
+\item{highlight_colors}{Colors for highlighting}
+
 \item{standings}{Standings to plot}
 
 \item{team}{TeamID to highlight}

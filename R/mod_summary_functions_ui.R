@@ -2,7 +2,7 @@
 # Each DT has a DT_xxx_init function and a DT_xxx_update function.
 
 # DT init functions ----
-summary_ui_DT_standings_init <- function() {
+summary_ui_DT_standings_init <- function(highlight_colors) {
   dummy_data <- tibble::tibble(
     Team=character(0),
     W=integer(0),

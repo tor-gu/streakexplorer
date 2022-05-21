@@ -46,7 +46,8 @@ summaryUI <- function(id) {
   )
 }
 
-summaryServer <- function(id, db_pool, franchises, selected_streak) {
+summaryServer <- function(id, db_pool, highlight_colors, franchises,
+                          selected_streak) {
   moduleServer(id, function(input, output, session) {
     selected_streaks_summary_data <- reactive({
       req(selected_streak())
@@ -117,13 +118,13 @@ summaryServer <- function(id, db_pool, franchises, selected_streak) {
       summary_ui_DT_streak_summary_init()
     })
     output$standings_before <- DT::renderDT({
-      summary_ui_DT_standings_init()
+      summary_ui_DT_standings_init(highlight_colors)
     })
     output$standings_after <- DT::renderDT({
-      summary_ui_DT_standings_init()
+      summary_ui_DT_standings_init(highlight_colors)
     })
     output$standings_final <- DT::renderDT({
-      summary_ui_DT_standings_init()
+      summary_ui_DT_standings_init(highlight_colors)
     })
     output$game_log <- DT::renderDT({
       summary_ui_DT_game_log_init()
@@ -132,8 +133,8 @@ summaryServer <- function(id, db_pool, franchises, selected_streak) {
     # Standings graph
     output$standings_graph <- renderPlot({
       req(selected_streak())
-      summary_server_build_streak_standings_graph(db_pool, franchises,
-                                                  selected_streak())
+      summary_server_build_streak_standings_graph(db_pool, highlight_colors,
+                                                  franchises, selected_streak())
     })
 
   })

@@ -4,9 +4,11 @@
 \alias{ss_build_standings_graph}
 \title{ss_build_standings_graph}
 \usage{
-ss_build_standings_graph(lzy_standings, franchises, streak)
+ss_build_standings_graph(highlight_colors, lzy_standings, franchises, streak)
 }
 \arguments{
+\item{highlight_colors}{Colors for highlighting}
+
 \item{lzy_standings}{Lazy full standings table}
 
 \item{franchises}{Franchises table}

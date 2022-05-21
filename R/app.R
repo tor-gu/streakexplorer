@@ -64,16 +64,18 @@ streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) 
         )
       ),
       shiny::tabPanel("About", shiny::includeMarkdown("")),
-      theme = theme
+      theme = app_get_theme()
     )
 
 
   # Server ----
   server <- function(input, output, session) {
+    highlight_colors <- app_get_highlight_colors()
     filter <- filterServer("filter", franchises)
-    selected_streak <- plotServer("plot", my_pool, franchises,
-                                  intensity_level_range, filter)
-    summaryServer("summary", my_pool, franchises, selected_streak)
+    selected_streak <- plotServer("plot", my_pool, highlight_colors,
+                                  franchises, intensity_level_range, filter)
+    summaryServer("summary", my_pool, highlight_colors, franchises,
+                  selected_streak)
   }
 
   shiny::shinyApp(ui, server, ...)

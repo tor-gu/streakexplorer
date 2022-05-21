@@ -5,6 +5,7 @@
 \title{ps_plot_lines}
 \usage{
 ps_plot_lines(
+  highlight_colors,
   lines,
   min_intensity,
   max_intensity,
@@ -14,6 +15,8 @@ ps_plot_lines(
 )
 }
 \arguments{
+\item{highlight_colors}{Colors for highlighting}
+
 \item{lines}{Lines to plot}
 
 \item{min_intensity}{Min intensity level}

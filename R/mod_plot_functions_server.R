@@ -50,8 +50,8 @@ plot_server_get_selected_streak <- function(db_pool, selected_line_id, hot) {
     selected_line_id)
 }
 
-plot_server_main_plot <- function(highlighted_lines, intensity_level_range,
-                             max_rank, hot) {
+plot_server_main_plot <- function(highlight_colors, highlighted_lines,
+                                  intensity_level_range, max_rank, hot) {
   if (
     torgutil::tbl_is_column_value_unique(highlighted_lines, Year) &
     torgutil::tbl_is_column_value_unique(highlighted_lines, Team)
@@ -76,6 +76,7 @@ plot_server_main_plot <- function(highlighted_lines, intensity_level_range,
   min_intensity <- intensity_level_range[[1]]
   max_intensity <- intensity_level_range[[2]]
   ps_plot_lines(
+    highlight_colors,
     highlighted_lines,
     min_intensity,
     max_intensity,
