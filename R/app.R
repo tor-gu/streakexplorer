@@ -20,9 +20,8 @@
 #' streakexplorerApp(my_pool, 1948, 1960)
 #' }
 streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) {
-  se_pool <<- my_pool
-  franchises <- dplyr::tbl(se_pool, "franchises") %>% dplyr::collect()
-  intensity_level_range <- dplyr::tbl(se_pool, "hot_streaks") %>%
+  franchises <- dplyr::tbl(my_pool, "franchises") %>% dplyr::collect()
+  intensity_level_range <- dplyr::tbl(my_pool, "hot_streaks") %>%
     streaks_get_intensity_range(initial_year_min)
   initial_year_range <- c(initial_year_min, initial_year_max)
 
@@ -72,11 +71,9 @@ streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) 
   # Server ----
   server <- function(input, output, session) {
     filter <- filterServer("filter", franchises)
-    selected_streak <- plotServer("plot", franchises, intensity_level_range,
-                                  filter)
-    summaryServer("summary", franchises, selected_streak)
-
-
+    selected_streak <- plotServer("plot", my_pool, franchises,
+                                  intensity_level_range, filter)
+    summaryServer("summary", my_pool, franchises, selected_streak)
   }
 
   shiny::shinyApp(ui, server, ...)

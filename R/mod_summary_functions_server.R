@@ -1,28 +1,30 @@
 # Top level mod_summary server functions ----
-summary_server_streak_summary_data <- function(franchises, selected_streak) {
+summary_server_streak_summary_data <- function(db_pool, franchises,
+                                               selected_streak) {
   start_time <- Sys.time()
   on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
-  lzy_game_logs <- dplyr::tbl(se_pool, "game_logs")
+  lzy_game_logs <- dplyr::tbl(db_pool, "game_logs")
   ss_streak_summary_data(lzy_game_logs, franchises,
                                       selected_streak)
 }
 
-summary_server_get_streak_game_logs <- function(selected_streak) {
+summary_server_get_streak_game_logs <- function(db_pool, selected_streak) {
   start_time <- Sys.time()
   on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
-  lzy_game_logs <- dplyr::tbl(se_pool, "game_logs")
+  lzy_game_logs <- dplyr::tbl(db_pool, "game_logs")
   ss_streak_game_log_data(lzy_game_logs, selected_streak)
 }
 
-summary_server_get_streak_standings <- function(franchises, selected_streak) {
+summary_server_get_streak_standings <- function(db_pool, franchises,
+                                                selected_streak) {
   start_time <- Sys.time()
   on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
 
   # The lazy standings table will generate a bunch of warnings about the
   # decimal column, which we don't care about
   withCallingHandlers({
-    lzy_standings <- dplyr::tbl(se_pool, "standings")
-    lzy_game_logs <- dplyr::tbl(se_pool, "game_logs")
+    lzy_standings <- dplyr::tbl(db_pool, "standings")
+    lzy_game_logs <- dplyr::tbl(db_pool, "game_logs")
     ss_get_standings_for_streak(lzy_standings, lzy_game_logs, franchises,
                           selected_streak)
   }, warning = function(wrn) {
@@ -32,7 +34,7 @@ summary_server_get_streak_standings <- function(franchises, selected_streak) {
   })
 }
 
-summary_server_build_streak_standings_graph <- function(franchises,
+summary_server_build_streak_standings_graph <- function(db_pool, franchises,
                                                         selected_streak) {
   start_time <- Sys.time()
   on.exit(message(paste(rlang::call_name(sys.call()), Sys.time() - start_time, sep="||")))
@@ -40,7 +42,7 @@ summary_server_build_streak_standings_graph <- function(franchises,
   # The standings table will generate a bunch of warnings about the
   # decimal column, which we don't care about.
   withCallingHandlers({
-    lzy_standings <- dplyr::tbl(se_pool, "standings")
+    lzy_standings <- dplyr::tbl(db_pool, "standings")
     ss_build_standings_graph(lzy_standings, franchises,
                                              selected_streak)
   }, warning = function(wrn) {
@@ -536,8 +538,8 @@ ss_get_final_standings <- function(lzy_standings, division) {
 #' @param before If `TRUE`, game games earlier in the day. If `FALSE`, later
 #'
 #' @return Lazy query
-ss_get_same_day_team_games_lzy <- function(lzy_game_logs, year,
-                                                  season_game_id, before=TRUE) {
+ss_get_same_day_team_games_lzy <- function(lzy_game_logs, year, season_game_id,
+                                           before=TRUE) {
   # Get the game in question. There should be two rows here, one for each
   # involved in the game.
   games <- lzy_game_logs %>%

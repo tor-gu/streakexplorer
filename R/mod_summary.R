@@ -46,15 +46,16 @@ summaryUI <- function(id) {
   )
 }
 
-summaryServer <- function(id, franchises, selected_streak) {
+summaryServer <- function(id, db_pool, franchises, selected_streak) {
   moduleServer(id, function(input, output, session) {
     selected_streaks_summary_data <- reactive({
       req(selected_streak())
-      summary_server_streak_summary_data(franchises, selected_streak())
+      summary_server_streak_summary_data(db_pool, franchises, selected_streak())
     })
 
     selected_streak_standings <- reactive({
-      summary_server_get_streak_standings(franchises, selected_streak())
+      summary_server_get_streak_standings(db_pool, franchises,
+                                          selected_streak())
     })
 
     observe({
@@ -86,7 +87,8 @@ summaryServer <- function(id, franchises, selected_streak) {
         selected_streak_standings()$standings_final
       )
 
-      game_log <- summary_server_get_streak_game_logs(selected_streak())
+      game_log <- summary_server_get_streak_game_logs(db_pool,
+                                                      selected_streak())
       summary_ui_DT_game_log_update(game_log_proxy, game_log$data)
       summary_ui_DT_streak_summary_update(
         streak_summary_proxy,
@@ -130,7 +132,8 @@ summaryServer <- function(id, franchises, selected_streak) {
     # Standings graph
     output$standings_graph <- renderPlot({
       req(selected_streak())
-      summary_server_build_streak_standings_graph(franchises, selected_streak())
+      summary_server_build_streak_standings_graph(db_pool, franchises,
+                                                  selected_streak())
     })
 
   })

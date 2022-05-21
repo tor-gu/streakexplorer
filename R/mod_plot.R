@@ -5,7 +5,7 @@ plotUI <- function(id) {
   )
 }
 
-plotServer <- function(id, franchises, intensity_level_range, filter) {
+plotServer <- function(id, db_pool, franchises, intensity_level_range, filter) {
   moduleServer(id, function(input, output, session) {
 
     selected_line_id <- reactiveVal(NULL)
@@ -15,18 +15,20 @@ plotServer <- function(id, franchises, intensity_level_range, filter) {
                                filter$hot())
     })
 
-    lines <- reactive({
+    lines <- reactive({r
       req(filter$teams(), max_rank())
-      plot_server_build_lines(franchises, intensity_level_range, filter$years(),
-                         filter$teams(), max_rank(), filter$hot())
+      plot_server_build_lines(db_pool, franchises, intensity_level_range,
+                              filter$years(), filter$teams(), max_rank(),
+                              filter$hot())
     })
 
     selected_streak <- reactive({
-      plot_server_get_selected_streak(selected_line_id(), filter$hot())
+      plot_server_get_selected_streak(db_pool, selected_line_id(), filter$hot())
     })
 
     highlighted_lines <- reactive({
-      plot_server_lines_highlight(lines(), selected_line_id(), filter$hot())
+      plot_server_lines_highlight(db_pool, lines(), selected_line_id(),
+                                  filter$hot())
     })
 
     # This is the main graph
