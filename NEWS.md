@@ -1,3 +1,4 @@
-# streakexplorer 0.0.0.9009
+# streakexplorer 1.0.0
 
-* Added a `NEWS.md` file to track changes to the package.
+* Initial public version.
+
