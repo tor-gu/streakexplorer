@@ -30,7 +30,7 @@ ps_build_lines(
 \item{left_intensity}{Left-most intensity level (min for hot, max for cold)}
 }
 \value{
-
+A table of lines
 }
 \description{
 Generate the table of lines for the given filter (years, teams and rank).

@@ -102,9 +102,9 @@ plot_server_main_plot <- function(highlight_colors, highlighted_lines,
 #' @param max_rank Max Rank
 #' @param left_intensity Left-most intensity level (min for hot, max for cold)
 #'
-#' @return
+#' @return A table of lines
 ps_build_lines <- function(lzy_lines, min_year, max_year, team_ids,
-                              franchises, max_rank, left_intensity) {
+                           franchises, max_rank, left_intensity) {
   # Get the left-most line elements, to add in at the end
   # The reason this is a special case is that sometimes the
   # left-most line contains a single node, and we don't want to

@@ -14,7 +14,7 @@ ps_get_related_lines(line_id, lzy_lines_to_streaks, lzy_concordances)
 \item{lzy_concordances}{Lazy concordances table}
 }
 \value{
-
+A vector of LineIDs
 }
 \description{
 Given a line_id, find the line_ids associated to all related streaks.

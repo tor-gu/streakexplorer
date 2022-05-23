@@ -64,7 +64,7 @@ ps_lines_highlight <- function(lines, lzy_concordances, lzy_lines_to_streaks,
 #' @param lzy_lines_to_streaks  Lazy lines_to_streaks table
 #' @param lzy_concordances Lazy concordances table
 #'
-#' @return
+#' @return A vector of LineIDs
 ps_get_related_lines <- function(line_id, lzy_lines_to_streaks,
                                  lzy_concordances) {
   related_streak_ids <- lzy_lines_to_streaks %>%
