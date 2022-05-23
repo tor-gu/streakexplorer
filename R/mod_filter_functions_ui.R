@@ -184,8 +184,8 @@ filter_ui_generate_league_division_selection <- function(division_table, league)
   )
 
   # Add the choice names
-  if (torgutil::tbl_is_column_value_unique(league_divisions, FirstSeason) &&
-      torgutil::tbl_is_column_value_unique(league_divisions, FinalSeason)) {
+  if (tbl_is_column_value_unique(league_divisions, FirstSeason) &&
+      tbl_is_column_value_unique(league_divisions, FinalSeason)) {
     # All the year ranges are the same, so we don't need to include those
     names(choices) <- purrr::pmap(
       league_divisions, function(League, Division, FirstSeason, FinalSeason) {
@@ -329,7 +329,7 @@ filter_ui_generate_team_selection <- function(franchises) {
     unique() %>%
     dplyr::group_by(FranchiseID) %>%
     dplyr::summarise(Nicknames = stringr::str_c(Nickname, collapse = "/")) %>%
-    torgutil::tbl_as_named_list(FranchiseID, Nicknames)
+    tbl_as_named_list(FranchiseID, Nicknames)
 }
 
 #' filter_ui_filter_by_league_division

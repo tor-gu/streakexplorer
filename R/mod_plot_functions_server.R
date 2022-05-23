@@ -53,8 +53,8 @@ plot_server_get_selected_streak <- function(db_pool, selected_line_id, hot) {
 plot_server_main_plot <- function(highlight_colors, highlighted_lines,
                                   intensity_level_range, max_rank, hot) {
   if (
-    torgutil::tbl_is_column_value_unique(highlighted_lines, Year) &
-    torgutil::tbl_is_column_value_unique(highlighted_lines, Team)
+    tbl_is_column_value_unique(highlighted_lines, Year) &
+    tbl_is_column_value_unique(highlighted_lines, Team)
   ) {
     # For single-team plots, treat the "season" lines like the "base" lines
     highlighting <- tibble::tribble(

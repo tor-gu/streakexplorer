@@ -51,9 +51,9 @@ ps_plot_lines <- function(highlight_colors, lines, min_intensity, max_intensity,
   )
 
   # Get the colors and line widths from the highlighting table
-  colors <- torgutil::tbl_as_named_list(highlighting, color, line_type) %>%
+  colors <- tbl_as_named_list(highlighting, color, line_type) %>%
     unlist()
-  widths <- torgutil::tbl_as_named_list(highlighting, width, line_type)
+  widths <- tbl_as_named_list(highlighting, width, line_type)
 
   # Split the lines by line_type (set in lines_highlight) and group by
   # LineId within each

@@ -29,8 +29,6 @@ Imports:
     shinyjs,
     stringr,
     tibble,
-    torgutil,
-    viridis
 Suggests: 
     dittodb,
     RMariaDB,

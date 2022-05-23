@@ -35,3 +35,30 @@ app_get_theme <- function() {
     font_scale = 0.8
   )
 }
+
+# Utility functions copied from torgutil ----
+#' Check that a column has a unique value
+#'
+#' @param tbl   Data table
+#' @param column_name  Column name (unquoted)
+#'
+#' @return  TRUE or FALSE
+tbl_is_column_value_unique <- function(tbl, column_name) {
+  tbl %>% dplyr::pull({{column_name}}) %>% unique() %>% length()== 1
+}
+
+#' Given a table and two columns, build a named list.
+#'
+#' Build a named list from the \code{value_col} and \code{name_col}. Note
+#' that there is no uniqueness test on the names column.
+#'
+#' @param tbl         Table
+#' @param value_col   Column with list values
+#' @param name_col    Column with list names
+#'
+#' @return A named list
+tbl_as_named_list <- function(tbl, value_col, name_col) {
+  result <- tbl %>% dplyr::pull({{value_col}}) %>% as.list()
+  names(result) <- tbl %>% dplyr::pull({{name_col}}) %>% as.list()
+  result
+}
