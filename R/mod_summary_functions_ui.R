@@ -111,3 +111,23 @@ summary_ui_DT_streak_summary_update <- function(proxy, streaks_summary_data) {
   )
 }
 
+summary_ui_style_tags <- function(id) {
+  # This is the template for forming style entries that look something
+  # like this:
+  #    #summary-game-log td, #summary-game-log th, #summary-game-log
+  #    table {padding: 0; text-align: right}
+  template <- paste("#{id}-{section}", c("table", "td", "th"))  %>%
+    stringr::str_flatten(collapse = ", ") %>%
+    paste("{{padding: 0; text-align: right}}")
+
+  # Here we apply the template to all the sections and add them
+  # to the header
+  tibble::tibble(
+    section = c("game_log", "streak_summary", "standings_before",
+                "standings_after", "standings_final")
+  ) %>%
+    dplyr::mutate(style=glue::glue(template)) %>%
+    dplyr::pull(style) %>%
+    purrr::map(shiny::tags$style) %>%
+    purrr::walk(shiny::tags$head)
+}

@@ -61,12 +61,17 @@ filterUI <- function(id, initial_year_range) {
       shiny::column(3,
                     shiny::checkboxInput(ns("teams_all"), "All", value = TRUE))
     ),
-    shiny::radioButtons(
-      ns("streak_type"),
-      "Streak Type",
-      choices = c("HOT", "COLD"),
-      selected = "HOT"
-    )
+
+    #### Hot/cold selection ----
+    shiny::fluidRow(shiny::column(
+      12,
+      shiny::radioButtons(
+        ns("streak_type"),
+        "Streak Type",
+        choices = c("HOT", "COLD"),
+        selected = "HOT"
+      )
+    ))
   )
 }
 

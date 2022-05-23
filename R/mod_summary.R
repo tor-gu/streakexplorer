@@ -1,6 +1,7 @@
 summaryUI <- function(id) {
   ns <- shiny::NS(id)
   shiny::tagList(
+    summary_ui_style_tags(id),
     #### Selected streak summary ----
     shiny::fluidRow(
       id = ns("summary_row"),

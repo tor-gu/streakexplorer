@@ -1,8 +1,12 @@
 plotUI <- function(id) {
   ns <- shiny::NS(id)
   shiny::tagList(
-    plotly::plotlyOutput(ns("streaks"))
-  )
+    shiny::fluidRow(
+      shiny::column(12,
+                    plotly::plotlyOutput(ns("streaks"))
+                    )
+      )
+    )
 }
 
 plotServer <- function(id, db_pool, highlight_colors, franchises,
