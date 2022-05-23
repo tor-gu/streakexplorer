@@ -51,7 +51,7 @@ test_that("ss_streak_game_log_data works with 'completions'", {
   })
   expected_caption <- "Game Log"
   expected_data <- tibble::tribble(
-    ~`Gm#`, ~Date, ~Opp, ~`W/L`, ~RS, ~RA, ~Completion,
+    ~`Gm#`, ~Date, ~Opp, ~`W/L`, ~RS, ~RA, ~Note,
     100,    "7/26","@SLN", "L",  6,   9,   NA,
     101,    "7/27","@SLN", "L",  0,   6,   NA,
     102,    "7/28","@SLN", "L",  10,  11,  NA,

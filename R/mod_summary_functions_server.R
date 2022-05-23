@@ -191,17 +191,17 @@ ss_streak_game_log_data <- function(lzy_game_logs, streak) {
       `W/L` = Result,
       RS = RunsFor,
       RA = RunsAgainst,
-      Completion = NA
+      Note = NA
     ) %>%
-    dplyr::mutate(Completion = ifelse(!is.na(CompletedOn),
-                                      glue::glue(completed_on_template),
-                                      Completion
+    dplyr::mutate(Note = ifelse(!is.na(CompletedOn),
+                                glue::glue(completed_on_template),
+                                Note
     )) %>%
-    dplyr::mutate(Completion = ifelse(!is.na(CompletionOf),
-                                      glue::glue(completion_of_template),
-                                      Completion
+    dplyr::mutate(Note = ifelse(!is.na(CompletionOf),
+                                glue::glue(completion_of_template),
+                                Note
     )) %>%
-    dplyr::select(`Gm#`:Completion) %>%
+    dplyr::select(`Gm#`:Note) %>%
     dplyr::rename(Date=Dat)
 
   # Assemble the result

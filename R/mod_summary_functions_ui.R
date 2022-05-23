@@ -65,7 +65,7 @@ summary_ui_DT_game_log_init <- function() {
     `W/L` = character(0),
     RS = integer(0),
     RA = integer(0),
-    Completion = character(0)
+    Note = character(0)
   )
   DT::datatable(
     dummy_table,
@@ -111,6 +111,7 @@ summary_ui_DT_streak_summary_update <- function(proxy, streaks_summary_data) {
   )
 }
 
+# Style/header functions ----
 summary_ui_style_tags <- function(id) {
   # This is the template for forming style entries that look something
   # like this:
