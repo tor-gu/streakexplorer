@@ -36,12 +36,14 @@ streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) 
         shiny::fluidPage(
           ## Styling and header ----
           shinyjs::useShinyjs(),
-          shiny::tags$style("#game_log td, th {padding: 0; text-align: right}"),
-          shiny::tags$style("#streak_summary td, th {padding: 0; text-align: right}"),
-          shiny::tags$style("#standings_before td, th {padding: 0; text-align: right}"),
-          shiny::tags$style("#standings_after td, th {padding: 0; text-align: right}"),
-          shiny::tags$style("#standings_final td, th {padding: 0; text-align: right}"),
-
+          shiny::tags$head(
+          shiny::tags$style("#game_log td, game_log th {padding: 0; text-align: right}"),
+          shiny::tags$style("#streak_summary td, #streak_summary th {padding: 0; text-align: right}"),
+          shiny::tags$style("#standings_before td, #standings_before th {padding: 0; text-align: right}"),
+          shiny::tags$style("#standings_after td, #standings_after th {padding: 0; text-align: right}"),
+          shiny::tags$style("#standings_final td, #standings_final th {padding: 0; text-align: right}"),
+          shiny::tags$style("#about td, #about th {padding: 3px; border: 1px solid black;}"),
+          ),
           ## Sidebar layout ----
           shiny::sidebarLayout(
             ### Sidebar ----
@@ -63,7 +65,17 @@ streakexplorerApp <- function(my_pool, initial_year_min, initial_year_max, ...) 
           )
         )
       ),
-      shiny::tabPanel("About", shiny::includeMarkdown("")),
+      shiny::tabPanel(
+        "About",
+        shiny::tags$div(
+          id = "about",
+          shiny::withMathJax(
+            shiny::includeMarkdown(
+              system.file("about.md", package = "streakexplorer")
+              )
+            )
+          )
+        ),
       theme = app_get_theme()
     )
 

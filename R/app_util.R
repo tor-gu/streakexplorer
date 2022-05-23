@@ -30,7 +30,7 @@ app_get_highlight_colors <- function() {
 
 app_get_theme <- function() {
   bslib::bs_theme(
-    bootswatch = "lumen",
+    bootswatch = "cerulean",
     heading_font = "1.2",
     font_scale = 0.8
   )
